@@ -17,7 +17,7 @@
    "evidence": "PH+OT+UN+PD",
    "status": "CORE",
    "card": "I04",
-   "notes": "手冊 p.15 圖 callout \"CH1 Voltage Knob\" 指向左上旋鈕，確認標籤在旋鈕上方。旋鈕歸屬固定 CH1，與 CH1/CH4 顯示切換無關。上限是 32.00 V 還是可到顯示滿刻度 33.00 V 未證實（見 GAP-GPE-03）。；證據細節：PH+OT；步進 UN；方向 PD"
+   "notes": "手冊 p.15 圖 callout \"CH1 Voltage Knob\" 指向左上旋鈕，確認標籤在旋鈕上方。旋鈕歸屬固定 CH1，與 CH1/CH4 顯示切換無關。上限是 32.00 V 還是可到顯示滿刻度 33.00 V 未證實（見 GAP-GPE-03）。；證據細節：PH+OT；步進 UN；方向 PD 旋鈕型式暫定為有端點的 VR（GAP-GPE-03，IX 線索）。"
   },
   {
    "id": "GPE.KNOB.CH1_CURRENT",
@@ -33,7 +33,7 @@
    "evidence": "PH+OT+UN",
    "status": "CORE",
    "card": "I04",
-   "notes": "Lock 是否也鎖電流旋鈕：p.27 只寫 voltage knob，p.19 寫 panel keys（見 GAP-GPE-01）。；證據細節：PH+OT；步進 UN"
+   "notes": "Lock 是否也鎖電流旋鈕：p.27 只寫 voltage knob，p.19 寫 panel keys（見 GAP-GPE-01）。；證據細節：PH+OT；步進 UN 旋鈕型式暫定為有端點的 VR（GAP-GPE-03，IX 線索）。"
   },
   {
    "id": "GPE.KNOB.CH4_VOLTAGE",
@@ -49,7 +49,7 @@
    "evidence": "PH+OT",
    "status": "CORE",
    "card": "I04",
-   "notes": "不得增加 CH4 電流旋鈕。1 A 為額定值，不當成精準保護門檻（02）。；證據細節：PH（部分被遮）+OT"
+   "notes": "不得增加 CH4 電流旋鈕。1 A 為額定值，不當成精準保護門檻（02）。；證據細節：PH（部分被遮）+OT 旋鈕型式暫定為有端點的 VR（GAP-GPE-03，IX 線索）。"
   },
   {
    "id": "GPE.KNOB.CH2_VOLTAGE",
@@ -65,7 +65,7 @@
    "evidence": "PH+OT+PD",
    "status": "CORE",
    "card": "I04",
-   "notes": "Series 下 CH2 Voltage 行為見 GAP-GPE-08。；證據細節：PH+OT；Series 下行為 PD"
+   "notes": "Series 下 CH2 Voltage 行為見 GAP-GPE-08。；證據細節：PH+OT；Series 下行為 PD 旋鈕型式暫定為有端點的 VR（GAP-GPE-03，IX 線索）。"
   },
   {
    "id": "GPE.KNOB.CH2_CURRENT",
@@ -81,7 +81,7 @@
    "evidence": "PH+OT",
    "status": "CORE",
    "card": "I04",
-   "notes": "Series 合併限流與 I1set/I2set 的關係為教學模型（見 GAP-GPE-11）。"
+   "notes": "Series 合併限流與 I1set/I2set 的關係為教學模型（見 GAP-GPE-11）。 旋鈕型式暫定為有端點的 VR（GAP-GPE-03，IX 線索）。"
   },
   {
    "id": "GPE.KNOB.CH3_VOLTAGE",
@@ -97,7 +97,7 @@
    "evidence": "PH+OT",
    "status": "CORE",
    "card": "I04",
-   "notes": "不可用 GPE-3323 的固定 5 V/5 A、5.2 A OverLoad 規則。不得增加 CH3 電流旋鈕。；證據細節：PH（部分被遮）+OT"
+   "notes": "不可用 GPE-3323 的固定 5 V/5 A、5.2 A OverLoad 規則。不得增加 CH3 電流旋鈕。；證據細節：PH（部分被遮）+OT 旋鈕型式暫定為有端點的 VR（GAP-GPE-03，IX 線索）。"
   },
   {
    "id": "GPE.KEY.TRACK_LEFT",
@@ -331,7 +331,7 @@
    "kind": "LCD 圖示",
    "action": "無",
    "function": "手冊提到 OVP 狀態（p.17）與 OVP 觸發自動關輸出（p.25），但全冊無 GPE-4323 的 OVP/OCP 設定方法或門檻；OCP 無任何正文。",
-   "feedback": "本輪保持熄滅。",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：本輪保持熄滅。",
    "range": "未找到",
    "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.25 (PDF 25)",
    "evidence": "OT+UN",
@@ -427,7 +427,7 @@
    "kind": "LCD 圖示",
    "action": "無",
    "function": "手冊提到 OVP 狀態（p.17）與 OVP 觸發自動關輸出（p.25），但全冊無 GPE-4323 的 OVP/OCP 設定方法或門檻；OCP 無任何正文。",
-   "feedback": "本輪保持熄滅。",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：本輪保持熄滅。",
    "range": "未找到",
    "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.25 (PDF 25)",
    "evidence": "OT+UN",
@@ -491,7 +491,7 @@
    "kind": "LCD 圖示",
    "action": "無",
    "function": "p.16 狀態區列出 OTP 圖示，但全冊無說明或觸發條件。",
-   "feedback": "本輪保持熄滅。",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：本輪保持熄滅。",
    "range": "未找到",
    "sources": "M-GPE p.15 (PDF 15)、M-GPE p.16 (PDF 16)",
    "evidence": "OT+UN",
@@ -523,7 +523,7 @@
    "kind": "LCD 圖示列",
    "action": "無",
    "function": "p.15 說明此區為 \"CH3 parameter display area for the GPE-3323\"；p.18 OverLoad 為 \"Output status of CH3 in the GPE-3323\"。GPE-4323 的 CH3 改由第二列 ③ 顯示（p.34）。",
-   "feedback": "GPE-4323 本輪保持熄滅。",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：GPE-4323 本輪保持熄滅。",
    "range": "不適用 GPE-4323",
    "sources": "M-GPE p.15 (PDF 15)、M-GPE p.16 (PDF 16)、M-GPE p.18 (PDF 18)、M-GPE p.34 (PDF 34)",
    "evidence": "OT",
@@ -1131,7 +1131,7 @@
   {
    "id": "GPE-F09",
    "feature": "以已知測試負載展示 CH1／CH2 的 CV／CC",
-   "rule": "儀器外「單機測試情境」提供理想電阻負載（L1）。理想模型：I＝min(V-set/R, I-set)；若 V-set/R < I-set → CV（V＝V-set）；否則 CC（I＝I-set，V＝I-set×R）。L1：5 V、0.1 A，100 Ω → CV 5.00 V/0.050 A；10 Ω → CC 1.00 V/0.100 A。0 Ω／開路需明確處理，不出 NaN。只在 Output ON 時生效。",
+   "rule": "儀器外「單機測試情境」提供理想電阻負載（L1）。理想模型：I＝min(V-set/R, I-set)；若 V-set/R < I-set → CV（V＝V-set）；否則 CC（I＝I-set，V＝I-set×R）。L1（預設掛 CH1，可改選 CH2，0.4 節）：5 V、0.1 A，100 Ω → CV 5.00 V/0.050 A；10 Ω → CC 1.00 V/0.100 A。0 Ω／開路需明確處理，不出 NaN。只在 Output ON 時生效。",
    "source": "M-GPE p.22 (PDF 22)；02 L1",
    "evidence": "OT（模型）+PD（fixture 與數值）",
    "acceptance": "I04-4：100 Ω→10 Ω，CV 轉 CC，讀回 V/I 自洽；空載讀回電流 0。"
@@ -1139,7 +1139,7 @@
   {
    "id": "GPE-F10",
    "feature": "CH3／CH4 獨立、不參與 tracking",
-   "rule": "CH3/CH4 只有電壓設定；Series/Parallel 不改變其設定或輸出；Output ON 且在測試情境的輕載（≤ 額定）下顯示 CV；過載／CC 轉換不列核心，1 A 不當精準門檻。",
+   "rule": "CH3/CH4 只有電壓設定；Series/Parallel 不改變其設定或輸出；Output ON 且在測試情境的輕載（0.4 節：CH3 100 Ω、CH4 1 kΩ，都 ≤ 額定）下顯示 CV；過載／CC 轉換不列核心，1 A 不當精準門檻。",
    "source": "M-GPE p.33 (PDF 33)、M-GPE p.34 (PDF 34)、M-GPE p.35 (PDF 35)、M-GPE p.36 (PDF 36)",
    "evidence": "OT；過載行為 UN",
    "acceptance": "I04-1、I04-5：切換模式前後 CH3/CH4 設定與讀回不變。"
@@ -1147,9 +1147,9 @@
   {
    "id": "GPE-F11",
    "feature": "重設／開機狀態",
-   "rule": "POWER 開機：短暫全段顯示 → 顯示各通道設定；Output＝OFF；模式由兩模式鍵實體狀態決定（PD）；顯示預設 ①、②（PD）；顯示位數 4 位。儀器外提供「重設到已定義狀態」，不宣稱為原廠開機記憶。",
+   "rule": "模擬電源開與儀器外「重設」都回到 GAP-GPE-05 定案值：CH1–CH4 V-set 0.00 V、CH1／CH2 I-set 0.100 A、兩模式鍵彈起（Independent）、LCD ①②、Output OFF、Lock 解除；開機時先全段顯示 1.0 s（GAP-GPE-10）。原廠開機 Output 預設 OFF（p.28）；若模式鍵是機械自鎖，真機開機時會維持實體按下狀態（PD，校機確認）。顯示位數固定 4 位（p.29）。不宣稱為原廠開機記憶。",
    "source": "M-GPE p.23 (PDF 23)、M-GPE p.28 (PDF 28)、M-GPE p.29 (PDF 29)",
-   "evidence": "OT；設定值記憶與預設顯示通道 PD/UN",
+   "evidence": "OT+PD",
    "acceptance": "I04-7：重設後 Output OFF、可再次操作。"
   },
   {
@@ -1237,10 +1237,10 @@
   },
   {
    "id": "GAP-GPE-03",
-   "gap": "旋鈕步進、加速、是否為無限旋轉編碼器或有端點的電位器、上限是否可超過 32 V/3 A（顯示滿刻度 33.00 V、3.200 A）皆未找到。",
+   "gap": "旋鈕步進、加速、是否為無限旋轉編碼器或有端點的電位器、上限是否可超過 32 V/3 A（顯示滿刻度 33.00 V、3.200 A）皆未找到。 IX 線索：GW Instek 2025-05-29 新聞稿（https://www.gwinstek.com/en-global/news_release/detail/20250529_GPE_x32xA ，只看到搜尋摘要）說 GPE-X323A 改用 Encoder Switch 取代 VR 旋鈕，推定原版 GPE-4323 是 VR（有端點的電位器）。",
    "impact": "旋鈕手感與可重現細調（I01-2、I04-1）。",
-   "provisional": "近似：CH1/CH2 電壓每格 10 mV、電流每格 1 mA（對應 4 位顯示解析），CH3/CH4 電壓每格 10 mV；支援聚焦後細調／粗調倍率；上限夾在額定 32 V/3 A/5 V/15 V。儀器外標示「步進為模擬器設定」。",
-   "rationale": "p.45 的 Meter Resolution（10 mV／1 mA）與 p.46 的 Setting/Read back Accuracy 是分開列的（OT）；「顯示解析度不等於精度、也不一定是旋鈕最小步進」出自規劃文件 02，不是手冊原文。",
+   "provisional": "暫定（PD）：旋鈕做成有端點的絕對角度旋鈕，約 300° 行程線性對應 0–額定值（CH1／CH2 0–32 V、0–3 A；CH3 0–5 V；CH4 0–15 V），轉到端點就停；滑鼠拖曳改角度，聚焦後鍵盤細調一次 10 mV／1 mA。儀器外標示「旋鈕型式依搜尋線索推定，步進為模擬器設定」。",
+   "rationale": "p.45 的 Meter Resolution（10 mV／1 mA）與 p.46 的 Setting/Read back Accuracy 是分開列的（OT）；「顯示解析度不等於精度、也不一定是旋鈕最小步進」出自規劃文件 02，不是手冊原文。 旋鈕型式只有 IX 線索（A 版新聞稿），所以仍是 PD。",
    "verify_method": "校機：慢轉一格記錄讀值變化；快轉是否加速；轉到底是否有機械停點；記錄最大可設值。"
   },
   {
@@ -1287,7 +1287,7 @@
    "id": "GAP-GPE-09",
    "gap": "CH3/CH4 的 CC 條件：p.34/p.36 \"When the output current level exceeds the setting value\"，但 CH3/CH4 無電流旋鈕（p.18），「setting value」未定義；Set View 時 CH3/CH4 電流欄顯示什麼也未寫。",
    "impact": "CH3/CH4 過載教學；02 已排除核心。",
-   "provisional": "定案：CH3／CH4 只提供 ≤ 額定的輕載或空載測試，顯示 CV；Set View 時 CH3／CH4 電流欄顯示「---」（不顯示數值，因為沒有電流設定可看）。",
+   "provisional": "定案：CH3／CH4 只提供 ≤ 額定的輕載或空載測試，顯示 CV；Set View 時 CH3／CH4 電流欄顯示「---」（不顯示數值，因為沒有電流設定可看）。 「---」屬共通規則 0.2-5 第 (3) 級（不含文字的 7 段記號）。",
    "rationale": "02：1 A 額定不能當精準保護門檻。",
    "verify_method": "校機：CH3/CH4 接已知負載逐步加大電流記錄 CC 門檻；Set View 拍 LCD。"
   },

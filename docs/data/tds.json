@@ -43,7 +43,7 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "AutoRange：『Displays the Autorange Menu, and activates or deactivates the autoranging function.』持續追蹤訊號並調整設定；選項有 Autoranging、Vertical and Horizontal、Vertical Only、Horizontal Only、Undo Autoranging",
-   "feedback": "啟用時左側 LED 亮",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：啟用時左側 LED 亮",
    "range": "Off／On；開機時一律 inactive",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.19 (PDF 43)；p.77–79 (PDF 101–103)；p.127 (PDF 151)；p.9 面板圖 (PDF 33)",
    "evidence": "PH+OT",
@@ -75,7 +75,7 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays the Save/Recall Menu for setups and waveforms.』Action 有 Save All、Save Image、Save Setup、Save Waveform、Recall Setup、Recall Waveform",
-   "feedback": "右側選單",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：右側選單",
    "range": "Setup 1–10、USB 檔案",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.91–95 (PDF 115–119)",
    "evidence": "PH+OT",
@@ -90,7 +90,7 @@
    "label": "上方英文『Measure』",
    "kind": "按鍵",
    "action": "按一下",
-   "function": "『Displays the automated measurements menu.』最多同時 5 項；核心類型 Freq、Period、Pk-Pk（另有 None）",
+   "function": "『Displays the automated measurements menu.』最多同時 5 項；核心類型 Freq、Period、Pk-Pk（另有 None）；Mean、Cyc RMS 為 APPROX（TDS-F21）；其餘 11 種 OUT",
    "feedback": "右側 5 格，每格顯示 Source／Type／Value；訊息區提示『Push an option button to change its measurement』",
    "range": "16 種量測，最多顯示 5 項",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.12 (PDF 36)；p.26–27 (PDF 50–51)；p.31–34 (PDF 55–58)；p.89 (PDF 113)",
@@ -123,7 +123,7 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays the Help Menu.』內容感應說明、索引、超連結",
-   "feedback": "LCD 顯示說明文字，多功能旋鈕 LED 亮",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 顯示說明文字，多功能旋鈕 LED 亮",
    "range": "—",
    "sources": "P2；M-TDS-13 p.xiv (PDF 22)；p.17 (PDF 41)；p.86 (PDF 110)",
    "evidence": "PH+OT",
@@ -155,7 +155,7 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays the Reference Menu to quickly display and hide reference waveforms stored in the oscilloscope non-volatile memory.』2 通道機只有 RefA、RefB",
-   "feedback": "白色參考波形",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：白色參考波形",
    "range": "RefA、RefB",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.91 (PDF 115)；p.95 (PDF 119)",
    "evidence": "PH+OT",
@@ -171,7 +171,7 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays the Utility Menu.』包括 System Status、Options（Printer Setup、GPIB、Date/Time）、Error Log、Do Self Cal、File Utilities、Language、Data Logging、Limit Test",
-   "feedback": "右側選單",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：右側選單",
    "range": "—",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.101–104 (PDF 125–128)；p.52–54 (PDF 76–78)",
    "evidence": "PH+OT",
@@ -203,7 +203,7 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays the Display Menu.』Type（Vectors/Dots）、Persist、Format（YT/XY）",
-   "feedback": "右側選單",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：右側選單",
    "range": "—",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.83–85 (PDF 107–109)",
    "evidence": "PH+OT",
@@ -267,7 +267,7 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Starts the print operation to a PictBridge compatible printer, or performs the Save function to the USB flash drive.』",
-   "feedback": "Save 功能時左上 LED 亮；USB 存取中螢幕顯示時鐘符號",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：Save 功能時左上 LED 亮；USB 存取中螢幕顯示時鐘符號",
    "range": "Prints／Saves All to Files／Saves Image to File",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.67–69 (PDF 91–93)；p.73 (PDF 97)；p.90 (PDF 114)；p.92 (PDF 116)",
    "evidence": "PH+OT",
@@ -347,7 +347,7 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays waveform math operations menu and toggles the display of the math waveform on and off.』2 通道機可用 CH1+CH2、CH1−CH2、CH2−CH1、CH1×CH2、FFT",
-   "feedback": "Math 波形與 Math 選單",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：Math 波形與 Math 選單",
    "range": "—",
    "sources": "P2；M-TDS-13 p.14 (PDF 38)；p.87–88 (PDF 111–112)；p.55–57 (PDF 79–81)",
    "evidence": "PH+OT",
@@ -603,7 +603,7 @@
    "kind": "按鍵（需按住）",
    "action": "按住",
    "function": "『Displays the trigger waveform in place of the channel waveform while you hold down the Trig View button.』手冊說這是唯一需要按住的鍵；按住時除 print 鍵外其他按鍵停用，旋鈕仍有效",
-   "feedback": "顯示經觸發耦合處理後的觸發訊號",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：顯示經觸發耦合處理後的觸發訊號",
    "range": "—",
    "sources": "P2；M-TDS-13 p.15 (PDF 39)；p.18 (PDF 42)；p.100 (PDF 124)",
    "evidence": "PH+OT",
@@ -715,7 +715,7 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『To use the Probe Check Wizard, push the PROBE CHECK button.』檢查電壓探棒連接、補償與 Attenuation 設定是否一致；完成後除 Probe 選項外，其餘設定恢復原狀",
-   "feedback": "通過時顯示 PASSED，否則顯示指引",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：通過時顯示 PASSED，否則顯示指引",
    "range": "適用 1X、10X、20X、50X、100X 探棒",
    "sources": "P2；M-TDS-13 p.5–6 (PDF 29–30)；p.91 (PDF 115)；p.9 面板圖 (PDF 33)",
    "evidence": "PH+OT",
@@ -833,7 +833,7 @@
    "evidence": "OT+PD",
    "status": "APPROX",
    "card": "I03",
-   "notes": "模擬「電源關→開」＝保留關機前的設定、清除採集（依 p.20；「等 5 秒才保存」不模擬）。這與其他三台「開機回重設狀態」不同，是依本機手冊。M-TDS-13 p.1 (PDF 25) 另說開機時可選螢幕語言（見 GAP-TDS-25）。"
+   "notes": "模擬「電源關→開」＝保留關機前的設定、清除採集（依 p.20；「等 5 秒才保存」不模擬）。這與其他三台「開機回重設狀態」不同，是依本機手冊。M-TDS-13 p.1 (PDF 25) 另說開機時可選螢幕語言（見 GAP-TDS-01）。"
   },
   {
    "id": "TDS.PORT.USB_DEVICE",
@@ -890,7 +890,7 @@
    "softkeys": "頂層：OPT1＝Measure 1（top）、OPT2＝Measure 2（second from top）、OPT3＝Measure 3（middle）、OPT4＝Measure 4（second from bottom）、OPT5＝Measure 5（bottom），每格顯示 Source／Type／Value。子選單：Source、Type、Back",
    "source": "M-TDS-13 p.31 (PDF 55) 步驟 1–16；p.33–34 (PDF 57–58)『Push Source ►CH1』『Push Type ►Pk-Pk』與圖；p.16 (PDF 40) Measure Type 可用旋鈕；p.89 (PDF 113)",
    "evidence": "OT（頂層鍵位、類型）+UN（子選單內 Source／Type／Back 的鍵位）",
-   "status": "CORE：Freq、Period、Pk-Pk、None；其他 13 種 OUT",
+   "status": "CORE：Freq、Period、Pk-Pk、None；APPROX：Mean、Cyc RMS（TDS-F21）；其餘 11 種 OUT",
    "notes": "Default Setup 後所有量測為 Source CH1、Type None（p.127）"
   },
   {
@@ -1395,7 +1395,7 @@
   {
    "id": "TDS-F03",
    "feature": "垂直位置",
-   "rule": "位置旋鈕只移動該通道的波形、接地參考標記與 GND 零伏線，不改量測值。範圍 ±1.8 V（≤200 mV/div）或 ±45 V（>200 mV/div），預設 0 div",
+   "rule": "位置旋鈕只移動該通道的波形、接地參考標記與 GND 零伏線，不改量測值。範圍以 1X 的 V/div 判斷檔位：±1.8 V（≤200 mV/div）或 ±45 V（>200 mV/div），再乘上 Probe 倍率（例如 10X、顯示 1 V/div 時為 ±18 V，GAP-TDS-11）；預設 0 div",
    "source": "M-TDS-13 p.14 (PDF 38)、p.108 (PDF 132)、p.128 (PDF 152)",
    "evidence": "OT+PD（單位與步進見 GAP-TDS-11）",
    "acceptance": "I03-1、I03-3：移動 CH1 位置時 Pk-Pk、Freq 不變；GND 耦合時零伏線跟著移動"
@@ -1406,7 +1406,7 @@
    "rule": "刻度旋鈕依 1-2.5-5 在 5 ns–50 s/div 之間切換，所有通道共用，以螢幕中央為中心縮放。量到的頻率不隨時基改變。停止時縮放已取得的紀錄。≥100 ms/div 且 Auto 時進入 Scan（近似，GAP-TDS-08）",
    "source": "M-TDS-13 p.23 (PDF 47)、p.77 (PDF 101)、p.86–87 (PDF 110–111)、p.110 (PDF 134)",
    "evidence": "OT",
-   "acceptance": "I03-2：S1 在 250 µs/div 與 500 µs/div 下 Freq 都是 1 kHz，畫面週期數約減半"
+   "acceptance": "I03-2：S1 由 500 µs/div 改到 250 µs/div，畫面週期數約由 5 減半為 2.5，Freq 仍為 1 kHz"
   },
   {
    "id": "TDS-F05",
@@ -1438,7 +1438,7 @@
    "rule": "1/2 ►Probe ►Voltage ►Attenuation 以多功能旋鈕選 1X…1000X（預設 10X）。顯示電壓＝探棒後訊號 × 儀器設定。fixture 的實際倍率另外保存：兩者一致時顯示原訊號尺度，不一致時依比例錯讀。不自動校正；AutoSet 不改 Probe",
    "source": "M-TDS-13 p.7 (PDF 31)、p.17 (PDF 41)、p.79–80 (PDF 103–104)、p.105 (PDF 129)、p.107 (PDF 131)",
    "evidence": "OT+PD",
-   "acceptance": "I03-4：S2 實際 10×、儀器 10× 時 Pk-Pk＝原值；儀器改 1× 時讀值為原值的 1/10；按 AutoSet 後 Probe 設定不變"
+   "acceptance": "I03-4：S2 實際 10×、儀器 10× 時 Pk-Pk＝2 V（S2 原值）；儀器改 1× 時讀值為原值的 1/10；按 AutoSet 後 Probe 設定不變"
   },
   {
    "id": "TDS-F09",
@@ -1510,7 +1510,7 @@
    "rule": "Cursor ►Type 選 Time 或 Amplitude，►Source 選 CH1 或 CH2，►Cursor 1／Cursor 2 用多功能旋鈕移動（只在 Cursor 選單顯示時可調）。Time 顯示 Δt、1/Δt、ΔV，時間以觸發點為基準；Amplitude 顯示 ΔV，以接地參考為基準；讀值來自所選通道的採集資料 Source 通道未顯示時，游標與讀值不出現或標示無效（p.106「You must display a channel waveform to … use cursors on it」、p.82；呈現方式依 GAP-TDS-14）。",
    "source": "M-TDS-13 p.26 (PDF 50)、p.36–39 (PDF 60–63)、p.43–44 (PDF 67–68)、p.82–83 (PDF 106–107)",
    "evidence": "OT",
-   "acceptance": "I03-8：S2 以 Time 游標分別放在 CH1、CH2 上升零交越處，Δt 約 125 µs（容差依游標步進）；Type Off 時游標消失；反例：關閉 CH2 後把 Cursor Source 選 CH2，游標與讀值不出現或標示無效，不顯示 0。"
+   "acceptance": "I03-8：S2 以 Time 游標分別放在 CH1、CH2 上升零交越處，Δt＝125 µs ± 10 µs（AutoSet 後 250 µs/div，游標步進 1/25 div＝10 µs）；另在手動 50 µs/div（步進 2 µs）下應精確量到 125 µs；Type Off 時游標消失；反例：關閉 CH2 後把 Cursor Source 選 CH2，游標與讀值不出現或標示無效，不顯示 0。"
   },
   {
    "id": "TDS-F18",
@@ -1632,17 +1632,17 @@
    "ui_treatment": "不列入選擇，或選到時顯示『未納入』，不輸出數值"
   },
   {
-   "item": "電源鍵與開機記憶",
-   "reason": "照片看不到電源鍵，校機開機狀態未知",
-   "ui_treatment": "不模擬電源循環；載入即為已定義的初始狀態（GAP-TDS-19）"
+   "item": "關機前「等 5 秒（p.20）／3 秒（p.95）才保存」的時間條件",
+   "reason": "硬體時序細節，對練習操作順序沒有影響",
+   "ui_treatment": "不模擬等待秒數：模擬電源關→開一律回復關機前設定並清除採集（見 TDS.PWR.ON_OFF、GAP-TDS-19）"
   }
  ],
  "gaps": [
   {
    "id": "GAP-TDS-01",
-   "gap": "LCD 語言與韌體版本。手冊可在 Utility ►Language 選 10 種語言（含 Traditional Chinese），韌體版本在 System Status 顯示（p.102 (PDF 126)、p.xv (PDF 23)）；照片 LCD 全暗",
+   "gap": "LCD 語言與韌體版本。手冊可在 Utility ►Language 選 10 種語言（含 Traditional Chinese），韌體版本在 System Status 顯示（p.102 (PDF 126)、p.xv (PDF 23)）；照片 LCD 全暗；M-TDS-13 p.1 (PDF 25) 另說開機時就可以選螢幕語言，校機前面板又貼了中文，所以校機 LCD 可能是繁中。",
    "impact": "LCD 選單、訊息列、讀值的字樣",
-   "provisional": "LCD 字樣依手冊英文圖（p.10、p.13、p.36 等），並在儀器外標示『LCD 語言暫定英文』；面板固定字樣照照片（中文＋英文）",
+   "provisional": "LCD 字樣依手冊英文圖（p.10、p.13、p.36 等），並在儀器外標示『LCD 語言暫定英文』；面板固定字樣照照片（中文＋英文） 在取得原廠繁中手冊 077-0834-XX 之前，不提供任何中文選單用語（包括儀器外的中英對照），避免把實作者的翻譯當成校機字樣。2026-09-29 以 WebSearch 查 077-0834 繁中手冊，沒有找到公開網址（見 docs/sources.md §3.2）。",
    "rationale": "可引用的只有英文原文，不能從暗螢幕推測中文翻譯",
    "verify_method": "到校按 Utility ►System Status 拍韌體版本，按 Utility ►Language 看語言並拍各核心選單。若是中文，補取原廠繁中使用手冊 077-0834-XX（件號見 M-TDS-13 p.124 (PDF 148)，本次未取得）核對用語"
   },
@@ -1714,7 +1714,7 @@
    "id": "GAP-TDS-10",
    "gap": "AutoSet 如何選刻度。表中 VOLTS/DIV、Horizontal scale、Horizontal position、Trigger slope 都只寫 Adjusted；垂直位置不在表內；判定『有訊號』的門檻也沒寫（p.79–80）",
    "impact": "AutoSet 之後的畫面與讀值",
-   "provisional": "V/div 取最小的 1-2-5 檔，使整個波形在 ±4 div 內；s/div 取能顯示約 2–5 個週期的 1-2.5-5 檔；水平位置 0；Slope Rising；垂直位置不改；fixture 未提供或為 0 V 時視為沒有訊號。Multi-cycle sine 的 Cyc RMS 以第一個完整週期計算（APPROX）；Acquire 固定 Sample、觸發耦合固定 DC（化簡，PD）。",
+   "provisional": "V/div 取最小的 1-2-5 檔，使整個波形在 ±4 div 內；s/div 取「能顯示至少 2 個完整週期」的最快 1-2.5-5 檔（1 kHz → 250 µs/div，畫面約 2.5 週期）；水平位置 0；Slope Rising；垂直位置不改；fixture 未提供或為 0 V 時視為沒有訊號。Multi-cycle sine 的 Cyc RMS 以第一個完整週期計算（APPROX）；Acquire 固定 Sample、觸發耦合固定 DC（化簡，PD）。",
    "rationale": "手冊只描述結果（usable display），演算法需要可重現的教學近似",
    "verify_method": "到校用類似 S1 的訊號按 AutoSet，記錄 V/div、s/div、位置、Slope 與量測項"
   },
@@ -1786,7 +1786,7 @@
    "id": "GAP-TDS-19",
    "gap": "開機狀態與記憶。手冊說關機前等 5 秒（p.20）或 3 秒（p.95）會保存設定，開機時回復；開機時 AutoRange 一律關閉（p.77）；開機時可選語言（p.1）。學校機器上次的設定未知；電源鍵在機殼頂部，照片看不到（p.4 圖）",
    "impact": "首次載入時的狀態",
-   "provisional": "不模擬電源循環；首次載入使用 Appendix E 的值（配合 GAP-TDS-08、09），並標示『不是校機的開機值』",
+   "provisional": "首次載入用 Appendix E 的值（配合 GAP-TDS-08、09），標示「不是校機的開機值」；之後的模擬電源關→開依 p.20 回復關機前設定並清除採集；5 秒／3 秒的保存等待不模擬；開機時 AutoRange 一律關閉（p.77）",
    "rationale": "開機記憶屬 02 的待確認項目",
    "verify_method": "到校開機後不按任何鍵直接拍畫面"
   },
@@ -1829,14 +1829,6 @@
    "provisional": "每筆紀錄 2500 點涵蓋 10 div（p.75、p.110）；取樣間隔＝s/div/250，最快 2 ns（500 MS/s）；更快的時基以內插補滿 2500 點（p.76）；不加雜訊與量化；容差以 1 個取樣間隔、1/25 div 為基礎",
    "rationale": "採用手冊的記錄結構，但不宣稱真機精度",
    "verify_method": "I03 實作者記錄演算法；以 S1、S2 反推驗證"
-  },
-  {
-   "id": "GAP-TDS-25",
-   "gap": "校機 LCD 語言：M-TDS-13 p.1 (PDF 25) 說開機時可選螢幕語言，也可用 Utility ►Language 隨時改；校機前面板有中文貼字，但 LCD 語言未知",
-   "impact": "LCD 選單文字；學生到校看到的可能是中文選單",
-   "provisional": "LCD 用手冊英文；儀器外提供「校機可能設為中文」提醒與對照表（對照表只列本卡 CORE 選單項目）",
-   "rationale": "只有英文手冊，中文選單字樣沒有來源，不能自行翻譯後放進 LCD",
-   "verify_method": "到校拍亮屏選單；若為中文，補一版有來源的中英對照"
   }
  ],
  "discrepancies": [
@@ -1856,7 +1848,7 @@
    "topic": "關機前保存設定的等待時間",
    "a": "M-TDS-13 p.20 (PDF 44)『wait five seconds after the last change』",
    "b": "M-TDS-13 p.95 (PDF 119)『wait three seconds after the last change』",
-   "resolution": "本輪不模擬電源循環，只記錄"
+   "resolution": "不模擬等待秒數；電源循環依 p.20 回復關機前設定（TDS.PWR.ON_OFF）"
   },
   {
    "topic": "HF Reject 觸發耦合的頻率",
@@ -1935,6 +1927,12 @@
    "a": "M-TDS-13 p.76 (PDF 100)：「At 100 ns and faster settings…」",
    "b": "M-TDS-13 p.110 (PDF 134)：「Waveform interpolation is activated for sweep speeds of 100 ms/div and faster」",
    "resolution": "100 ms 疑為 100 ns 誤植；兩者都不直接適用 500 MS/s 的 TDS2001C，模擬器依 GAP-TDS-24 推算。精準取樣仍 OUT。"
+  },
+  {
+   "topic": "停止時畫面可否變化（規劃 02 vs 手冊）",
+   "a": "02 TDS：「停止畫面不能隨外部測試訊號繼續變」；03 I03-6：「Run/Stop 後改 fixture 訊號：凍結的採集不跟著變」",
+   "b": "M-TDS-13 p.112 (PDF 136)：「Frequency counter measures selected trigger source at all times … including when oscilloscope acquisition is halted」",
+   "resolution": "採手冊：只有右下角觸發頻率讀值例外、停止時仍追蹤觸發源；波形紀錄、Measure 欄、游標讀值都凍結。影響 I03-6（驗收要分開看 Measure 欄與觸發頻率讀值）。理由：02 的目的是「凍結的採集不跟著變」，觸發頻率讀值不是採集資料，且手冊明文如此；這是對已核定規格的偏離，列給 reviewer 判斷。"
   }
  ],
  "pages_read": "M-TDS-13（TDS2000C_TDS1000C-EDU_077082600_2013，以全文 .txt 逐頁閱讀）：PDF 9–12（目錄 i–iii、安全摘要 iv）；PDF 21–78（印刷 xiii–xvi、1–54：前言、Help、韌體、慣例、Getting Started、Operating Basics、Understanding Oscilloscope Functions、Application Examples 全部）；PDF 79–81 前段（p.55–57 FFT 開頭）；PDF 87–94（p.63–70 USB，PDF 94 只讀前段）；PDF 97–98（p.73–74 列印）；PDF 99–138（p.75–114 Reference 全章與 Appendix A 規格）；PDF 139–142（p.115–118 探棒附錄，142 只讀前段）；PDF 147–148（p.123–124 Accessories）；PDF 151–152（p.127–128 Appendix E Default Setup）；PDF 155–157（索引 p.131–133）。另外 PDF 5–8、30–33 只看頁首數行（初步定位）。轉成圖片目視的頁：PDF 28、33（另有 400 dpi 的 2 通道面板裁切）、34、35、37、39、57、60、120、132、134、135、151、152。M-TDS-11（TDS2000C_TDS1000C-EDU_071272203_2011）：與 M-TDS-13 全文 diff（99 行差異逐條檢視）；PDF 31、39、41、101、103、120、121、124、128、129、132、134、135、151、152 做文字雜湊比對；PDF 128–129 的 Vertical 文字；轉圖目視 PDF 33（面板裁切）、39、151、152；像素比對 PDF 28、33、34、35、37、39、41、42、57、60、129、152。兩版所有奇數頁頁尾頁碼由腳本擷取比對。照片：P2 原圖；既有裁切 tds_top、tds_mid、tds_left；自行放大裁切：多功能旋鈕與儲存鍵、Probe Check 與 Probe Comp、型號條、BNC 列、Help／Auto Set／單一／Run-Stop、Horiz／Set to Zero、觸發四鍵、自動調整／Ref、垂直 1/Math/2、機頂邊緣、右側邊緣。規劃資料包：00、01、02、03、04、DOWNLOAD_SOURCES.json（05 只 grep 示波器相關行）。沒有讀：M-TDS-13 的 PDF 13–20、82–86、95–96、143–146、149–150、153–154、158–161；其他三台儀器的手冊。"

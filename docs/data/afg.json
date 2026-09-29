@@ -475,7 +475,7 @@
    "kind": "實體鍵",
    "action": "按下",
    "function": "進入 Utility 選單：F1 Memory／F2 Cal.／F3 System／F4 Dual Chan／F5 Counter（p.51）",
-   "feedback": "LCD 軟鍵換成 UTIL 選單",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 軟鍵換成 UTIL 選單",
    "range": "—",
    "sources": "P1；M-AFG p.14, p.40–43, p.51, p.134–143 (PDF 同)",
    "evidence": "PH+OT",
@@ -491,7 +491,7 @@
    "kind": "實體鍵",
    "action": "按下",
    "function": "任意波形設定：F1 Display／F2 Edit／F3 Built in／F4 Output／F5 More",
-   "feedback": "LCD 軟鍵換成 ARB 選單",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 軟鍵換成 ARB 選單",
    "range": "—",
    "sources": "P1；M-AFG p.14, p.37–38, p.45–48, p.149–172 (PDF 同)",
    "evidence": "PH+OT",
@@ -507,7 +507,7 @@
    "kind": "實體鍵",
    "action": "按下",
    "function": "調變：F1 AM／F2 FM／F3 FSK／F4 PM／F5 SUM",
-   "feedback": "LCD 軟鍵換成 MOD 選單",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 軟鍵換成 MOD 選單",
    "range": "—",
    "sources": "P1；M-AFG p.14, p.29–33, p.48, p.64, p.67–105 (PDF 同)",
    "evidence": "PH+OT",
@@ -523,7 +523,7 @@
    "kind": "實體鍵",
    "action": "按下",
    "function": "掃頻：F1 Source／F2 Type／F3 Start／F4 Stop／F5 More",
-   "feedback": "LCD 軟鍵換成 Sweep 選單",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 軟鍵換成 Sweep 選單",
    "range": "—",
    "sources": "P1；M-AFG p.14, p.34, p.49, p.109–117 (PDF 同)",
    "evidence": "PH+OT",
@@ -539,7 +539,7 @@
    "kind": "實體鍵",
    "action": "按下",
    "function": "Burst 選單：F1 N Cycle、F2 Gate（p.121：「To select either N Cycle (F1) or Gate (F2).」）；本輪未納入",
-   "feedback": "LCD 軟鍵換成 Burst 選單",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 軟鍵換成 Burst 選單",
    "range": "—",
    "sources": "P1；M-AFG p.14, p.35, p.50, p.120–121",
    "evidence": "PH+OT",
@@ -635,7 +635,7 @@
    "kind": "USB Type-B",
    "action": "—",
    "function": "PC 遠端控制（p.17, p.182）",
-   "feedback": "遠端連線時面板鍵除 F5 外都鎖住（p.183）",
+   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：遠端連線時面板鍵除 F5 外都鎖住（p.183）",
    "range": "—",
    "sources": "M-AFG p.16–17, p.182–183 (PDF 同)",
    "evidence": "OT",
@@ -779,7 +779,7 @@
    "source": "M-AFG p.27–28, p.32, p.60–61（F1 uHz、F2 mHz、F5 MHz 只有 p.61 截圖一個來源）",
    "evidence": "OT",
    "status": "CORE",
-   "notes": "p.60：「Choose a frequency unit by pressing F1~F5.」p.27：「1 + kHz (F4)」；p.34：「1 + 0 + mHz (F2)」。；已移除誤引的 p.34（那是 Sweep→Start 子選單）"
+   "notes": "p.60：「Choose a frequency unit by pressing F1~F5.」p.27：「1 + kHz (F4)」；p.32：「Hz (F3)」；其餘單位鍵位取自 p.61 截圖。"
   },
   {
    "path": "AMPL →（AMPL 高亮）→ 數字鍵或 ◀▶＋旋鈕 → 單位軟鍵",
@@ -1151,7 +1151,7 @@
    "rule": "FREQ/Rate → 數字 → F1 uHz／F2 mHz／F3 Hz／F4 kHz／F5 MHz 提交。Sine／Square 1 μHz–25 MHz，Ramp 1 μHz–1 MHz，解析度 1 μHz。超出範圍的輸入暫定拒絕，原值保留。",
    "source": "M-AFG p.27, p.60–61, p.208, p.288 (PDF 同)",
    "evidence": "OT；拒絕方式為 PD",
-   "acceptance": "I02-1：輸入 1 kHz（1＋F4），再輸入 1 MHz（1＋F5），LCD 顯示相應改變；I02-5：Ramp 時輸入 2 MHz 被拒絕，Sine 時輸入 25 MHz 被接受。"
+   "acceptance": "I02-1：輸入 1 kHz（1＋F4），再輸入 1 MHz（1＋F5），LCD 顯示相應改變；I02-5：Ramp 時輸入 2 MHz 被拒絕；Preset 後（Sine、3 Vpp、0 V、50 Ω）輸入 25 MHz 被接受；反例：幅度 10 Vpp（50 Ω）時輸入 25 MHz 被拒絕，原頻率保留（GAP-AFG-09）。"
   },
   {
    "id": "AFG-F05",
@@ -1236,7 +1236,7 @@
   {
    "id": "AFG-F15",
    "feature": "未納入的鍵要明示範圍",
-   "rule": "ARB、MOD、Sweep、Burst、UTIL，以及 Pulse、Noise、Duty、Phase、DSO Link，只顯示實際選單名稱與範圍說明，不改狀態，不出現成功訊息。",
+   "rule": "ARB、MOD、Sweep、Burst、UTIL：按下時 LCD 與狀態都不變，只在儀器外顯示範圍說明（含原廠頂層選單名稱）。Waveform 選單裡的 Pulse、Noise 與 CH 選單裡的 Phase、DSO Link 標籤照原廠顯示，按下同樣只在儀器外提示。Square 的 Duty 固定 50%。都不出現成功訊息。",
    "source": "M-AFG p.14, p.29–51 (PDF 同)",
    "evidence": "OT+PD（UI 處理方式）",
    "acceptance": "I02-7、I02-8：逐一按下這些鍵，確認狀態與 descriptor 都沒改變。"
@@ -1269,7 +1269,7 @@
   {
    "item": "ARB（Display／Edit／Built in／Output／More）",
    "reason": "02 未納入 ARB 編輯",
-   "ui_treatment": "按 ARB 顯示頂層名稱與範圍說明，不改狀態"
+   "ui_treatment": "按 ARB 時 LCD 不變，只在儀器外顯示範圍說明（含原廠頂層選單名稱），不改狀態"
   },
   {
    "item": "MOD（AM／FM／FSK／PM／SUM）",
@@ -1289,7 +1289,7 @@
   {
    "item": "UTIL（Memory、Cal.、System：Language／Help／Beep、Dual Chan：Freq Cpl／Ampl Cpl／Tracking／S_Phase、Counter）",
    "reason": "02 必做沒有列入；耦合與追蹤會破壞「兩通道獨立」的驗收",
-   "ui_treatment": "按 UTIL 顯示頂層名稱與範圍說明；耦合與追蹤固定 Off"
+   "ui_treatment": "按 UTIL 時 LCD 不變，只在儀器外顯示範圍說明（含原廠頂層選單名稱）；耦合與追蹤固定 Off"
   },
   {
    "item": "CH1/CH2 → Phase／S_Phase、DSO Link",

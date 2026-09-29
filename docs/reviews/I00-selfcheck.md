@@ -94,16 +94,68 @@
 
 ```text
 $ node scripts/check-control-matrix.mjs
-<<CHECK_OUTPUT>>
+control-matrix: 190 rows in docs/control-matrix.md
+  AFG: 46 (CORE=28 APPROX=2 OUT=13 STATIC=3)
+  TDS: 53 (CORE=27 APPROX=3 OUT=11 STATIC=12)
+  GPE: 47 (CORE=24 APPROX=5 OUT=4 STATIC=14)
+  DMM: 44 (CORE=10 APPROX=2 OUT=16 STATIC=16)
+OK: structure, IDs, codes, sources and photo-derived facts pass. This is NOT an instrument behaviour test.
+(exit 0)
 ```
 
-負向測試（檢查器本身會不會漏）：用刻意破壞的副本各跑一次，全部 exit 1。
+負向測試（`node scripts/check-control-matrix.test.mjs`）：把真正的矩陣刻意改壞，每一種都必須被擋下。
 
-| 破壞方式 | 檢查器輸出 |
-|---|---|
-| 刪掉 `GPE.KNOB.CH3_VOLTAGE` | 硬性檢查失敗：GPE 旋鈕應正好 6 顆（實得 5） |
-| 把 `TDS.KEY.MEASURE` 改成重複的 `TDS.KEY.AUTOSET` | ID 重複 |
-| 把一列狀態改成 `DONE` | 狀態「DONE」不合法 |
-| 把 `DMM.TERM.I_3A` 改成 `DMM.TERM.I_10A` | 硬性檢查失敗：不可出現 10 A 端子 |
+```text
+✓ 刪掉一顆 GPE 旋鈕 → 硬性檢查失敗：GPE.KNOB.* 應正好是 {CH1_VOLTAGE, CH1_CURRENT, CH4_VOLTAGE, CH2_VOLTAGE, CH2_CURRENT, CH3_VOLTAGE}，實得 {CH1_VOLTAGE, CH1_CURRENT, CH4_VOLTAGE, CH2_VOLTAGE, CH2_CURRENT}
+✓ GPE 旋鈕改成 CH3 電流旋鈕 → 硬性檢查失敗：GPE.KNOB.* 應正好是 {CH1_VOLTAGE, CH1_CURRENT, CH4_VOLTAGE, CH2_VOLTAGE, CH2_CURRENT, CH3_VOLTAGE}，實得 {CH1_VOLTAGE, CH1_CURRENT, CH4_VOLTAGE, CH2_VOLTAGE, CH2_CURRENT, CH3_CURRENT}
+✓ GPE 端子順序對調 → 硬性檢查失敗：GPE.TERM.* 表內順序應依照片由左到右：CH4_POS → CH4_NEG → CH1_POS → CH1_NEG → GND → CH2_POS → CH2_NEG → CH3_POS → CH3_NEG
+✓ 重複 ID → L191 TDS.KEY.AUTOSET: ID 與 L178 重複
+✓ 刪掉 TDS CH2 選單鍵 → 硬性檢查失敗：缺少必要列 TDS.KEY.CH2_MENU
+✓ 儀器前綴打錯 → L185 TDZ.KEY.HELP: ID 格式或儀器前綴不符
+✓ 加入 10 A 端子 → 硬性檢查失敗：DMM.TERM.* 應正好是 {SENSE_HI, SENSE_LO, INPUT_HI, INPUT_LO, I_3A}，實得 {SENSE_HI, SENSE_LO, INPUT_HI, INPUT_LO, I_10A}
+✓ 34460A 端子標籤寫 10 A → L571 DMM.TERM.I_3A: 34460A 端子標籤不可出現 10 A
+✓ 非法狀態 → L540 DMM.KEY.NULL: 狀態「DONE」不合法
+✓ 引用未取得的 M-DMM 當來源 → L540 DMM.KEY.NULL: 來源 ID「M-DMM」不在白名單（M-DMM 只能寫成「M-DMM 未取得」）
+✓ CORE 列只有 PD 證據 → L99 AFG.KEY.PRESET: CORE 列至少要有 PH/OT/DS 證據
+✓ TDS 出現 CH3 → 硬性檢查失敗：缺少必要列 TDS.TERM.EXT_TRIG
+12/12 negative cases rejected as expected
+(exit 0)
+```
 
-<<CRITIC_SECTION>>
+## 4. 完整性批評（兩個新 context 批評者）與第二輪修正
+
+需求覆蓋批評者回報 10 條、一致性批評者回報 16 條（合計 must-fix 5、should-fix 21，兩者有重疊）。全部採納，合併成下列修正：
+
+| 編號 | 等級 | 問題 | 修正 |
+|---|---|---|---|
+| R2-01 | must-fix | TDS 電源鍵兩套規格 | 統一為 APPROX：回復關機前設定、清除採集；改 out_of_scope、GAP-TDS-19、差異列與共通 0.1 |
+| R2-03 | should-fix | Measure 可選類型三處不一致 | 選單列與 MEASURE 列改為 3 CORE＋2 APPROX＋11 OUT，與 TDS-F21 一致 |
+| R2-04 | should-fix | 02 與 p.112 的偏離未記錄 | 新增差異列，寫明新舊行為、影響 I03-6 與理由 |
+| R2-05 | should-fix | LCD 上的無來源字樣與共通規則衝突 | 共通規則改為三級；GAP-DMM-06 改中性記號、OPEN 列為 IX 級、Shift 指示移到儀器外、GPE「---」註明級別 |
+| R2-08 | should-fix | 繁中手冊未查、GAP-TDS-25 會提供無來源中文 | 已 WebSearch（未找到）；刪除重複的 GAP-TDS-25 併入 GAP-TDS-01，不提供中文用語 |
+| R2-09 | should-fix | A 版新聞稿的 VR 線索沒進 GAP-GPE-03 | 補 IX 線索與網址；暫定模型改為有端點的絕對角度旋鈕（PD） |
+| R2-10 | should-fix | 共通規則說 GPE／34460A 手冊沒寫開機記憶；韌體列交叉引用不完整；蜂鳴器規則與導通提示音衝突 | 改寫三處 |
+| R2-12 | should-fix | AutoSet s/div 規則有兩解；S2 游標容差未定 | 定為「至少 2 週期的最快檔」（1 kHz→250 µs/div）；游標驗收寫明時基與 ±10 µs |
+| R2-13 | should-fix | TDS-F04 驗收方向寫反 | 已改 |
+| R2-14 | should-fix | 多條驗收依賴未定的 fixture 參數 | 共通新增 0.4 節暫定參數表（PD），並改寫 DMM-F04／F05／F07、GPE-F09／F10、TDS-F08 驗收 |
+| R2-15 | should-fix | GPE-F11 與 GAP-GPE-05 的開機模式矛盾 | 統一為兩模式鍵彈起，F11 補 V-set／I-set 值 |
+| R2-16 | should-fix | OUT 鍵的 LCD 行為與共通規則不一致 | 共通規則寫明 LCD 不變；36 列 OUT 的可見回饋改寫為「模擬器／原廠」兩段；AFG-F15、out_of_scope 同步 |
+| R2-17 | should-fix | FREQ 選單備註仍留誤引 | 改寫，只引 p.60、p.27、p.32、p.61 |
+| R2-18 | should-fix | AFG-F04 驗收缺前提 | 加 Preset 前提與 10 Vpp 反例 |
+| R2-20 | should-fix | TDS-F03 範圍沒乘探棒倍率 | 已改寫 |
+| R2-02 | must-fix | 交接單指向不存在的 `I00-record.md` | 新增 `docs/reviews/I00-record.md`（待審 commit、檔案 SHA-256、I00-1～5 案例表） |
+| R2-06 | should-fix | `sources.md` 沒有頁碼欄、IX 網址被截斷或缺漏 | §3 重寫：加頁碼欄，所有網址寫全，查不到的寫「URL 未記錄」 |
+| R2-07 | should-fix | 把「不下載第三方副本」寫成規則；第三方網域沒實測 | 改寫為實作者決策（PD）並引用 04 原文；實測 batronix、docs.rs-online 等 6 個網域，全部 403 |
+| R2-11 | should-fix | 檢查器只數數量、會放過錯誤矩陣 | 改為比對確切集合與照片順序、必要列、前綴、來源白名單；新增 12 個負向案例（第 3 節） |
+
+**批評者自述未核對：**
+
+- 需求覆蓋批評者：- **Photos:** I did not open or zoom into P1 or P2. Control positions, counts, labels and coordinates are taken from the implementer's JSON photo_checks.<br>- **Page citations:** I did not check every cited page line by line; I only spot-checked the quotes listed. I did not look at the rendered manual pages to confirm text-layer versus glyph differences, such as the TDS 500 ms default.<br>- **Web:** I did not open any IX or external URL, and made no web requests.<br>- **New commit:** I did not review docs/reviews/I00-selfcheck.md, which the new HEAD 5948b9f adds.<br>- **Other aspects:** I did not re-verify the numeric correctness of each spec item (for example the AFG 20–25 MHz boundary or the TDS horizontal-position table) or the design quality of individual provisional algorithms. This pass covered requirements coverage and internal consistency only.
+- 一致性批評者：- 沒有開照片 P1、P2，面板座標、中文貼字、端子顏色都沒有目視核對。<br>- 沒有渲染任何 PDF 頁面，例如 AFG p.289 offset 準確度的字形是 10 mV 還是 20 mV、各頁截圖內容。<br>- 沒有逐條核對所有頁碼引用，只抽查 AFG p.32、34、288、289，TDS p.1、20、89、112，GPE p.42、45，D-DMM p.11、12、21。<br>- 沒有核對 menus 表中 GPE、DMM 各列相對手冊的完整性。<br>- pages_read 的自述閱讀範圍沒有驗證。<br>- 01、05 沒有讀；06、00 只讀到與 I00 相關的部分。<br>- sources.md 裡的官方網址、版次無法連網驗證（網域被封鎖）。<br>- I00-selfcheck.md 屬於 d2ab3a7 之後的 commit，只略讀，用來判斷問題的成因。<br>- AFG 非正弦 Vrms／dBm 公式、TDS Auto 等待時間公式這類 PD 數值是否合適，沒有評估，只檢查了是否自洽。
+
+## 5. 仍然存在的限制（誠實列出）
+
+- 所有核對都是對手冊文字與兩張照片；**沒有接觸任何校機**，也還沒有應用程式。
+- 34460A 的操作手冊（M-DMM）沒有取得：軟鍵頁、Shift 流程、Null 保存策略、超量程字樣都是 PD／UN，只在 I05 以近似實作並標示。
+- GPE Lock 的原廠說法互相矛盾，只能暫採 p.27 並標近似；GPE 旋鈕型式只有 IX 線索。
+- 驗證者與批評者都是實作者派出的子代理；這份紀錄不是 06 要求的獨立 REVIEW。

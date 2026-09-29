@@ -58,7 +58,8 @@ I01 注意：專案若自己鎖定 `@playwright/test` 版本，要跟 1.56.x 相
 | `curl` 下載 Keysight Operating and Service Guide（`www.keysight.com/.../9018-03876.pdf`） | `CONNECT tunnel failed, response 403`；proxy 狀態記為 `connect_rejected www.keysight.com:443` |
 | `curl` 探測 gwinstek.com、tek.com、download.tek.com、keysight.com、literature.cdn.keysight.com、manualslib.com 等 | 全部連不上（000／403） |
 | WebFetch（伺服器端）讀 keysight.com、literature.cdn.keysight.com、gwinstek.com、tek.com | 全部 `EGRESS_BLOCKED` |
-| WebSearch | 可用，但只有標題、網址與摘要，不是手冊正文 |
+| `curl` 探測第三方副本網域 batronix.com、docs.rs-online.com、tme.eu、xdevs.com、newark.com、assets.testequity.com | 全部 `CONNECT … 403` |
+| WebSearch | 可用，但只有標題、網址與摘要，不是手冊正文。另查了 TDS 繁中手冊 077-0834-XX、GPE-4323 中文手冊、34460A 繁中手冊，都沒有找到公開網址 |
 
 結論：目前環境的網路政策擋住三家原廠網域，所以 34460A 完整操作手冊（M-DMM）**仍未取得**。搜尋得到的官方網址／版本只當「IX 索引定位」，詳見 `docs/sources.md`。
 要解除的話，使用者可以在雲端環境設定（session 標題列的環境選單 → Edit → Network access）放寬存取，或把 `www.keysight.com` 等網域加進允許清單；也可以直接把 PDF 上傳到下一個 session。
