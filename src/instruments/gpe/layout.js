@@ -2,6 +2,9 @@
 const knob = (sub, extra = {}) => ({ shape: 'knob', r: 16, sub, subFs: 6.5, subGap: 5, ...extra });
 const key = (label, extra = {}) => ({ shape: 'key', label, w: 30, h: 14, fs: 6, ...extra });
 const post = (color, label, extra = {}) => ({ shape: 'post', r: 11, color, label, ly: -15, fs: 6.5, y: 920, ...extra });
+// 模式鍵圖例的鍵狀態小圖示（照片／p.15、p.26）：高方塊＝彈起、低扁塊＝按下
+const leg = (x, y, up) => `<rect x="${x - 2.5}" y="${y - (up ? 3.4 : 1.4)}" width="5" height="${up ? 3.4 : 1.4}" fill="#222"/>` +
+  `<line x1="${x - 3.6}" y1="${y + 0.4}" x2="${x + 3.6}" y2="${y + 0.4}" stroke="#222" stroke-width=".5"/>`;
 
 export default {
   viewBox: [85, 646, 545, 322],
@@ -15,9 +18,12 @@ export default {
     <text x="429" y="674" font-size="8.5" font-weight="700" fill="#fff">CH1</text>
     <text x="575" y="674" font-size="8.5" font-weight="700" fill="#fff">CH2</text>
     <rect x="462" y="700" width="86" height="58" rx="3" fill="none" stroke="#6b7278"/>
-    <text x="505" y="712" font-size="5.5" fill="#222">Series / Parallel</text>
-    <text x="505" y="752" font-size="5.5" fill="#222">Independent</text>
-    <text x="440" y="884" font-size="5" fill="#222">— : Long Push</text>
+    <text x="503.5" y="709" font-size="5.5" fill="#222">Series</text>${leg(482, 708, true)}${leg(525, 708, false)}
+    <text x="503.5" y="718" font-size="5.5" fill="#222">Parallel</text>${leg(482, 717, false)}${leg(525, 717, false)}
+    <text x="503.5" y="753" font-size="5.5" fill="#222">Independent</text>${leg(482, 752, true)}${leg(525, 752, true)}
+    <text x="463" y="881" font-size="5" fill="#222">LOCK</text><line x1="457" y1="882.6" x2="469" y2="882.6" stroke="#222" stroke-width=".5"/>
+    <style>.panel-gpe .ctl.active .cap{fill:#8d949b!important;stroke:#30353a;stroke-width:1.4;transform-box:fill-box;transform-origin:center;transform:scale(.86)}</style>
+    <text x="433" y="886" font-size="5" fill="#222">— : Long Push</text>
     <rect x="240" y="938" width="232" height="16" rx="2" fill="#2f6fb8"/>
     <text x="300" y="949" font-size="5.5" fill="#fff">COM   SERIES OUTPUT</text>
     <text x="410" y="949" font-size="5.5" fill="#fff">PARALLEL OUTPUT</text>
