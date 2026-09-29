@@ -49,7 +49,7 @@ export function startApp(root) {
     applyZoom();
     root.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === cur)));
     hintbar.className = 'hintbar';
-    hintbar.textContent = '點按鍵或拖曳旋鈕操作；旋鈕聚焦後可用 ↑↓←→ 微調。灰色鍵是本輪未納入的功能，按了只會在這裡說明。';
+    hintbar.textContent = '點按鍵或拖曳旋鈕操作；旋鈕聚焦後可用 ↑↓←→ 微調；需要長按的鍵按住 0.8 秒（鍵盤 Shift+Enter）。灰色鍵是本輪未納入的功能，按了只會在這裡說明。';
     refresh();
   }
 
@@ -112,6 +112,8 @@ export function startApp(root) {
 
   // ---- 事件：按鍵（滑鼠／觸控／鍵盤）與旋鈕（拖曳／方向鍵） ----
   let drag = null;
+  let downAt = 0;
+  const LONG_MS = 800; // 按住超過這個時間＝長按（例：GPE Set View 長按＝Lock）
   host.addEventListener('pointerdown', (e) => {
     const el = e.target.closest('.ctl[tabindex]');
     if (!el) return;
@@ -122,6 +124,7 @@ export function startApp(root) {
       el.classList.add('turning');
     } else {
       el.classList.add('pressed');
+      downAt = performance.now();
     }
     e.preventDefault();
   });
@@ -141,7 +144,10 @@ export function startApp(root) {
     if (drag) return endDrag();
     const el = e.target.closest('.ctl.pressed');
     host.querySelectorAll('.pressed').forEach((p) => p.classList.remove('pressed'));
-    if (el) act(el.dataset.id, () => models[cur].press(el.dataset.id));
+    if (el) {
+      const long = performance.now() - downAt >= LONG_MS;
+      act(el.dataset.id, () => models[cur].press(el.dataset.id, { long }));
+    }
   });
   host.addEventListener('pointercancel', () => { endDrag(); host.querySelectorAll('.pressed').forEach((p) => p.classList.remove('pressed')); });
   host.addEventListener('keydown', (e) => {
@@ -153,7 +159,8 @@ export function startApp(root) {
       if (dir) { turn(id, dir); e.preventDefault(); }
       return;
     }
-    if (e.key === 'Enter' || e.key === ' ') { act(id, () => models[cur].press(id)); e.preventDefault(); }
+    // Enter／空白鍵＝按一下；Shift+Enter＝長按
+    if (e.key === 'Enter' || e.key === ' ') { act(id, () => models[cur].press(id, { long: e.shiftKey })); e.preventDefault(); }
   });
 
   function turn(id, dir) {
