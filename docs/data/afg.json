@@ -1,0 +1,1565 @@
+{
+ "instrument": "GW Instek AFG-2225 Arbitrary Function Generator（雙通道 CH1/CH2，25 MHz；P1 上層）。只用 M-AFG＝AFG-2225_User_Manual_EN_VerB.pdf（307 頁，SHA-256 79b684d4…8d40）與 P1 照片；未混用其他 AFG 型號。",
+ "page_map": "M-AFG：印刷頁＝PDF 頁序（全 307 頁，無偏移）。實際核對例：PDF 13 頁面印「13」(Panel Overview)、PDF 18 印「18」(Display)、PDF 52 印「52」(Default Settings)、PDF 60 印「60」(Setting the Frequency)、PDF 144 印「144」(CHANNEL SETTINGS)、PDF 214 印「214」(OUTPut[1|2])、PDF 288 印「288」(AFG-2225 Specifications)、PDF 289 印「289」(Offset)、PDF 306–307 印「306/307」(INDEX)；目錄 PDF 3 所列頁碼（例 Default Settings 52、Channel Settings 144、Specifications 288）與實際頁一致。PDF 1 封面、PDF 2 版權頁不印頁碼。版本：封面只印「User Manual／GW INSTEK PART NO.」（料號空白），手冊本身未印版次；「Ver.B、2020-03-13」只來自 04／DOWNLOAD_SOURCES.json 的原廠下載索引（https://www.gwinstek.com/zh-TW/download/index?cate=0&down=0&key=AFG-2225&ser=0&subcate=0；檔案來源 https://www.gwinstek.com/en-IN/products/downloadSeriesDownNew/5260/440），本次未能連網重新核對。PDF metadata：Title「AFG-2225 Series User Manual」、ModDate 2020-03-05。本地 SHA-256 79b684d4f7480d0dfed7a502908af79b297db975b7e336881d066c2e030b8d40 與 DOWNLOAD_SOURCES.json 相同。P1 SHA-256 1b0f1643…3291 與 PHOTO_ORIGINS.json 相同。本文件的引用格式為「M-AFG p.N (PDF N)」；照片座標以原圖 768×1024 像素計。",
+ "photo_checks": "型號：P1 上層印「GW INSTEK AFG-2225 Arbitrary Function Generator」，與 M-AFG p.13 (PDF 13) 面板圖一致（PH+OT）。通道數：2（OUTPUT 區有 CH1、CH2 兩個 BNC，上 CH1、下 CH2，各印接地符號與「50Ω」）。旋鈕數：1（右上大旋鈕，無印字，位於深灰凹框內，下方有 ◀ ▶ 兩鍵）。按鍵共 33 顆：F1–F5 加 Return（6，LCD 右側縱列）；數字鍵 12 顆（7 8 9／4 5 6／1 2 3／0 •  +/-）；◀ ▶（2）；CH1/CH2（1，只有一顆切換鍵，不是 CH1、CH2 兩顆）；OUTPUT（1，淺藍色）；上排深灰鍵 Waveform、FREQ/Rate、AMPL、DC Offset、UTIL（5）；下排淺藍灰鍵 ARB、MOD、Sweep、Burst，加上綠色 Preset（5）；POWER（1，下方左「▂ I」、右「▆ ○」圖示）。端子：前面板只有 2 個 BNC 輸出。前面板沒有 USB 口，也沒有 Trigger／MOD／Counter 端子（手冊 p.16–17 標示這些在後面板，照片未見）。沒看到任何 LED 指示燈。AFG 面板沒有中文貼面，也沒有 Shift 次標籤。LCD 全暗，因此無法證明開機畫面、選單語言或預設值。FREQ/Rate 的斜線在照片解析度下不清楚（看起來像「FREQ Rate」），依手冊 p.13 面板圖定為「FREQ/Rate」。照片的布局與 p.13 面板圖逐顆相符。",
+ "controls": [
+  {
+   "id": "AFG.MISC.MODEL_LABEL",
+   "group": "品牌型號標示",
+   "photo_location": "P1 上層 AFG 左上，LCD 上方深色框內，原圖約 x75–340, y60–75",
+   "label": "GW INSTEK  AFG-2225  Arbitrary Function Generator",
+   "kind": "固定標籤",
+   "action": "無",
+   "function": "識別機型為 AFG-2225",
+   "feedback": "無",
+   "range": "—",
+   "sources": "P1；M-AFG p.13 (PDF 13) 面板圖",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "I02",
+   "notes": "手冊面板圖印同樣字樣。不可沿用其他 AFG 系列的規格。"
+  },
+  {
+   "id": "AFG.LCD.MAIN",
+   "group": "LCD 與軟鍵",
+   "photo_location": "P1 上層 AFG 左半，原圖約 x90–325, y85–275（全暗）",
+   "label": "無印字（LCD 暗）",
+   "kind": "LCD（3.5 吋 TFT 320×240）",
+   "action": "無（顯示）",
+   "function": "顯示 Status Tabs（CH1/CH2、ON/OFF、負載如「50Ω」）、Parameter Windows（FREQ／AMPL／Offset／Phase）、Waveform Display（波形示意，標註 Ampl、DC Offset、1/FREQ；編輯時下方紅框顯示數值與游標位數）、Soft Menu 標籤（對應 F1–F5）",
+   "feedback": "兩通道參數同時顯示；被選中的參數以紅字高亮。截圖格式例：「CH1 ON 50Ω」「FREQ: 1.000000 kHz」「AMPL: 3.000 VPP」「Offset: 0.00 VDC」「Phase: 0.0 °」；編輯框例「1.000000000 kHz」「3.000 VPP」「0.00VDC」「50.0%」",
+   "range": "320×240",
+   "sources": "P1；M-AFG p.12, p.13, p.18, p.23, p.55–63 截圖 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "照片 LCD 全暗，不能證明開機畫面、語言或預設值。UTIL→System→Language 有 English／中文（p.51），校機語言未知（UN）。截圖中 CH1 分頁為亮黃色、CH2 淡藍且參數灰字，推定代表目前選取的通道（PD）。「1/FREQ」只是波形區的圖示標註，不得新增 Period 欄位。High Z 時 status tab 的字樣 UN。；證據細節：PH（存在、位置、全暗）+OT（區塊配置與截圖格式）；卡別細節：I02（LCD 顯示元件 I01）"
+  },
+  {
+   "id": "AFG.SOFT.F1",
+   "group": "LCD 與軟鍵",
+   "photo_location": "P1 AFG，LCD 右側縱列第 1 顆，原圖約 (371,111)",
+   "label": "F1",
+   "kind": "軟鍵（螢幕旁）",
+   "action": "按下",
+   "function": "執行 LCD 右側第 1 格軟鍵：Waveform 選單＝Sine；FREQ/Rate＝uHz；AMPL＝dBm；DC Offset＝mVDC；Ramp 子選單＝SYM；CH1/CH2 選單＝Load；Load 子選單＝50 OHM；Square 子選單＝Duty（OUT）；Pulse 子選單＝Width（OUT）",
+   "feedback": "LCD 軟鍵標籤；選波形時波形區改變；按單位鍵時提交數值並顯示單位",
+   "range": "依選單",
+   "sources": "P1；M-AFG p.13, p.18, p.23, p.55, p.58, p.60–62, p.144–145 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "p.23：「the function key F1 corresponds to the Soft key 'Sine'」。；卡別細節：I02（軟鍵元件 I01）"
+  },
+  {
+   "id": "AFG.SOFT.F2",
+   "group": "LCD 與軟鍵",
+   "photo_location": "P1 AFG，LCD 右側縱列第 2 顆，原圖約 (372,144)",
+   "label": "F2",
+   "kind": "軟鍵（螢幕旁）",
+   "action": "按下",
+   "function": "Waveform 選單＝Square；FREQ/Rate＝mHz；AMPL＝mVRMS；DC Offset＝VDC；Ramp／Square 子選單＝%；Load 子選單＝High Z；CH1/CH2 選單第 2 格（手冊未標示，UN）",
+   "feedback": "同 F1",
+   "range": "依選單",
+   "sources": "P1；M-AFG p.27, p.56, p.59, p.61–62, p.145 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "CH1/CH2 選單的 F2 在手冊中是空白或未說明，暫定無動作（PD）。；卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.SOFT.F3",
+   "group": "LCD 與軟鍵",
+   "photo_location": "P1 AFG，LCD 右側縱列第 3 顆，原圖約 (371,177)",
+   "label": "F3",
+   "kind": "軟鍵（螢幕旁）",
+   "action": "按下",
+   "function": "Waveform 選單＝Pulse（本輪 OUT）；FREQ/Rate＝Hz；AMPL＝VRMS；DC Offset 選單＝空白；Pulse 子選單＝uSEC（OUT）",
+   "feedback": "同 F1；Pulse 顯示範圍說明",
+   "range": "依選單",
+   "sources": "P1；M-AFG p.18, p.57–58, p.61–62 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "Pulse 參數本輪未納入，但軟鍵保留。；卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.SOFT.F4",
+   "group": "LCD 與軟鍵",
+   "photo_location": "P1 AFG，LCD 右側縱列第 4 顆，原圖約 (371,208)",
+   "label": "F4",
+   "kind": "軟鍵（螢幕旁）",
+   "action": "按下",
+   "function": "Waveform 選單＝Ramp；FREQ/Rate＝kHz；AMPL＝mVPP；CH1/CH2 選單＝Phase（OUT）",
+   "feedback": "同 F1",
+   "range": "依選單",
+   "sources": "P1；M-AFG p.27, p.58, p.61–62, p.145 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "p.27：「Press the Waveform key, and select Ramp (F4)」「1 + 0 + kHz (F4)」。；卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.SOFT.F5",
+   "group": "LCD 與軟鍵",
+   "photo_location": "P1 AFG，LCD 右側縱列第 5 顆，原圖約 (370,241)",
+   "label": "F5",
+   "kind": "軟鍵（螢幕旁）",
+   "action": "按下",
+   "function": "Waveform 選單＝Noise（OUT）；FREQ/Rate＝MHz；AMPL＝VPP；CH1/CH2 選單＝DSO Link（OUT）；Pulse 子選單＝SEC（OUT）",
+   "feedback": "同 F1",
+   "range": "依選單",
+   "sources": "P1；M-AFG p.27–28, p.59, p.61–62, p.147 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "p.27：「Press AMPL followed by, 3 + VPP (F5)」。；卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.KEY.RETURN",
+   "group": "LCD 與軟鍵",
+   "photo_location": "P1 AFG，F5 下方，原圖約 (369,271)",
+   "label": "Return",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "回到上一層選單。p.13：「Goes back to the previous menu level.」p.44：「Pressing the Return key will return you to the previous menu level.」",
+   "feedback": "LCD 軟鍵標籤回到上一層",
+   "range": "—",
+   "sources": "P1；M-AFG p.13, p.26, p.44 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02",
+   "notes": "按 Return 時未提交的數字輸入是否生效：UN（GAP-AFG-03），暫定捨棄。在最上層按 Return 的行為：UN。"
+  },
+  {
+   "id": "AFG.NUM.DIGIT_7",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 1 列左，原圖約 (432,90)",
+   "label": "7",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "把數字 7 輸入到目前高亮參數的編輯值；接著用單位軟鍵提交",
+   "feedback": "LCD 編輯框顯示輸入中的值（暫定）",
+   "range": "—",
+   "sources": "P1；M-AFG p.15, p.24, p.27–28, p.60–62 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "p.24：「the number pad can be used to set the value of a highlighted parameter」。提交語義見 GAP-AFG-03。；卡別細節：I02（數字輸入 I01）"
+  },
+  {
+   "id": "AFG.NUM.DIGIT_8",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 1 列中，原圖約 (470,90)",
+   "label": "8",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "輸入數字 8（同 DIGIT_7）",
+   "feedback": "同 DIGIT_7",
+   "range": "—",
+   "sources": "P1；M-AFG p.15, p.24 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.NUM.DIGIT_9",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 1 列右，原圖約 (508,90)",
+   "label": "9",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "輸入數字 9",
+   "feedback": "同 DIGIT_7",
+   "range": "—",
+   "sources": "P1；M-AFG p.15, p.24 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.NUM.DIGIT_4",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 2 列左，原圖約 (430,129)",
+   "label": "4",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "輸入數字 4",
+   "feedback": "同 DIGIT_7",
+   "range": "—",
+   "sources": "P1；M-AFG p.15, p.24 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.NUM.DIGIT_5",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 2 列中，原圖約 (467,129)",
+   "label": "5",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "輸入數字 5",
+   "feedback": "同 DIGIT_7",
+   "range": "—",
+   "sources": "P1；M-AFG p.15, p.24, p.27 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "p.27 範例：SYM(F1)，5 + 0 + %(F2)。；卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.NUM.DIGIT_6",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 2 列右，原圖約 (505,129)",
+   "label": "6",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "輸入數字 6",
+   "feedback": "同 DIGIT_7",
+   "range": "—",
+   "sources": "P1；M-AFG p.15, p.24 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.NUM.DIGIT_1",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 3 列左，原圖約 (429,166)",
+   "label": "1",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "輸入數字 1",
+   "feedback": "同 DIGIT_7",
+   "range": "—",
+   "sources": "P1；M-AFG p.15, p.24, p.27 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "p.27：「Press Freq/Rate, 1 + kHz (F4)」。；卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.NUM.DIGIT_2",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 3 列中，原圖約 (466,166)",
+   "label": "2",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "輸入數字 2",
+   "feedback": "同 DIGIT_7",
+   "range": "—",
+   "sources": "P1；M-AFG p.15, p.24 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.NUM.DIGIT_3",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 3 列右，原圖約 (503,166)",
+   "label": "3",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "輸入數字 3",
+   "feedback": "同 DIGIT_7",
+   "range": "—",
+   "sources": "P1；M-AFG p.15, p.24, p.27 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.NUM.DIGIT_0",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 4 列左，原圖約 (427,202)",
+   "label": "0",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "輸入數字 0",
+   "feedback": "同 DIGIT_7",
+   "range": "—",
+   "sources": "P1；M-AFG p.15, p.24 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.NUM.DOT",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 4 列中，原圖約 (464,202)",
+   "label": "•（圓點）",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "輸入小數點",
+   "feedback": "同 DIGIT_7",
+   "range": "每個數值只能有 1 個小數點（PD）",
+   "sources": "P1；M-AFG p.15, p.24 (PDF 同)",
+   "evidence": "PH+OT+PD",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "手冊只把整個鍵盤統稱為輸入數值用，沒有單獨描述小數點鍵。；證據細節：PH+OT（存在）+PD（功能）；卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.NUM.PLUS_MINUS",
+   "group": "數字鍵盤",
+   "photo_location": "P1 AFG 數字鍵盤第 4 列右，原圖約 (500,202)",
+   "label": "+/-（斜排印成 ⁺/₋）",
+   "kind": "數字鍵",
+   "action": "按下",
+   "function": "暫定：切換輸入中數值的正負號，用於 DC Offset 負值（PD）",
+   "feedback": "LCD 編輯框數值前出現或消失負號（暫定）",
+   "range": "只對可為負的參數有意義（Offset；Phase 本輪 OUT）",
+   "sources": "P1；M-AFG p.15, p.24 (PDF 同)",
+   "evidence": "PH+OT+PD",
+   "status": "APPROX",
+   "card": "I02/I01",
+   "notes": "手冊有畫出此鍵，但沒有文字說明其功能（GAP-AFG-12）。Offset 範圍 ±5 Vpk／±10 Vpk（p.63），因此需要負值輸入。；證據細節：PH+OT（存在）+PD（功能）；卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.KNOB.SCROLL_WHEEL",
+   "group": "旋鈕與方向鍵",
+   "photo_location": "P1 AFG 右上大旋鈕（深灰凹框內），原圖約 (578,95)",
+   "label": "無印字",
+   "kind": "旋鈕",
+   "action": "順時針／逆時針旋轉",
+   "function": "編輯目前高亮參數的游標所在位數；p.23：「Clockwise increases the value, counter clockwise decreases the value.」也用於在清單中選項目（Memory、Help 等，本輪 OUT）",
+   "feedback": "LCD 參數值與編輯框即時變化（立即生效與否 UN）",
+   "range": "受該參數的範圍與聯合限制約束",
+   "sources": "P1；M-AFG p.13, p.15, p.23, p.25, p.40 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "p.15 稱「Scroll Wheel」或「variable knob」。調整結果超出範圍時的行為 UN，暫定該步不生效（GAP-AFG-04）。；卡別細節：I02（旋鈕元件 I01）"
+  },
+  {
+   "id": "AFG.KEY.ARROW_LEFT",
+   "group": "旋鈕與方向鍵",
+   "photo_location": "P1 AFG 旋鈕下方左，原圖約 (551,158)",
+   "label": "◀",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "編輯參數時把游標往左移一個位數（較高位）。p.14：「Used to select digits when editing parameters.」",
+   "feedback": "LCD 編輯框中游標底線移動（p.61–63 截圖可見底線）",
+   "range": "游標可移動的位數範圍 UN",
+   "sources": "P1；M-AFG p.14, p.23 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.KEY.ARROW_RIGHT",
+   "group": "旋鈕與方向鍵",
+   "photo_location": "P1 AFG 旋鈕下方右，原圖約 (595,158)",
+   "label": "▶",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "編輯參數時把游標往右移一個位數（較低位）",
+   "feedback": "同 ARROW_LEFT",
+   "range": "UN",
+   "sources": "P1；M-AFG p.14, p.23 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02/I01",
+   "notes": "卡別細節：I02（I01）"
+  },
+  {
+   "id": "AFG.KEY.CH1_CH2",
+   "group": "通道／輸出",
+   "photo_location": "P1 AFG 方向鍵下方，原圖約 (570,186)",
+   "label": "CH1/CH2",
+   "kind": "實體鍵（單一切換鍵）",
+   "action": "按下",
+   "function": "切換目前操作的通道（p.14：「switch between the two output channels」），並顯示 CH 選單：F1 Load、F4 Phase、F5 DSO Link（p.51, p.144–147）",
+   "feedback": "LCD status tab 的選取狀態（推定為亮黃分頁）；軟鍵顯示 Load／Phase／DSO Link",
+   "range": "CH1、CH2",
+   "sources": "P1；M-AFG p.14, p.18, p.51, p.144–147 (PDF 同)",
+   "evidence": "PH+OT+PD",
+   "status": "CORE",
+   "card": "I02",
+   "notes": "照片與手冊都只有一顆標「CH1/CH2」的鍵，不是兩顆。按一次到底是切換通道、開啟選單，還是兩者都做，手冊沒寫清楚（GAP-AFG-01）。切換時不得覆寫另一通道的設定。；證據細節：PH+OT；按一次是否同時切換通道並開啟選單為 PD"
+  },
+  {
+   "id": "AFG.KEY.OUTPUT",
+   "group": "通道／輸出",
+   "photo_location": "P1 AFG CH1/CH2 鍵下方，原圖約 (568,217)，淺藍色鍵",
+   "label": "OUTPUT",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "開啟或關閉波形輸出（p.14：「The Output key is used to turn on or off the waveform output.」）。每通道的輸出狀態各自獨立（p.18 截圖同時出現 CH1 ON、CH2 OFF；遠端 OUTPut[1|2] 也分通道，p.214）。暫定只作用於目前選取的通道（PD）",
+   "feedback": "LCD status tab「CHn ON／OFF」（p.18）；按鍵本身是否會亮：UN",
+   "range": "ON／OFF",
+   "sources": "P1；M-AFG p.14, p.18, p.27–28, p.53, p.214, p.289 (PDF 同)",
+   "evidence": "PH+OT+PD",
+   "status": "CORE",
+   "card": "I02",
+   "notes": "Output 狀態、選取通道、電源開關是三個不同的狀態。Output OFF 時設定保留；p.289 規定輸出關閉時端子阻抗「> 10MΩ (output disabled)」。手冊全文搜尋 light／LED／illuminat 都沒有 Output 燈的說明（GAP-AFG-02）。；證據細節：PH+OT；「只作用於選取通道」為 PD"
+  },
+  {
+   "id": "AFG.KEY.WAVEFORM",
+   "group": "操作鍵（上排）",
+   "photo_location": "P1 AFG 操作鍵上排第 1 顆，原圖約 (419,256)，深灰鍵",
+   "label": "Waveform",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "選擇波形類型；軟鍵顯示 F1 Sine／F2 Square／F3 Pulse／F4 Ramp／F5 Noise",
+   "feedback": "LCD 軟鍵換成波形選單；選定後波形區更新",
+   "range": "Sine、Square、Ramp（CORE）；Pulse、Noise（OUT）",
+   "sources": "P1；M-AFG p.13, p.18, p.44, p.55–59 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02",
+   "notes": "沒有 Triangle 軟鍵；三角波必須走 Ramp→SYM 50%（p.27, p.58–59）。"
+  },
+  {
+   "id": "AFG.KEY.FREQ_RATE",
+   "group": "操作鍵（上排）",
+   "photo_location": "P1 AFG 操作鍵上排第 2 顆，原圖約 (464,256)",
+   "label": "FREQ/Rate（照片斜線不清楚，讀似「FREQ Rate」）",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "設定頻率（ARB 模式下為取樣率，本輪 OUT）。FREQ 參數高亮，軟鍵顯示 F1 uHz／F2 mHz／F3 Hz／F4 kHz／F5 MHz",
+   "feedback": "LCD FREQ 欄紅字高亮；編輯框顯示如「1.000000000 kHz」",
+   "range": "Sine／Square 1 μHz–25 MHz；Ramp 1 μHz–1 MHz；Pulse 500 μHz–25 MHz（OUT）；解析度 1 μHz",
+   "sources": "P1；M-AFG p.13, p.60–61, p.208, p.288 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02",
+   "notes": "不能把所有波形的上限都寫成 25 MHz。Noise 不適用頻率（p.209）。"
+  },
+  {
+   "id": "AFG.KEY.AMPL",
+   "group": "操作鍵（上排）",
+   "photo_location": "P1 AFG 操作鍵上排第 3 顆，原圖約 (508,256)",
+   "label": "AMPL",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "設定幅度。AMPL 參數高亮，軟鍵顯示 F1 dBm／F2 mVRMS／F3 VRMS／F4 mVPP／F5 VPP",
+   "feedback": "LCD AMPL 欄紅字；編輯框如「3.000 VPP」",
+   "range": "50 Ω：1 mVpp–10 Vpp；High Z：2 mVpp–20 Vpp；20–25 MHz 時為 1 mVpp–5 Vpp（50 Ω）／2 mVpp–10 Vpp（open）；解析度 1 mV 或 3 位",
+   "sources": "P1；M-AFG p.13, p.61–62, p.288 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02",
+   "notes": "p.13 按鍵圖示印成「AMP」，但照片、p.13 面板圖與內文都是「AMPL」（見 discrepancies）。High Z 不可用 dBm（p.215）。"
+  },
+  {
+   "id": "AFG.KEY.DC_OFFSET",
+   "group": "操作鍵（上排）",
+   "photo_location": "P1 AFG 操作鍵上排第 4 顆，原圖約 (555,257)",
+   "label": "DC Offset",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "設定 DC offset。Offset 參數高亮，軟鍵 F1 mVDC／F2 VDC",
+   "feedback": "LCD Offset 欄紅字；編輯框如「0.00VDC」",
+   "range": "±5 Vpk（50 Ω）／±10 Vpk（High Z），並受幅度聯合限制",
+   "sources": "P1；M-AFG p.13, p.62–63, p.289 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02",
+   "notes": "聯合限制見 specs。"
+  },
+  {
+   "id": "AFG.KEY.UTIL",
+   "group": "操作鍵（上排）",
+   "photo_location": "P1 AFG 操作鍵上排第 5 顆，原圖約 (601,258)",
+   "label": "UTIL",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "進入 Utility 選單：F1 Memory／F2 Cal.／F3 System／F4 Dual Chan／F5 Counter（p.51）",
+   "feedback": "LCD 軟鍵換成 UTIL 選單",
+   "range": "—",
+   "sources": "P1；M-AFG p.14, p.40–43, p.51, p.134–143 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": "p.14 說 UTIL 可設「output impedance settings」，但 p.51 選單樹與 p.144 操作步驟都把 Load 放在 CH1/CH2 下，衝突待校機（GAP-AFG-17）。本輪只顯示頂層選單名稱與範圍說明，不改任何狀態。"
+  },
+  {
+   "id": "AFG.KEY.ARB",
+   "group": "進階鍵（下排）",
+   "photo_location": "P1 AFG 操作鍵下排第 1 顆，原圖約 (418,286)，淺藍灰鍵",
+   "label": "ARB",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "任意波形設定：F1 Display／F2 Edit／F3 Built in／F4 Output／F5 More",
+   "feedback": "LCD 軟鍵換成 ARB 選單",
+   "range": "—",
+   "sources": "P1；M-AFG p.14, p.37–38, p.45–48, p.149–172 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": "本輪未納入 ARB 編輯；只顯示範圍說明。"
+  },
+  {
+   "id": "AFG.KEY.MOD",
+   "group": "進階鍵（下排）",
+   "photo_location": "P1 AFG 操作鍵下排第 2 顆，原圖約 (462,286)",
+   "label": "MOD",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "調變：F1 AM／F2 FM／F3 FSK／F4 PM／F5 SUM",
+   "feedback": "LCD 軟鍵換成 MOD 選單",
+   "range": "—",
+   "sources": "P1；M-AFG p.14, p.29–33, p.48, p.64, p.67–105 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": "本輪未納入。"
+  },
+  {
+   "id": "AFG.KEY.SWEEP",
+   "group": "進階鍵（下排）",
+   "photo_location": "P1 AFG 操作鍵下排第 3 顆，原圖約 (506,287)",
+   "label": "Sweep",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "掃頻：F1 Source／F2 Type／F3 Start／F4 Stop／F5 More",
+   "feedback": "LCD 軟鍵換成 Sweep 選單",
+   "range": "—",
+   "sources": "P1；M-AFG p.14, p.34, p.49, p.109–117 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": "本輪未納入。"
+  },
+  {
+   "id": "AFG.KEY.BURST",
+   "group": "進階鍵（下排）",
+   "photo_location": "P1 AFG 操作鍵下排第 4 顆，原圖約 (551,288)",
+   "label": "Burst",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "Burst 選單：F1 N Cycle、F2 Gate（p.121：「To select either N Cycle (F1) or Gate (F2).」）；本輪未納入",
+   "feedback": "LCD 軟鍵換成 Burst 選單",
+   "range": "—",
+   "sources": "P1；M-AFG p.14, p.35, p.50, p.120–121",
+   "evidence": "PH+OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": "本輪未納入。"
+  },
+  {
+   "id": "AFG.KEY.PRESET",
+   "group": "進階鍵（下排）",
+   "photo_location": "P1 AFG 操作鍵下排第 5 顆，原圖約 (598,289)，綠色鍵",
+   "label": "Preset",
+   "kind": "實體鍵",
+   "action": "按下",
+   "function": "恢復面板預設值（p.52：「The Preset key is used to restore the default panel settings.」）：Sine、1kHz、3.000 Vpp、0.00V dc、Output units Vpp、Output terminal 50Ω、Output Off；Memory settings No change",
+   "feedback": "LCD 參數與 status tab 回到預設值（Output OFF、50Ω）",
+   "range": "—",
+   "sources": "P1；M-AFG p.14, p.52–53 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I02",
+   "notes": "預設表沒有寫是否兩通道都套用，也沒列 SYM／Duty／Phase（GAP-AFG-07）。遠端說明的預設幅度 100 mVpp 與此不同，採面板值（見 discrepancies）。 完整預設表（含 MOD／Sweep／Burst Off、Display mode On、Error queue Cleared、Trigger source Internal）見 instrument-scope 規格表。"
+  },
+  {
+   "id": "AFG.TERM.CH1_OUT",
+   "group": "輸出端子",
+   "photo_location": "P1 AFG 右側 OUTPUT 區上方 BNC，原圖約 (672,107)",
+   "label": "OUTPUT（區塊標題）／CH1／接地符號／50Ω",
+   "kind": "BNC 輸出端子",
+   "action": "無（接線屬 J01）",
+   "function": "CH1 輸出埠（p.14：「CH1: Channel 1 output port」）。內部輸出阻抗「50Ω typical (fixed)」，輸出關閉時「> 10MΩ (output disabled)」（p.289）",
+   "feedback": "無（只能從 LCD CH1 status tab 看到 ON／OFF）",
+   "range": "見幅度與 offset 規格",
+   "sources": "P1；M-AFG p.13–14, p.289 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I02",
+   "notes": "J01 需分開中心與外殼，建議預留 AFG.TERM.CH1_OUT_CENTER／AFG.TERM.CH1_OUT_SHELL（命名為 PD）。面板印的 50Ω 是內阻，不是 Load 設定。；卡別細節：J01（I02 只提供 source descriptor）"
+  },
+  {
+   "id": "AFG.TERM.CH2_OUT",
+   "group": "輸出端子",
+   "photo_location": "P1 AFG 右側 OUTPUT 區下方 BNC，原圖約 (667,183)",
+   "label": "CH2／接地符號／50Ω",
+   "kind": "BNC 輸出端子",
+   "action": "無（接線屬 J01）",
+   "function": "CH2 輸出埠（p.14）。內阻 50 Ω typical fixed；輸出關閉時 >10 MΩ（p.289）",
+   "feedback": "無（LCD CH2 status tab）",
+   "range": "見幅度與 offset 規格",
+   "sources": "P1；M-AFG p.13–14, p.289 (PDF 同)",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I02",
+   "notes": "預留 AFG.TERM.CH2_OUT_CENTER／AFG.TERM.CH2_OUT_SHELL（PD）。；卡別細節：J01（I02 source descriptor）"
+  },
+  {
+   "id": "AFG.PWR.POWER",
+   "group": "電源",
+   "photo_location": "P1 AFG 右下 POWER 區，原圖約 (657,275)",
+   "label": "POWER；鍵下方左「▂ I」、右「▆ ○」圖示",
+   "kind": "電源鍵（按壓式）",
+   "action": "按下／彈起",
+   "function": "開關電源（p.14：「Turns the power on or off.」）；p.20：「When the power switch is turned on the screen displays the loading screen.」",
+   "feedback": "LCD 亮起並顯示 loading screen（p.20）；開機後的設定 UN",
+   "range": "ON／OFF",
+   "sources": "P1；M-AFG p.14, p.19–20 (PDF 同)",
+   "evidence": "PH+OT+UN",
+   "status": "APPROX",
+   "card": "I02",
+   "notes": "I＝按入（ON）、O＝彈起（OFF），依圖示判讀（PD）。開機記憶或回復上次設定的行為手冊沒寫（GAP-AFG-06）。暫定開機＝Preset 值且兩通道 Output OFF，並標示為近似。；證據細節：PH+OT；開機狀態 UN"
+  },
+  {
+   "id": "AFG.PORT.USB_HOST",
+   "group": "後面板（照片未見）",
+   "photo_location": "照片未見（手冊標示在後面板）",
+   "label": "照片未見（手冊：Host）",
+   "kind": "USB Type-A",
+   "action": "—",
+   "function": "USB 隨身碟（韌體更新、ARB 存取）與 DSO Link",
+   "feedback": "—",
+   "range": "—",
+   "sources": "M-AFG p.16–17, p.137, p.147 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": "前面板沒有 USB 口。本輪不繪後面板。"
+  },
+  {
+   "id": "AFG.PORT.USB_DEVICE",
+   "group": "後面板（照片未見）",
+   "photo_location": "照片未見（後面板）",
+   "label": "照片未見（手冊：Device）",
+   "kind": "USB Type-B",
+   "action": "—",
+   "function": "PC 遠端控制（p.17, p.182）",
+   "feedback": "遠端連線時面板鍵除 F5 外都鎖住（p.183）",
+   "range": "—",
+   "sources": "M-AFG p.16–17, p.182–183 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": "遠端控制本輪未納入。"
+  },
+  {
+   "id": "AFG.TERM.TRIG_IN",
+   "group": "後面板（照片未見）",
+   "photo_location": "照片未見（後面板）",
+   "label": "照片未見（手冊：Trigger IN）",
+   "kind": "BNC",
+   "action": "—",
+   "function": "外部觸發輸入（FSK、Burst、Sweep）；TTL，10kΩ",
+   "feedback": "—",
+   "range": "—",
+   "sources": "M-AFG p.16, p.290 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": ""
+  },
+  {
+   "id": "AFG.TERM.MOD_IN",
+   "group": "後面板（照片未見）",
+   "photo_location": "照片未見（後面板）",
+   "label": "照片未見（手冊：MOD IN）",
+   "kind": "BNC",
+   "action": "—",
+   "function": "外部調變輸入（AM、FM、PM、SUM）；±5V full scale，10kΩ",
+   "feedback": "—",
+   "range": "—",
+   "sources": "M-AFG p.17, p.291 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": ""
+  },
+  {
+   "id": "AFG.TERM.TRIG_OUT",
+   "group": "後面板（照片未見）",
+   "photo_location": "照片未見（後面板）",
+   "label": "照片未見（手冊：Trigger OUT）",
+   "kind": "BNC",
+   "action": "—",
+   "function": "Trigger／Marker 輸出；p.16 稱只用於 Sweep 與 ARB，p.291 規格表寫「For Burst, Sweep, Arb」（手冊互相矛盾）",
+   "feedback": "—",
+   "range": "—",
+   "sources": "M-AFG p.16, p.291 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": ""
+  },
+  {
+   "id": "AFG.TERM.COUNTER_IN",
+   "group": "後面板（照片未見）",
+   "photo_location": "照片未見（後面板）",
+   "label": "照片未見（手冊：Counter IN）",
+   "kind": "BNC",
+   "action": "—",
+   "function": "頻率計輸入；5Hz–150MHz，1kΩ/1pf",
+   "feedback": "—",
+   "range": "—",
+   "sources": "M-AFG p.17, p.41, p.291 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": ""
+  },
+  {
+   "id": "AFG.MISC.AC_INLET",
+   "group": "後面板（照片未見）",
+   "photo_location": "照片未見（後面板）",
+   "label": "照片未見（手冊：AC 100-240V 50-60Hz 25W MAX）",
+   "kind": "電源插座",
+   "action": "—",
+   "function": "AC 電源輸入",
+   "feedback": "—",
+   "range": "100–240 V AC，50–60 Hz",
+   "sources": "M-AFG p.7–8, p.16 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": "p.8 保險絲規格為 F1A/250V，手冊沒畫出保險絲座位置。"
+  },
+  {
+   "id": "AFG.MISC.FAN",
+   "group": "後面板（照片未見）",
+   "photo_location": "照片未見（後面板）",
+   "label": "照片未見",
+   "kind": "風扇",
+   "action": "—",
+   "function": "散熱",
+   "feedback": "—",
+   "range": "—",
+   "sources": "M-AFG p.16 (PDF 16)",
+   "evidence": "OT",
+   "status": "OUT",
+   "card": "I02",
+   "notes": ""
+  }
+ ],
+ "menus": [
+  {
+   "path": "Waveform",
+   "softkeys": "F1 Sine｜F2 Square｜F3 Pulse｜F4 Ramp｜F5 Noise",
+   "source": "M-AFG p.18, p.23, p.44, p.55–59 (PDF 同)",
+   "evidence": "OT",
+   "status": "CORE（Sine／Square／Ramp）；Pulse、Noise 為 OUT",
+   "notes": "沒有 Triangle 軟鍵。p.55：「The AFG-2225 can output 5 standard waveforms: sine, square, pulse, ramp and noise.」"
+  },
+  {
+   "path": "Waveform → F4 Ramp → F1 SYM → 數字鍵（或 ◀▶＋旋鈕）→ F2 %",
+   "softkeys": "F1 SYM｜F2 %｜F3–F5 未標示（UN）",
+   "source": "M-AFG p.27, p.44, p.58–59 (PDF 同)",
+   "evidence": "OT",
+   "status": "CORE（三角波＝SYM 50%）",
+   "notes": "p.27：「Press SYM(F1), 5 + 0 + %(F2).」LCD 波形區顯示「SYMM: 50.0 %」並畫出對稱三角波（p.59 截圖）。範圍 0%–100%。"
+  },
+  {
+   "path": "Waveform → F2 Square → F1 Duty → 數字 → F2 %；TTL",
+   "softkeys": "F1 Duty｜F2 %｜TTL（手冊未寫 F 鍵位置）",
+   "source": "M-AFG p.44, p.56 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT（本輪 Duty 固定為預設 50%）",
+   "notes": "p.56：「TTL function is to set the amplitude of the current square wave at 2.5Vpp, and DC Offset at 1.25Vdc.」"
+  },
+  {
+   "path": "Waveform → F3 Pulse → F1 Width → 數字 → 單位",
+   "softkeys": "F1 Width｜F2 nSEC｜F3 uSEC｜F4 mSEC｜F5 SEC",
+   "source": "M-AFG p.44, p.57–58 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "Pulse Width 20ns–1999.9s。"
+  },
+  {
+   "path": "FREQ/Rate →（FREQ 高亮）→ 數字鍵或 ◀▶＋旋鈕 → 單位軟鍵",
+   "softkeys": "F1 uHz｜F2 mHz｜F3 Hz｜F4 kHz｜F5 MHz",
+   "source": "M-AFG p.27–28, p.32, p.60–61（F1 uHz、F2 mHz、F5 MHz 只有 p.61 截圖一個來源）",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "p.60：「Choose a frequency unit by pressing F1~F5.」p.27：「1 + kHz (F4)」；p.34：「1 + 0 + mHz (F2)」。；已移除誤引的 p.34（那是 Sweep→Start 子選單）"
+  },
+  {
+   "path": "AMPL →（AMPL 高亮）→ 數字鍵或 ◀▶＋旋鈕 → 單位軟鍵",
+   "softkeys": "F1 dBm｜F2 mVRMS｜F3 VRMS｜F4 mVPP｜F5 VPP",
+   "source": "M-AFG p.27–28, p.61–62 (PDF 同；單位位置取自 p.62 截圖)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "p.61：「Choose a unit type by pressing F1~F5.」High Z 時不能用 dBm（遠端說明 p.215），面板上 dBm 軟鍵是否消失 UN。"
+  },
+  {
+   "path": "DC Offset →（Offset 高亮）→ 數字鍵（+/-）或 ◀▶＋旋鈕 → 單位軟鍵",
+   "softkeys": "F1 mVDC｜F2 VDC｜F3–F5 空白",
+   "source": "M-AFG p.62–63 (PDF 同)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "p.62：「Press F1 (mVDC) or F2 (VDC) to choose a voltage range.」"
+  },
+  {
+   "path": "CH1/CH2",
+   "softkeys": "F1 Load｜F4 Phase｜F5 DSO Link｜F2、F3 未標示（UN）",
+   "source": "M-AFG p.51, p.144–147 (PDF 同)",
+   "evidence": "OT",
+   "status": "CORE（只做 Load）；Phase、DSO Link 為 OUT",
+   "notes": "按 CH1/CH2 時是否同時切換通道：UN（GAP-AFG-01）。"
+  },
+  {
+   "path": "CH1/CH2 → F1 Load",
+   "softkeys": "F1 50 OHM｜F2 High Z",
+   "source": "M-AFG p.51, p.144–145 (PDF 同)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "p.144 Note：「The load function can only be used if the ARB, MOD, SWEEP or BURST functions are not active.」"
+  },
+  {
+   "path": "CH1/CH2 → F4 Phase",
+   "softkeys": "F1 Phase（→ 數字 → F5 Degree）｜F2 S_Phase",
+   "source": "M-AFG p.145–146 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "LCD 的 Phase 列仍顯示 Preset 值 0.0°（截圖）。"
+  },
+  {
+   "path": "CH1/CH2 → F5 DSO Link",
+   "softkeys": "F1 Search｜F2 CH1｜F3 CH2｜F4 CH3｜F5 CH4",
+   "source": "M-AFG p.147 (PDF 147)",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "這些 CH1–CH4 是 GDS 示波器的通道，不是 AFG 的通道。"
+  },
+  {
+   "path": "OUTPUT（直接鍵，沒有選單）",
+   "softkeys": "—",
+   "source": "M-AFG p.14, p.18, p.27–28 (PDF 同)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "範例都以「Press the Output key.」結尾。"
+  },
+  {
+   "path": "Preset（直接鍵）",
+   "softkeys": "—",
+   "source": "M-AFG p.14, p.52–53 (PDF 同)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "預設值見 specs。"
+  },
+  {
+   "path": "Return",
+   "softkeys": "—",
+   "source": "M-AFG p.13, p.44 (PDF 同)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "回上一層選單。"
+  },
+  {
+   "path": "UTIL",
+   "softkeys": "F1 Memory｜F2 Cal.｜F3 System｜F4 Dual Chan｜F5 Counter",
+   "source": "M-AFG p.25, p.40–43, p.51, p.134–143 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "p.51 UTIL 選單樹沒有列 Load；但 p.14 說 UTIL 含「output impedance settings」，兩處衝突（UN，見 GAP-AFG-17）。本輪 UTIL 只顯示頂層與範圍說明。"
+  },
+  {
+   "path": "MOD",
+   "softkeys": "F1 AM｜F2 FM｜F3 FSK｜F4 PM｜F5 SUM",
+   "source": "M-AFG p.29–33, p.48, p.67–105 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "只列頂層名稱。"
+  },
+  {
+   "path": "Sweep",
+   "softkeys": "F1 Source｜F2 Type｜F3 Start｜F4 Stop｜F5 More",
+   "source": "M-AFG p.34, p.49, p.109–117 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "只列頂層名稱。"
+  },
+  {
+   "path": "Burst",
+   "softkeys": "F1 N Cycle｜F2 Gate｜F3–F5 未標示（UN）",
+   "source": "M-AFG p.50, p.120–121",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "只列頂層名稱。"
+  },
+  {
+   "path": "ARB",
+   "softkeys": "F1 Display｜F2 Edit｜F3 Built in｜F4 Output｜F5 More（→ F1 Save…）",
+   "source": "M-AFG p.37–38, p.45–48, p.149–172 (PDF 同)",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "只列頂層名稱。"
+  }
+ ],
+ "specs": [
+  {
+   "item": "頻率範圍：Sine",
+   "value": "1 μHz–25 MHz",
+   "source": "M-AFG p.60 (PDF 60)；p.208；p.288",
+   "evidence": "OT",
+   "quote": "Sine wave 1μHz~25MHz"
+  },
+  {
+   "item": "頻率範圍：Square",
+   "value": "1 μHz–25 MHz",
+   "source": "M-AFG p.60 (PDF 60)；p.208；p.288",
+   "evidence": "OT",
+   "quote": "Square wave 1μHz~25MHz"
+  },
+  {
+   "item": "頻率範圍：Ramp（含 SYM 50% 三角波）",
+   "value": "1 μHz–1 MHz",
+   "source": "M-AFG p.61 (PDF 61)；p.208；p.288 只寫「Ramp 1MHz」",
+   "evidence": "OT",
+   "quote": "Ramp wave 1μHz~1MHz"
+  },
+  {
+   "item": "頻率範圍：Pulse（OUT）／Noise（OUT）",
+   "value": "Pulse 500 μHz–25 MHz；Noise 不適用頻率",
+   "source": "M-AFG p.60 (PDF 60)；p.208–209",
+   "evidence": "OT",
+   "quote": "Pulse wave 500μHz~25MHz / Noise Not applicable"
+  },
+  {
+   "item": "頻率解析度",
+   "value": "1 μHz（全頻段）",
+   "source": "M-AFG p.11 (PDF 11)；p.288",
+   "evidence": "OT",
+   "quote": "1μHz high frequency resolution maintained at full range"
+  },
+  {
+   "item": "頻率單位軟鍵",
+   "value": "F1 uHz、F2 mHz、F3 Hz、F4 kHz、F5 MHz",
+   "source": "M-AFG p.60–61 (PDF 60–61) 截圖；p.27",
+   "evidence": "OT",
+   "quote": "Choose a frequency unit by pressing F1~F5."
+  },
+  {
+   "item": "幅度範圍（20 MHz 以下；20–25 MHz 另列）",
+   "value": "50 Ω：1 mVpp–10 Vpp；High Z（open-circuit）：2 mVpp–20 Vpp",
+   "source": "M-AFG p.61–62 (PDF 61–62)；p.288",
+   "evidence": "OT",
+   "quote": "1mVpp to 10 Vpp (into 50Ω) / 2mVpp to 20 Vpp (open-circuit)"
+  },
+  {
+   "item": "幅度範圍（20–25 MHz）",
+   "value": "50 Ω：1 mVpp–5 Vpp；open-circuit：2 mVpp–10 Vpp",
+   "source": "M-AFG p.288 (PDF 288)",
+   "evidence": "OT",
+   "quote": "1mVpp to 5 Vpp (into 50Ω) for 20MHz-25MHz"
+  },
+  {
+   "item": "幅度單位與軟鍵",
+   "value": "Vpp、Vrms、dBm；F1 dBm、F2 mVRMS、F3 VRMS、F4 mVPP、F5 VPP",
+   "source": "M-AFG p.61–62 (PDF 61–62) 截圖；p.288",
+   "evidence": "OT",
+   "quote": "Unit Vpp, Vrms, dBm"
+  },
+  {
+   "item": "幅度解析度與準確度",
+   "value": "解析度 1 mV 或 3 位；準確度 ±2% of setting ±1 mVpp（1 kHz）",
+   "source": "M-AFG p.288 (PDF 288)",
+   "evidence": "OT",
+   "quote": "Resolution 1mV or 3 digits"
+  },
+  {
+   "item": "Vpp／Vrms 換算（crest factor）",
+   "value": "Sine：10 Vpp ↔ 3.536 Vrms；5 Vrms 方波改成正弦時變成 3.536 Vrms。其他波形與 dBm 的公式手冊沒有給（GAP-AFG-11）",
+   "source": "M-AFG p.202–203, p.207, p.210 (PDF 同)",
+   "evidence": "OT（只有 sine 與方波例）",
+   "quote": "a 5Vrms square wave must be adjusted to 3.536 Vrms for a sine wave"
+  },
+  {
+   "item": "Offset 範圍",
+   "value": "50 Ω：±5 Vpk；High Z：±10 Vpk（20–25 MHz 時為 ±2.5／±5 Vpk）。「Vpk ac +dc」表示峰值（幅度加 offset）的限制",
+   "source": "M-AFG p.62–63 (PDF 62–63)；p.289",
+   "evidence": "OT",
+   "quote": "±5 Vpk ac +dc (into 50Ω) / ±10Vpk ac +dc (Open circuit)"
+  },
+  {
+   "item": "幅度＋Offset 聯合限制",
+   "value": "手冊公式 |Voffset| < Vmax − Vpp/2，但手冊沒有定義 Vmax。依 p.289「Vpk ac +dc」推定 Vmax＝5 V（50 Ω）／10 V（High Z），20–25 MHz 時為 2.5／5 V。暫定實作 |Voffset| + Vpp/2 ≤ Vmax（等號邊界待校機）",
+   "source": "M-AFG p.202, p.210, p.211 (PDF 同)；p.289",
+   "evidence": "OT+PD",
+   "quote": "The offset and amplitude are related by the following equation. |Voffset| < Vmax – Vpp/2"
+  },
+  {
+   "item": "Offset 單位軟鍵",
+   "value": "F1 mVDC、F2 VDC",
+   "source": "M-AFG p.62 (PDF 62)",
+   "evidence": "OT",
+   "quote": "Press F1 (mVDC) or F2 (VDC) to choose a voltage range."
+  },
+  {
+   "item": "Offset 準確度（非核心）",
+   "value": "2% of setting + 20mV + 0.5% of amplitude（渲染字形為 20mV；文字層抽出 10mV）",
+   "source": "M-AFG p.289 (PDF 289)",
+   "evidence": "OT",
+   "quote": "2% of setting + 20mV+ 0.5% of amplitude"
+  },
+  {
+   "item": "內部輸出阻抗",
+   "value": "50 Ω typical，固定不變；輸出關閉時 >10 MΩ",
+   "source": "M-AFG p.289 (PDF 289)",
+   "evidence": "OT",
+   "quote": "50Ω typical (fixed) / > 10MΩ (output disabled)"
+  },
+  {
+   "item": "Load 設定（面板）",
+   "value": "CH1/CH2 → F1 Load → F1 50 OHM／F2 High Z；預設 50 Ω；只作參照",
+   "source": "M-AFG p.144–145 (PDF 同)",
+   "evidence": "OT",
+   "quote": "The output impedances are to be used as a reference only. If the actual load impedance is different to that specified, then the actual amplitude and offset will vary accordingly."
+  },
+  {
+   "item": "High Z 的定義",
+   "value": "INFinity＝high impedance >10 kΩ",
+   "source": "M-AFG p.214 (PDF 214)",
+   "evidence": "OT（遠端說明）",
+   "quote": "DEFault (50Ω) and INFinity (high impedance >10 kΩ)"
+  },
+  {
+   "item": "切換 Load 時顯示值的換算",
+   "value": "50Ω→High Z：幅度與 offset 顯示值 ×2；High Z→50Ω：÷2（內部 EMF 不變）",
+   "source": "M-AFG p.202–203, p.210–211, p.214–215 (PDF 同)",
+   "evidence": "OT（遠端章節）+PD（套用到面板顯示）",
+   "quote": "If the amplitude has been set and the output termination is changed from 50Ω to high impedance, the amplitude will double. Changing the output termination from high impedance to 50Ω will half the amplitude."
+  },
+  {
+   "item": "High Z 時不能用 dBm",
+   "value": "Load＝High Z 時不能用 dBm；原單位若為 dBm 會自動改成 Vpp",
+   "source": "M-AFG p.202, p.210, p.215, p.278 (PDF 同)",
+   "evidence": "OT（遠端章節）",
+   "quote": "If the output termination is set to high impedance, dBm units cannot be used. The Units will automatically default to Vpp."
+  },
+  {
+   "item": "Ramp Symmetry",
+   "value": "0%–100%，解析度 0.1%；預設 50%；切換波形後保留該設定",
+   "source": "M-AFG p.59 (PDF 59)；p.213；p.289（範圍／解析度：p.59、p.289 面板與規格；預設 50% 與切換保留：p.213 遠端章節，套用到面板屬 PD）",
+   "evidence": "OT+PD",
+   "quote": "Variable Symmetry 0% to 100% (0.1% Resolution)"
+  },
+  {
+   "item": "Square Duty（OUT，供參考）",
+   "value": "≤100kHz：1.0%–99.0%；100kHz–≤1MHz：10.0%–90.0%；>1MHz–25MHz：固定 50%；預設 50%",
+   "source": "M-AFG p.56 (PDF 56)；p.212；p.289",
+   "evidence": "OT",
+   "quote": ">1MHz~25MHz 50% (Fixed)"
+  },
+  {
+   "item": "Preset 預設值",
+   "value": "Output：Function Sine、Frequency 1kHz、Amplitude 3.000 Vpp、Offset 0.00V dc、Output units Vpp、Output terminal 50Ω；Modulation／Sweep／Burst status 皆 Off（各自參數回預設）；System：Power off signal On、Display mode On、Error queue Cleared、Memory settings No change、Output Off；Trigger source Internal (immediate)；Calibration Menu Restricted",
+   "source": "M-AFG p.52–53 (PDF 同)",
+   "evidence": "OT",
+   "quote": "The Preset key is used to restore the default panel settings."
+  },
+  {
+   "item": "遠端預設幅度（不採用於 Preset）",
+   "value": "100 mVpp（50 Ω）",
+   "source": "M-AFG p.202, p.210 (PDF 同)",
+   "evidence": "OT（遠端章節）",
+   "quote": "The default amplitude for all functions is 100 mVpp (50Ω)."
+  },
+  {
+   "item": "Output 預設",
+   "value": "OFF",
+   "source": "M-AFG p.53 (PDF 53)；p.214",
+   "evidence": "OT",
+   "quote": "Enables/Disables or queries the front panel output from the selected channel. The default is set to off."
+  },
+  {
+   "item": "切換波形時的頻率處理（遠端說明）",
+   "value": "新波形不支援目前頻率時會自動調整；切到 Ramp 會降低頻率",
+   "source": "M-AFG p.207, p.209, p.277 (PDF 同)",
+   "evidence": "OT（遠端章節）",
+   "quote": "-221 Settings conflict; frequency reduced for ramp function"
+  },
+  {
+   "item": "超限值處理（遠端說明）",
+   "value": "遠端命令會把超限值夾到最大／最小值並記錯；面板行為 UN",
+   "source": "M-AFG p.201, p.202, p.278–279 (PDF 同)",
+   "evidence": "OT（遠端章節）",
+   "quote": "If the amplitude was set to a value out of range ,it is automatically set to an upper or lower limit."
+  },
+  {
+   "item": "數字編輯方式",
+   "value": "◀▶ 選位數，旋鈕順時針增加、逆時針減少；或用數字鍵輸入再按單位鍵",
+   "source": "M-AFG p.23–24 (PDF 同)；p.60–62",
+   "evidence": "OT",
+   "quote": "Use the scroll wheel to edit the parameter. Clockwise increases the value, counter clockwise decreases the value."
+  },
+  {
+   "item": "LCD",
+   "value": "3.5 吋彩色 TFT，320×240",
+   "source": "M-AFG p.12–13 (PDF 同)",
+   "evidence": "OT",
+   "quote": "3.5 inch Color TFT LCD (320 X 240)"
+  },
+  {
+   "item": "開機",
+   "value": "開機顯示 loading screen；開機後的設定手冊沒寫",
+   "source": "M-AFG p.20 (PDF 20)",
+   "evidence": "OT+UN",
+   "quote": "When the power switch is turned on the screen displays the loading screen."
+  },
+  {
+   "item": "輸出保護（非核心）",
+   "value": "短路保護；過載時繼電器自動關閉主輸出",
+   "source": "M-AFG p.289 (PDF 289)；p.214",
+   "evidence": "OT",
+   "quote": "Overload relay automatically disables main output"
+  },
+  {
+   "item": "Phase（OUT，供參考）",
+   "value": "-180°–180°；Square 與 Pulse 不能改，固定 0°",
+   "source": "M-AFG p.145 (PDF 145)；p.291–292",
+   "evidence": "OT",
+   "quote": "Square and Pulse can not be change,phase is 0°"
+  }
+ ],
+ "core_features": [
+  {
+   "id": "AFG-F01",
+   "feature": "CH1／CH2 獨立設定",
+   "rule": "每個通道各自保存波形、頻率、幅度（值與顯示單位）、offset、SYM、Load、Output。CH1/CH2 鍵只改變目前選取的通道（並顯示 CH 選單），不覆寫另一通道。LCD 同時顯示兩個通道的 status tab 與參數窗。",
+   "source": "M-AFG p.14, p.18, p.51, p.144 (PDF 同)；P1",
+   "evidence": "PH+OT；按鍵語義為 PD（GAP-AFG-01）",
+   "acceptance": "I02-2：CH1 設 Sine 1 kHz 2 Vpp，CH2 設 Ramp SYM 50% 10 kHz 1 Vpp；按 CH1/CH2 來回至少 3 次，兩通道的值都不變。"
+  },
+  {
+   "id": "AFG-F02",
+   "feature": "波形選擇 Sine／Square／Ramp",
+   "rule": "Waveform → F1 Sine／F2 Square／F4 Ramp 只改目前選取通道的波形，LCD 波形區隨之更新。F3 Pulse、F5 Noise 只顯示範圍說明，不改狀態。",
+   "source": "M-AFG p.18, p.44, p.55–59 (PDF 同)",
+   "evidence": "OT",
+   "acceptance": "I02-8、I02-5：用真 UI 依序選三種波形並確認 LCD 顯示；按 Pulse、Noise 時波形狀態不變，並出現範圍說明。"
+  },
+  {
+   "id": "AFG-F03",
+   "feature": "三角波＝Ramp＋SYM 50%",
+   "rule": "Waveform → F4 Ramp → F1 SYM → 5、0 → F2 % 把 SYM 設為 50.0%，LCD 顯示「SYMM: 50.0 %」並畫出對稱三角波。SYM 範圍 0%–100%，解析度 0.1%。介面不得出現 Triangle 軟鍵。",
+   "source": "M-AFG p.27, p.58–59, p.289 (PDF 同)",
+   "evidence": "OT",
+   "acceptance": "I02-8：照上述按鍵序列操作，檢查 SYM=50.0% 與波形；另輸入 101 → % 應被拒絕，原值不變（暫定）。"
+  },
+  {
+   "id": "AFG-F04",
+   "feature": "頻率輸入（數字＋單位軟鍵），上限依波形而定",
+   "rule": "FREQ/Rate → 數字 → F1 uHz／F2 mHz／F3 Hz／F4 kHz／F5 MHz 提交。Sine／Square 1 μHz–25 MHz，Ramp 1 μHz–1 MHz，解析度 1 μHz。超出範圍的輸入暫定拒絕，原值保留。",
+   "source": "M-AFG p.27, p.60–61, p.208, p.288 (PDF 同)",
+   "evidence": "OT；拒絕方式為 PD",
+   "acceptance": "I02-1：輸入 1 kHz（1＋F4），再輸入 1 MHz（1＋F5），LCD 顯示相應改變；I02-5：Ramp 時輸入 2 MHz 被拒絕，Sine 時輸入 25 MHz 被接受。"
+  },
+  {
+   "id": "AFG-F05",
+   "feature": "旋鈕與方向鍵微調",
+   "rule": "◀▶ 移動游標位數；旋鈕順時針以該位數為步進增加，逆時針減少。結果超出範圍或違反聯合限制時該步不生效（暫定）。",
+   "source": "M-AFG p.14–15, p.23 (PDF 同)",
+   "evidence": "OT；超界處理為 PD",
+   "acceptance": "I02-1：在 1.000000 kHz 把游標移到 kHz 個位，旋鈕順時針一格得 2 kHz，逆時針回到 1 kHz，結果可重現。"
+  },
+  {
+   "id": "AFG-F06",
+   "feature": "幅度輸入與單位換算",
+   "rule": "AMPL → 數字 → F1 dBm／F2 mVRMS／F3 VRMS／F4 mVPP／F5 VPP。50 Ω 時 1 mVpp–10 Vpp，High Z 時 2 mVpp–20 Vpp（20–25 MHz 時分別為 5 Vpp／10 Vpp）。Vrms 與 dBm 必須依波形 crest factor 真的換算數值，不能只換文字：sine 10 Vpp＝3.536 Vrms；其他波形與 dBm 的算法為暫定。 單位換算後先依顯示解析度（1 mV 或 3 位有效數字）捨入，再做範圍與聯合限制檢查（PD）。",
+   "source": "M-AFG p.61–62, p.202–203, p.288 (PDF 同)",
+   "evidence": "OT+PD（非 sine 換算與 dBm 公式）",
+   "acceptance": "I02-4、I02-5：Sine、50 Ω 下輸入 3.535 VRMS 後顯示約 9.998 Vpp；輸入 11 VPP 被拒絕且原值保留。"
+  },
+  {
+   "id": "AFG-F07",
+   "feature": "DC Offset 輸入",
+   "rule": "DC Offset → 數字（可用 +/- 輸入負值）→ F1 mVDC／F2 VDC。50 Ω 時 ±5 Vpk，High Z 時 ±10 Vpk，並受聯合限制約束。",
+   "source": "M-AFG p.62–63, p.289 (PDF 同)",
+   "evidence": "OT；+/- 鍵功能為 PD",
+   "acceptance": "I02-5：50 Ω、2 Vpp 時輸入 -3 VDC 被接受；輸入 -4.5 VDC 被拒絕，原值保留。"
+  },
+  {
+   "id": "AFG-F08",
+   "feature": "幅度＋offset 聯合限制（共用檢查）",
+   "rule": "|Voffset| + Vpp/2 ≤ Vmax，Vmax＝5 V（50 Ω）或 10 V（High Z），20–25 MHz 時為 2.5／5 V。改 AMPL、Offset、FREQ、波形、Load 都走同一個檢查；非法輸入不污染已提交的值（暫定拒絕，不偽造原廠錯誤碼）。（Vmax 數值由 p.289 推定，手冊公式本身未定義 Vmax：PD）",
+   "source": "M-AFG p.202, p.210–211, p.289, p.63 (PDF 同)",
+   "evidence": "OT+PD",
+   "acceptance": "I02-5：50 Ω 下 10 Vpp＋0 V 接受（p.28 範例）；4 Vpp＋3 V 接受；4 Vpp＋3.5 V 被拒絕，原值不變。"
+  },
+  {
+   "id": "AFG-F09",
+   "feature": "各通道 Output 狀態",
+   "rule": "OUTPUT 切換目前選取通道的 ON／OFF，LCD status tab 顯示「CHn ON／OFF」。OFF 時所有設定保留，source descriptor 標為 enabled=false、端子高阻（>10 MΩ）。Output、選取通道、電源是三個獨立狀態。",
+   "source": "M-AFG p.14, p.18, p.53, p.214, p.289 (PDF 同)",
+   "evidence": "OT；「作用於選取通道」為 PD",
+   "acceptance": "I02-2、I02-3：CH1 ON 且 CH2 OFF 可以並存；OFF 時改參數會被保留，descriptor 未啟用；ON 後才成為有效來源。"
+  },
+  {
+   "id": "AFG-F10",
+   "feature": "Load 50 Ω／High Z（顯示參照）",
+   "rule": "CH1/CH2 → F1 Load → F1 50 OHM／F2 High Z。Load 只改變幅度與 offset 顯示所參照的負載：50Ω→High Z 顯示值 ×2，反向 ÷2。內部輸出阻抗永遠是 50 Ω，實際輸出不因切換而跳變。",
+   "source": "M-AFG p.144–145, p.202–203, p.210–211, p.214–215, p.289 (PDF 同)",
+   "evidence": "OT+PD（面板顯示換算取自遠端說明）",
+   "acceptance": "I02-4：Preset 後切 High Z，顯示 6.000 Vpp／0.00 V；若 offset 為 1 V 則變成 2 V；切回 50 Ω 顯示 3.000 Vpp；descriptor 的內阻始終為 50 Ω、EMF 不變。"
+  },
+  {
+   "id": "AFG-F11",
+   "feature": "High Z 時禁止 dBm",
+   "rule": "Load＝High Z 時拒絕 dBm 單位；若切換前單位是 dBm，切換後改成 Vpp。",
+   "source": "M-AFG p.202, p.210, p.215, p.278 (PDF 同)",
+   "evidence": "OT（遠端章節）+PD（面板呈現）",
+   "acceptance": "I02-4：50 Ω 下設 13.52 dBm 後切 High Z，顯示改為 Vpp 且數值 ×2；在 High Z 下按 dBm 被拒絕。"
+  },
+  {
+   "id": "AFG-F12",
+   "feature": "切換波形時重新檢查頻率",
+   "rule": "切到 Ramp 而頻率 >1 MHz 時，頻率降為 1 MHz 並提示（依遠端說明的近似）；之後重新檢查幅度與 offset 的聯合限制。",
+   "source": "M-AFG p.207, p.209, p.277 (PDF 同)",
+   "evidence": "OT（遠端章節）+PD",
+   "acceptance": "I02-5：Sine 5 MHz 切到 Ramp，頻率變成 1 MHz 並出現近似提示。"
+  },
+  {
+   "id": "AFG-F13",
+   "feature": "Preset",
+   "rule": "按 Preset 後（暫定兩通道都套用）：Sine、1 kHz、3.000 Vpp、0.00 V、單位 Vpp、Load 50 Ω、Output OFF；SYM／Duty 暫定 50%，Phase 0°。 Preset 同時把 MOD、Sweep、Burst 設為 Off（本輪這三者本來就 OUT，只需保持 Off）。",
+   "source": "M-AFG p.52–53, p.212–213 (PDF 同)",
+   "evidence": "OT+PD（套用範圍與未列項目）",
+   "acceptance": "I02-7：任意設定後按 Preset，檢查 LCD 與兩通道 descriptor 都回到上列值。"
+  },
+  {
+   "id": "AFG-F14",
+   "feature": "軟鍵依情境改變意義；Return",
+   "rule": "F1–F5 的意義依目前上層選單而定（見 menus），空白軟鍵無動作。Return 回上一層。未按單位鍵的半截輸入不成為有效輸出（暫定：Return 或換功能時捨棄）。",
+   "source": "M-AFG p.13, p.18, p.23, p.44 (PDF 同)",
+   "evidence": "OT+PD（提交語義）",
+   "acceptance": "I02-6：按 FREQ/Rate 後 F4＝kHz，按 AMPL 後 F4＝mVPP；輸入 5 後按 Return，頻率不變。"
+  },
+  {
+   "id": "AFG-F15",
+   "feature": "未納入的鍵要明示範圍",
+   "rule": "ARB、MOD、Sweep、Burst、UTIL，以及 Pulse、Noise、Duty、Phase、DSO Link，只顯示實際選單名稱與範圍說明，不改狀態，不出現成功訊息。",
+   "source": "M-AFG p.14, p.29–51 (PDF 同)",
+   "evidence": "OT+PD（UI 處理方式）",
+   "acceptance": "I02-7、I02-8：逐一按下這些鍵，確認狀態與 descriptor 都沒改變。"
+  },
+  {
+   "id": "AFG-F16",
+   "feature": "LCD 與狀態同源",
+   "rule": "status tab、參數窗、波形區、軟鍵標籤全部從同一份儀器狀態產生；Phase 列顯示 0.0°（本輪不可編輯）；不新增 Period 欄位。",
+   "source": "M-AFG p.18, p.55–63 截圖 (PDF 同)",
+   "evidence": "OT",
+   "acceptance": "I02-1 至 I02-8：每一步都比對 LCD 與唯讀 debug 狀態是否一致。"
+  }
+ ],
+ "out_of_scope": [
+  {
+   "item": "Pulse 波形與 Width 參數（Waveform→F3）",
+   "reason": "02 本輪未納入 Pulse 完整參數",
+   "ui_treatment": "保留 F3 Pulse 軟鍵標籤；按下時在儀器外顯示範圍說明，波形狀態不變"
+  },
+  {
+   "item": "Noise 波形（Waveform→F5）",
+   "reason": "02 本輪未納入",
+   "ui_treatment": "同上"
+  },
+  {
+   "item": "Square Duty／TTL",
+   "reason": "02 必做只有方波基本輸出，Duty 不在清單內",
+   "ui_treatment": "Square 子選單顯示 Duty、%、TTL 標籤；Duty 固定 50%；按下時顯示範圍說明"
+  },
+  {
+   "item": "ARB（Display／Edit／Built in／Output／More）",
+   "reason": "02 未納入 ARB 編輯",
+   "ui_treatment": "按 ARB 顯示頂層名稱與範圍說明，不改狀態"
+  },
+  {
+   "item": "MOD（AM／FM／FSK／PM／SUM）",
+   "reason": "02 未納入完整 MOD",
+   "ui_treatment": "同上"
+  },
+  {
+   "item": "Sweep",
+   "reason": "02 未納入",
+   "ui_treatment": "同上"
+  },
+  {
+   "item": "Burst",
+   "reason": "02 未納入",
+   "ui_treatment": "同上"
+  },
+  {
+   "item": "UTIL（Memory、Cal.、System：Language／Help／Beep、Dual Chan：Freq Cpl／Ampl Cpl／Tracking／S_Phase、Counter）",
+   "reason": "02 必做沒有列入；耦合與追蹤會破壞「兩通道獨立」的驗收",
+   "ui_treatment": "按 UTIL 顯示頂層名稱與範圍說明；耦合與追蹤固定 Off"
+  },
+  {
+   "item": "CH1/CH2 → Phase／S_Phase、DSO Link",
+   "reason": "02 未列",
+   "ui_treatment": "CH 選單顯示 F4 Phase、F5 DSO Link 標籤，按下顯示範圍說明；LCD 的 Phase 固定 0.0°"
+  },
+  {
+   "item": "遠端控制（USB Device、SCPI、REM/LOCK）",
+   "reason": "02 未納入",
+   "ui_treatment": "不提供；在功能矩陣列出"
+  },
+  {
+   "item": "後面板端子與埠（Trigger IN／OUT、MOD IN、Counter IN、USB Host／Device、AC、風扇）",
+   "reason": "照片未見，且功能未納入",
+   "ui_treatment": "不繪後面板；在功能矩陣列為 OUT"
+  },
+  {
+   "item": "過載保護與錯誤訊息",
+   "reason": "手冊只有遠端 SCPI 錯誤碼，沒有面板訊息字樣",
+   "ui_treatment": "不偽造原廠錯誤碼；超限時在儀器外顯示近似提示"
+  },
+  {
+   "item": "20–25 MHz 平坦度、失真、上升時間等類比性能",
+   "reason": "不在第一階段範圍",
+   "ui_treatment": "不模擬；範圍說明中註明"
+  }
+ ],
+ "gaps": [
+  {
+   "id": "GAP-AFG-01",
+   "gap": "CH1/CH2 鍵的精確語義：按一次是切換選取通道、開啟 Load／Phase／DSO Link 選單，還是兩者都做？",
+   "impact": "通道選取與 Load 設定路徑（I02-2、I02-4）",
+   "provisional": "每按一次就在 CH1 與 CH2 之間切換選取通道，同時顯示該通道的 CH 選單（F1 Load、F4 Phase、F5 DSO Link）；在儀器外標示為近似",
+   "rationale": "p.14 說「switch between the two output channels」，p.144 的 Load 步驟又是「Press the CH1/CH2 key → F1 (Load)」，兩者合起來最直接的讀法就是這樣",
+   "verify_method": "校機：Preset 後按 CH1/CH2 一次，看哪個 status tab 變亮、軟鍵是否出現 Load；再按一次看會不會切回。也可查原廠是否有更新版手冊或 Quick Start Guide"
+  },
+  {
+   "id": "GAP-AFG-02",
+   "gap": "OUTPUT 鍵作用於哪個通道，以及按鍵本身會不會亮",
+   "impact": "Output 回饋（I02-2、I02-3）",
+   "provisional": "只切換目前選取通道；以 LCD status tab「CHn ON／OFF」為準。按鍵不做發光效果；若日後要加，須標 APPROX，並跟隨選取通道的狀態",
+   "rationale": "手冊全文搜尋 light／LED／illuminat 都沒有相關說明；p.18 顯示兩通道 ON／OFF 各自獨立",
+   "verify_method": "校機：CH1 ON、CH2 OFF 時，切換選取通道並觀察 OUTPUT 鍵是否發光"
+  },
+  {
+   "id": "GAP-AFG-03",
+   "gap": "數字輸入的提交與取消：沒按單位鍵就按 Return、按其他功能鍵或切通道時，輸入是否提交",
+   "impact": "I02-6",
+   "provisional": "只有按單位軟鍵（或 SYM 的 %）才提交；Return、換功能、切通道都捨棄輸入，原值保留",
+   "rationale": "手冊所有範例都是「數字＋單位鍵」；02 也要求半截輸入不能成為有效輸出",
+   "verify_method": "校機：FREQ/Rate 輸入 5 後分別按 Return、AMPL，看頻率有沒有變"
+  },
+  {
+   "id": "GAP-AFG-04",
+   "gap": "旋鈕調整是否立即生效；游標可移動的位數範圍；越界時是停住、夾到極值還是拒絕",
+   "impact": "I02-1",
+   "provisional": "旋鈕調整立即生效（改到已提交值）；越界那一步不生效；游標可在顯示的位數之間移動",
+   "rationale": "p.23 只寫順時針增加、逆時針減少",
+   "verify_method": "校機：在 Ramp 1 MHz 時把旋鈕往上轉；在 Sine 3 Vpp 時用旋鈕把幅度往上加到超限"
+  },
+  {
+   "id": "GAP-AFG-05",
+   "gap": "面板上超限時的處理方式與訊息字樣",
+   "impact": "I02-5",
+   "provisional": "拒絕輸入並保留原值；在儀器外顯示近似提示（例如「超出 AFG-2225 範圍，已保留原值（近似行為）」）；不偽造原廠錯誤碼",
+   "rationale": "手冊只有遠端的「夾到極值＋SCPI 錯誤碼」說明；02 允許明示的暫定拒絕",
+   "verify_method": "校機：50 Ω 下輸入 12 VPP，以及在 4 Vpp 時輸入 3.5 VDC，觀察 LCD"
+  },
+  {
+   "id": "GAP-AFG-06",
+   "gap": "開機狀態（回到上次設定，還是固定預設）",
+   "impact": "POWER 鍵",
+   "provisional": "模擬器開機＝Preset 值，兩通道 Output OFF，並標示近似",
+   "rationale": "p.20 只說開機顯示 loading screen；p.53 的 Output Off 是 Preset 表，不是開機值；p.127 只說 Burst trigger source 開機為 Internal。三處都沒有寫基本參數的開機值，所以仍是 UN",
+   "verify_method": "校機：改設定後關機再開，看開機後的設定"
+  },
+  {
+   "id": "GAP-AFG-07",
+   "gap": "Preset 是否兩通道都套用；SYM、Duty、Phase、耦合的重設值；Preset 後的選取通道與顯示的選單",
+   "impact": "I02-7",
+   "provisional": "兩通道都套用 p.52 的值；SYM、Duty 為 50%（p.212–213 遠端預設），Phase 0°，耦合與追蹤 Off，選取 CH1，軟鍵顯示 Waveform 選單",
+   "rationale": "p.52 的預設表只列部分參數",
+   "verify_method": "校機：兩通道各設不同值、SYM 30%，按 Preset 後檢查"
+  },
+  {
+   "id": "GAP-AFG-08",
+   "gap": "面板切換 Load 時的顯示換算、High Z 時 status tab 的字樣、High Z 時 dBm 軟鍵是否隱藏",
+   "impact": "I02-4",
+   "provisional": "顯示值 ×2 或 ÷2（依遠端說明）；status tab 顯示「High Z」（取軟鍵名稱）；dBm 軟鍵仍顯示，但按下會被拒絕並提示",
+   "rationale": "p.144 面板章節只說「reference only」；遠端 p.214–215 才寫明倍率",
+   "verify_method": "校機：Preset 後切 High Z，看 AMPL 是否變 6.000 Vpp、tab 字樣、F1 標籤"
+  },
+  {
+   "id": "GAP-AFG-09",
+   "gap": "20–25 MHz 限制的邊界（剛好 20 MHz 算哪一段）；已有大幅度時把頻率調到 20 MHz 以上會怎樣",
+   "impact": "I02-5",
+   "provisional": "20 MHz ≤ f ≤ 25 MHz 使用縮減後的上限；調頻率會造成幅度或 offset 非法時，拒絕這次頻率輸入",
+   "rationale": "p.288 只寫「for 20MHz-25MHz」",
+   "verify_method": "校機：8 Vpp、1 MHz 時輸入 22 MHz，觀察結果"
+  },
+  {
+   "id": "GAP-AFG-10",
+   "gap": "面板上從 Sine 切到 Ramp、而頻率 >1 MHz 時的行為",
+   "impact": "I02-5",
+   "provisional": "頻率夾到 1 MHz 並給近似提示",
+   "rationale": "遠端 p.209 與 p.277 的「frequency reduced for ramp function」是唯一來源",
+   "verify_method": "校機：Sine 5 MHz 時選 Ramp"
+  },
+  {
+   "id": "GAP-AFG-11",
+   "gap": "非正弦波的 Vrms 換算與 dBm 公式；只按單位鍵、沒輸入數字時，是換算顯示單位還是別的行為",
+   "impact": "I02-4 單位",
+   "provisional": "Square（50%）Vrms＝Vpp/2；Ramp 與三角波 Vrms＝Vpp/(2√3)；dBm＝10·log10(Vrms²/50Ω/1mW)（以 50 Ω 為參照）。只按單位鍵時換算目前值的顯示單位，物理幅度不變",
+   "rationale": "手冊只給 sine 的 3.536 Vrms 與方波 5 Vrms 例子（p.202–203）",
+   "verify_method": "校機：3 Vpp 的 sine、square、ramp 分別按 VRMS 與 dBm，記錄讀數"
+  },
+  {
+   "id": "GAP-AFG-12",
+   "gap": "+/- 鍵的功能",
+   "impact": "Offset 負值輸入",
+   "provisional": "切換輸入中數值的正負號；不可為負的參數在提交時拒絕",
+   "rationale": "p.15 有畫出此鍵，但沒有說明",
+   "verify_method": "校機：DC Offset 輸入 2、按 +/-、再按 VDC"
+  },
+  {
+   "id": "GAP-AFG-13",
+   "gap": "Offset 與幅度的顯示位數，以及用 mVDC 時的顯示格式",
+   "impact": "LCD 顯示",
+   "provisional": "依截圖：AMPL 3 位小數（Vpp）、Offset 2 位小數（VDC）、FREQ 參數窗 7 位有效數字、編輯框精確到 μHz。mVDC 格式暫定為整數 mV",
+   "rationale": "只有截圖可參考，沒有正文規則",
+   "verify_method": "校機觀察各單位的顯示"
+  },
+  {
+   "id": "GAP-AFG-14",
+   "gap": "LCD 語言（English／中文）與韌體版本",
+   "impact": "LCD 字樣",
+   "provisional": "用英文（與手冊截圖相同），並標示校機語言待確認",
+   "rationale": "照片 LCD 全暗；p.51 顯示有中文選項",
+   "verify_method": "校機亮屏拍照；UTIL→Cal.→Software→Version（p.137）"
+  },
+  {
+   "id": "GAP-AFG-15",
+   "gap": "開機或 Preset 後預設高亮的參數與顯示的軟鍵選單；空白軟鍵的行為",
+   "impact": "I02-6",
+   "provisional": "沒有參數高亮時旋鈕不作用；空白軟鍵不作用",
+   "rationale": "手冊沒寫",
+   "verify_method": "校機：Preset 後直接轉旋鈕、按空白軟鍵"
+  },
+  {
+   "id": "GAP-AFG-16",
+   "gap": "從 Ramp 切到其他波形再切回時，SYM 是否保留（面板）",
+   "impact": "I02-8",
+   "provisional": "每個通道保留自己的 SYM",
+   "rationale": "遠端 p.213：「The setting is remembered if the function mode is changed.」",
+   "verify_method": "校機：SYM 設 30%，切 Sine 再切回 Ramp"
+  },
+  {
+   "id": "GAP-AFG-17",
+   "gap": "UTIL 選單是否也有 Load／輸出阻抗入口（p.14 說有，p.51 選單樹沒有）",
+   "impact": "AFG.KEY.UTIL、Load 操作路徑",
+   "provisional": "只做 CH1/CH2 → F1 Load → F1 50 OHM／F2 High Z；UTIL 本輪 OUT",
+   "rationale": "p.144 有逐步操作，比 p.14 的概述具體",
+   "verify_method": "校機逐層打開 UTIL 選單，確認有無 Load 或 Impedance 項"
+  },
+  {
+   "id": "GAP-AFG-18",
+   "gap": "幅度單位為 Vrms／dBm 時切換波形，保留的是 Vpp 還是 Vrms（p.207 只有遠端的 5 Vrms 方波→正弦例子）",
+   "impact": "AFG.KEY.WAVEFORM、AMPL 顯示",
+   "provisional": "保留物理 Vpp（內部 EMF）不變，Vrms／dBm 顯示依新波形的 crest factor 重算；若換算後超限，沿用 GAP-AFG-05 的拒絕／提示方式",
+   "rationale": "與 GAP-AFG-11 的「只換顯示單位不改物理幅度」一致；p.207 的遠端例子語意不同，不直接套用",
+   "verify_method": "校機：Square 設 5 Vrms 後切到 Sine，記錄顯示值與示波器量到的 Vpp"
+  }
+ ],
+ "discrepancies": [
+  {
+   "topic": "Load 在哪個選單",
+   "a": "M-AFG p.14 (PDF 14)：UTIL key 可用來設定「output impedance settings」",
+   "b": "M-AFG p.51 選單樹與 p.144–145 操作步驟：CH1/CH2 → F1 Load → 50 OHM／High Z；UTIL 選單樹裡沒有 Load",
+   "resolution": "暫定採 p.144 操作步驟與 p.51 選單樹：CH1/CH2 → F1 Load。UTIL 裡是否也有入口未知，列 GAP-AFG-17 待校機。"
+  },
+  {
+   "topic": "「output impedance」這個用詞與實際內阻",
+   "a": "M-AFG p.144：「selectable output impedances: 50Ω or high impedance」",
+   "b": "M-AFG p.289：「Impedance 50Ω typical (fixed)」；p.144／p.214：「to be used as a reference only」",
+   "resolution": "Load 是顯示幅度的負載參照，內部 50 Ω 固定不變（符合 02）。p.144 的「selectable output impedances」屬於用詞不精確，不照字面實作。"
+  },
+  {
+   "topic": "預設幅度：面板 Preset 與遠端說明",
+   "a": "M-AFG p.52：Preset 的 Amplitude 為 3.000 Vpp",
+   "b": "M-AFG p.202、p.210：「The default amplitude for all functions is 100 mVpp (50Ω).」",
+   "resolution": "Preset 鍵採 p.52（面板章節，是專門針對 Preset 的表）；100 mVpp 屬於 SCPI DEFault 與 APPLy 的語境。兩者都不能證明開機值（GAP-AFG-06）。"
+  },
+  {
+   "topic": "聯合限制的邊界",
+   "a": "M-AFG p.202／p.210／p.211：|Voffset| < Vmax – Vpp/2（嚴格小於）",
+   "b": "M-AFG p.288–289：10 Vpp（50 Ω）與「±5 Vpk ac +dc」；p.28 範例：Sine 10Vpp 接 50Ω。若照嚴格不等式，10 Vpp＋0 V offset 會變成非法",
+   "resolution": "暫定採 |Voffset| + Vpp/2 ≤ Vmax（PD）；等號邊界待校機確認。"
+  },
+  {
+   "topic": "遠端 APPLy 的 offset 參數 vs 面板 offset 範圍",
+   "a": "M-AFG p.203–206：<offset> -4.99V~4.99V (50Ω)",
+   "b": "M-AFG p.63：Range ±5Vpk；p.289：±5 Vpk ac+dc",
+   "resolution": "面板採 ±5 Vpk 並套用聯合限制。最小幅度 1 mVpp 時 |offset| ≤ 4.9995 V，兩位小數顯示時可能呈現為 4.99；不另訂 4.99 上限。"
+  },
+  {
+   "topic": "Ramp 頻率範圍的寫法",
+   "a": "M-AFG p.61、p.208：1μHz~1MHz",
+   "b": "M-AFG p.288 規格表：「Ramp 1MHz」（沒寫下限）",
+   "resolution": "採 1 μHz–1 MHz。"
+  },
+  {
+   "topic": "AMPL 按鍵字樣",
+   "a": "M-AFG p.13 操作鍵說明表的按鍵圖示印成「AMP」",
+   "b": "P1 照片、p.13 面板圖、p.13 內文（「AMPL sets the waveform amplitude」）與 p.27 圖示都是「AMPL」",
+   "resolution": "面板標籤採照片的「AMPL」。"
+  },
+  {
+   "topic": "FREQ/Rate 字樣",
+   "a": "P1 照片：斜線在解析度下不清楚，看起來像「FREQ Rate」",
+   "b": "M-AFG p.13 面板圖與 p.27 圖示：「FREQ/Rate」",
+   "resolution": "採「FREQ/Rate」；照片沒有與此矛盾的證據。"
+  },
+  {
+   "topic": "Offset 準確度數字",
+   "a": "M-AFG p.289 PDF 文字層抽出為「10mV+」",
+   "b": "同頁渲染出來的字形為「20mV+」",
+   "resolution": "以可見字形 20 mV 為準；此項非核心，不影響實作。"
+  },
+  {
+   "topic": "Load 切換時的顯示換算，出處只在遠端章節",
+   "a": "面板章節 p.144 只說「actual amplitude and offset will vary accordingly」，沒寫顯示值怎麼變",
+   "b": "遠端章節 p.202–203、p.210–211、p.214–215：切到 High Z 時幅度與 offset 加倍，切回 50Ω 時減半",
+   "resolution": "實作採「內部 EMF 不變、顯示值 ×2／÷2」（與 02 的負載參照定義一致），並標示面板顯示部分為 PD（GAP-AFG-08）。"
+  },
+  {
+   "topic": "High Z 禁用 dBm：面板章節沒提",
+   "a": "面板 p.61–62 列出 dBm 軟鍵，沒有 High Z 的限制",
+   "b": "遠端 p.202、p.210、p.215 與錯誤碼 p.278：High Z 時不能用 dBm，單位改成 Vpp",
+   "resolution": "採遠端的明文限制（02 也要求如此）；dBm 軟鍵在 High Z 時的外觀 UN。"
+  },
+  {
+   "topic": "超限處理：遠端與規劃暫定",
+   "a": "遠端 p.201、p.202、p.279：超限值會被夾到最大或最小值，並產生 -221／-222 錯誤",
+   "b": "02／03 規劃：面板超限可採明示的暫定拒絕，非法值不能污染原值",
+   "resolution": "面板暫定用拒絕方式（GAP-AFG-05），並記錄這與遠端的夾值語義不同；校機後再調整。"
+  },
+  {
+   "topic": "Square Duty 的頻段邊界（非核心）",
+   "a": "面板 p.56：≤100kHz 1.0–99.0%；100kHz~≤1MHz 10.0–90.0%；>1MHz~25MHz 固定 50%",
+   "b": "遠端 p.209／p.212：「10% to 90% (100 KHz ≤ frequency ≤1MHz)」「50% (frequency ≤ 25 MHz)」，剛好 100 kHz 時兩處說法不同",
+   "resolution": "Duty 本輪 OUT，只記錄；日後實作採面板 p.56。"
+  },
+  {
+   "topic": "遠端查詢範例的最大幅度",
+   "a": "M-AFG p.211 範例：「SOUR1:AMP? MAX +5.0000E+00 ... maximum amplitude ... is 5 volts」",
+   "b": "M-AFG p.288：50 Ω 為 1mVpp to 10 Vpp",
+   "resolution": "範例的條件沒寫（可能受 offset 或頻率影響），不拿來當上限；採規格表。"
+  },
+  {
+   "topic": "通道選擇鍵的數量",
+   "a": "任務描述與 02 寫作「CH1/CH2 鍵」，可能被讀成兩顆鍵",
+   "b": "P1 照片與 M-AFG p.13–14：只有一顆印「CH1/CH2」的切換鍵",
+   "resolution": "實作為單一切換鍵 AFG.KEY.CH1_CH2，不做兩顆。"
+  },
+  {
+   "topic": "後面板 Trigger Output 的適用功能",
+   "a": "M-AFG p.16：只用於 Sweep 與 ARB",
+   "b": "M-AFG p.291：Type「For Burst, Sweep, Arb」",
+   "resolution": "後面板端子本輪 OUT，不影響實作；記錄矛盾，日後做 J 卡或 Burst 時再核對。"
+  }
+ ],
+ "pages_read": "規劃包：00、02、03、04 全文；DOWNLOAD_SOURCES.json、PHOTO_ORIGINS.json；01、05 只 grep 了與 AFG／terminal／descriptor 相關的行。照片：P1 原圖全幅、crops/afg_left.png、crops/afg_right.png，以及我另外裁切放大的操作鍵列、POWER、CH1/CH2 與 OUTPUT、OUTPUT BNC 區、右側邊緣，還有座標疊圖（P2 不在本機型範圍，未看）。M-AFG 文字全文讀過（印刷頁＝PDF 頁序）：p.1–28、p.29–32、p.40–65、p.109（前半）、p.120、p.127、p.132–149、p.182–183、p.190–191、p.194–217、p.274–281、p.288–292、p.306–307。M-AFG 只讀了 grep 出的按鍵序列行：p.33–39、p.67–105、p.111–129、p.151–175；另外對全書做了 dBm、Return、light／LED／illuminat、power on／up、+/-、Output key、CH1/CH2、current／selected channel 的關鍵字搜尋。M-AFG 看過渲染圖的頁：p.1、2、13（含面板高解析放大）、14、15、16、18、23、24、27、28（含 BNC 圖示放大）、44、51、52、53、55、56、58、59、60、61、62、63、144、145、288、289（含 Offset 列放大）。沒讀的頁：p.66–108 與 p.110–131 的正文細節（只有 grep 行）、p.150–181 的正文細節、p.218–273（其他 SCPI 命令）、p.282–287、p.293–305。"
+}
