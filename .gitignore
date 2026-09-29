@@ -1,0 +1,9 @@
+# 規劃資料包（含原廠 PDF 與校機照片）只放本機 reference/，不進公開 repo
+reference/*
+!reference/README.md
+
+# 之後各卡的建置／測試產物（I01 起再細分）
+node_modules/
+test-results/
+playwright-report/
+.DS_Store
