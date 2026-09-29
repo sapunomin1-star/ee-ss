@@ -11,7 +11,7 @@
 
 ## 目前狀態
 
-**I00 來源與基線核定：第 1 次獨立審查 REVIEW FAIL（R1–R7），已完成同卡修正，待第 2 次獨立審查。** 還沒有應用程式，也還沒有任何 REVIEW PASS。審查原文與修正對照見 `docs/reviews/I00-review-1.md`、`docs/reviews/I00-fix-1.md`。
+**I00 來源與基線核定：第 1 次獨立審查 REVIEW FAIL（R1–R7），已完成同卡修正；修正複核指出的 AFG 捨入矛盾也已補正，待第 2 次獨立審查。** 還沒有應用程式，也還沒有任何 REVIEW PASS。審查原文與修正對照見 `docs/reviews/I00-review-1.md`、`docs/reviews/I00-fix-1.md`。
 卡片順序：I00 → I01 共用框架 → I02 AFG → I03 示波器 → I04 電源 → I05 電表 → I06 單機整合。每張卡都要全新 context 的獨立 reviewer 判 PASS 才進下一張。
 接線與波形計算（J01–J03）要等 I06 通過、使用者另行啟動。
 
