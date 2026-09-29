@@ -33,7 +33,54 @@
 
 ## 3. 未取得的來源與查找紀錄
 
-<!-- SEARCH-RESULTS -->
+使用者在 I00 途中要求：包內資料不足時要主動找「同型號」的原廠操作手冊，並記錄網址、版本與頁碼。
+
+**這次沒有取得任何新的正文。** curl 和 WebFetch 碰到下列網域都被網路政策擋下（403／EGRESS_BLOCKED）：
+`www.keysight.com`、`keysight.com`、`literature.cdn.keysight.com`、`rfmw.em.keysight.com`、`docs.keysight.com`、`www.keysight.com.cn`、`www.gwinstek.com`、`www.tek.com`、`download.tek.com`、`www.tek.com.cn`、`www.manualslib.com`。
+只有 WebSearch 能用，它給的是標題、網址和摘要，所以下表全部屬於 **IX**：證明文件存在、在哪裡，不證明任何操作細節。頁碼欄都是「未取得」。
+依規則，不從非官方鏡像站抓原廠 PDF。
+
+### 3.1 34460A（包內缺口最大）
+
+| ID | 文件 | 料號／版本 | 官方網址 | 狀態 |
+|---|---|---|---|---|
+| M-DMM | Keysight Truevolt Series DMM Operating and Service Guide（34460A/61A/65A/70A 共用） | 手冊料號 34460-90901；資產 9018-03876；搜尋摘要稱最新 Edition 7（2020-03），但摘要出自非官方副本，官方 PDF 版次未核對 | https://www.keysight.com/us/en/assets/9018-03876/service-manuals/9018-03876.pdf ；舊 literature 連結 http://literature.cdn.keysight.com/litweb/pdf/34460-90901.pdf | IX，未取得，封鎖 |
+| M-DMM-WH | Truevolt WebHelp（官方線上說明；Features and Functions 各章） | 無料號 | https://rfmw.em.keysight.com/bihelpfiles/Truevolt/WebHelp/US/Content/ 下的 DC Voltage、Resistance、Math-Null、Probe Hold、Triggering and Readings 等頁 | IX，未取得，封鎖 |
+| — | 34460A 官方支援頁 | — | https://www.keysight.com/us/en/support/34460A/digital-multimeter-6-5-digit-basic-truevolt.html | IX；支援頁的更新日不是校機韌體證據 |
+| — | Firmware 3.02／3.03 Release Notes | 9018-07020；9921-02752 | https://www.keysight.com/ml/en/assets/9018-07020/release-notes/9018-07020.pdf | IX；韌體異動可能晚於手冊 |
+
+**排除提醒：** `DM34460 Series`（資產 9925-01336）名字很像，但是另一條產品線，不可用。WebHelp 搜尋結果裡的 33500、N6705「Front Panel Menu Reference」是別的儀器，也不可用。
+
+**搜尋摘要線索（IX，非正文、未核對，只用來決定日後先查哪一章）：**
+
+| 主題 | 摘要內容 | 摘要網址 |
+|---|---|---|
+| Null | null 值會從之後的量測中扣除；值綁定目前功能，離開再回來仍保留 | …/41%20Math-Null.htm |
+| 導通 | ≤10 Ω 會嗶聲並顯示電阻；10 Ω–1.2 kΩ 顯示電阻、不嗶；>1.2 kΩ 顯示「OPEN」；導通固定 1 kΩ 量程 | …/__i_scpi/CONFigure_Subsystem.htm |
+| Shift | Shift 讓下一個鍵變成上方印的次功能，例如 [Probe Hold] 取代 [Single]；Remote 時 Shift 兼 Local | 非官方 ManualsLib 摘要 |
+| DCV Input Z | Auto 模式下 100 mV、1 V、10 V 量程為 HighZ，100 V、1000 V 為 10 MΩ | …/05%20DC%20Voltage.htm |
+| 34460A 功能差異 | 34460A／34461A 只有連續量測模式，沒有 data log 與 digitize；Front/Rear 開關只在 34461A 以上 | docs.keysight.com 知識庫摘要 |
+| Trend chart | WebHelp 摘要說 34460A 沒有 trend chart；零售商頁面說有，**互相矛盾**。D-DMM p.3 的 34460A 欄寫「Histogram, bar meter」，沒有 trend chart，採 D-DMM | …/53%20Display-Trend%20Chart.htm |
+
+這些線索**不得**寫成已確認規格。I05 如果採用其中某項當教學近似，要在範圍說明標示「近似，待手冊正文核對」。
+
+### 3.2 其他三台：包內版本就是目前查得到的最新版
+
+| 機型 | 本包版本 | 搜尋結果 | 其他官方文件（IX，未取得） |
+|---|---|---|---|
+| AFG-2225 | User Manual Ver.B（2020-03-13） | 沒找到更新的英文版；也沒有獨立的 Programming Manual（遠端指令收在 User Manual 內） | Quick Start Guide Ver.E（2018-12-07）https://www.gwinstek.com/en-global/products/downloadSeriesDownNew/5264/430 ；中文使用手冊 Version 1（2018-01-08，比 Ver.B 舊） |
+| TDS2001C | 077-0826-00（2013）＋071-2722-03（2011） | 搜 077-0826-01/-02、071-2722-04/-05 沒有結果；官方頁適用清單含 TDS2001C | Service Manual 077-0446-01 Rev A https://download.tek.com/manual/077044601_RevA.pdf ；多系列共用 Programmer Manual 077-0444-03（不可拿 TBS1000B、TDS2000B 的行為替代） |
+| GPE-4323 | 82GP343230E01（2019-10-02） | 沒找到更新版本 | GPE-X323 系列 Quick Start（只確認有德文版 2021-02-03） |
+
+**排除提醒：** GPE-X323A 系列（含 GPE-4323A，2025-05-29 新聞稿）改用編碼器取代 VR 旋鈕，並可逐通道設定 OVP，**不是**校機的原版 GPE-4323，不可套用。
+TDS1000C-SC 韌體頁的 TDS1000C-SC 也不是 TDS1000C-EDU。
+
+### 3.3 怎麼補上缺口
+
+1. 使用者在雲端環境設定（session 標題列的環境選單 → Edit → Network access）允許 `www.keysight.com`（以及 `rfmw.em.keysight.com`），或放寬存取等級；或
+2. 使用者從官方網址自行下載 9018-03876 PDF，上傳到下一個 session。
+
+取得後在本檔新增 M-DMM 列（檔名、版次、頁數、SHA-256），只重新核對 I05 受影響的列，不必重做其他卡。
 
 ## 4. 使用規則（I01–I05 都適用）
 
