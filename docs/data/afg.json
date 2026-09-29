@@ -316,7 +316,7 @@
    "action": "按下",
    "function": "暫定（PD）：切換輸入中數值的正負號。用在 DC Offset 的負值，以及 AMPL 用 dBm 單位時的負 dBm（例如 −10 dBm）。",
    "feedback": "LCD 編輯框數值前出現或消失負號（暫定）",
-   "range": "Offset（±Vpk）；AMPL 的 dBm（可為負或 0，合法與否依換算後的 Vpp 與聯合限制判定）；Vpp／Vrms 只能大於 0（0 或負值在提交時拒絕）；Phase 本輪 OUT",
+   "range": "Offset（±Vpk）；AMPL 的 dBm（可為負或 0，合法與否依換算後、未捨入的 Vpp 與聯合限制判定，AFG-F06）；Vpp／Vrms 只能大於 0（0 或負值在提交時拒絕）；Phase 本輪 OUT",
    "sources": "P1；M-AFG p.15, p.24 (PDF 同)",
    "evidence": "PH+OT+PD",
    "status": "APPROX",
@@ -337,7 +337,7 @@
    "evidence": "PH+OT",
    "status": "CORE",
    "card": "I02/I01",
-   "notes": "p.15 稱「Scroll Wheel」或「variable knob」。調整結果超出範圍時的行為 UN，暫定該步不生效（GAP-AFG-04）。；卡別細節：I02（旋鈕元件 I01）"
+   "notes": "p.15 稱「Scroll Wheel」或「variable knob」。調整結果超出範圍時的行為 UN，暫定該步不生效（GAP-AFG-04）；幅度以已提交的未捨入值為步進基準（AFG-F06、GAP-AFG-19）。；卡別細節：I02（旋鈕元件 I01）"
   },
   {
    "id": "AFG.KEY.ARROW_LEFT",
@@ -444,7 +444,7 @@
    "action": "按下",
    "function": "設定幅度。AMPL 參數高亮，軟鍵顯示 F1 dBm／F2 mVRMS／F3 VRMS／F4 mVPP／F5 VPP",
    "feedback": "LCD AMPL 欄紅字；編輯框如「3.000 VPP」",
-   "range": "50 Ω：1 mVpp–10 Vpp；High Z：2 mVpp–20 Vpp；20–25 MHz 時為 1 mVpp–5 Vpp（50 Ω）／2 mVpp–10 Vpp（open）；解析度 1 mV 或 3 位；dBm 可為負或 0：Sine、50 Ω、<20 MHz 為 −56.02～+23.979 dBm（由 1 mVpp～10 Vpp 換算，PD；+23.98 dBm 換算後約 10.0007 Vpp，已超過）；High Z 不可用 dBm",
+   "range": "50 Ω：1 mVpp–10 Vpp；High Z：2 mVpp–20 Vpp；20–25 MHz 時為 1 mVpp–5 Vpp（50 Ω）／2 mVpp–10 Vpp（open）；解析度 1 mV 或 3 位（p.288；模擬器不拿它量化已提交值：先以未捨入的換算值判定，只在顯示時捨入，PD，AFG-F06、GAP-AFG-19）；dBm 可為負或 0，一律換算成 Vpp 後判定，不另設 dBm 硬邊界：Sine、50 Ω、低於 20 MHz、offset 0 時，10 Vpp 上限≈+23.9794 dBm（+23.979 dBm≈9.99954 Vpp 接受，+23.98 dBm≈10.00069 Vpp 拒絕），1 mVpp 下限≈−56.0206 dBm（見規格「dBm 可輸入範圍」）；High Z 不可用 dBm",
    "sources": "P1；M-AFG p.13, p.61–62, p.288 (PDF 同)",
    "evidence": "PH+OT+PD",
    "status": "CORE",
@@ -787,7 +787,7 @@
    "source": "M-AFG p.27–28, p.61–62 (PDF 同；單位位置取自 p.62 截圖)",
    "evidence": "OT",
    "status": "CORE",
-   "notes": "p.61：「Choose a unit type by pressing F1~F5.」High Z 時不能用 dBm（遠端說明 p.215），面板上 dBm 軟鍵是否消失 UN。 dBm 可用 +/- 輸入負值（GAP-AFG-12）。"
+   "notes": "p.61：「Choose a unit type by pressing F1~F5.」High Z 時不能用 dBm（遠端說明 p.215），面板上 dBm 軟鍵是否消失 UN。 dBm 可用 +/- 輸入負值（GAP-AFG-12）。 用數字鍵時按單位鍵才提交；旋鈕的調整即時生效，之後在輸入緩衝為空時按單位鍵只換顯示單位（AFG-F06、GAP-AFG-04）。"
   },
   {
    "path": "DC Offset →（Offset 高亮）→ 數字鍵（+/-）或 ◀▶＋旋鈕 → 單位軟鍵",
@@ -938,7 +938,7 @@
    "quote": "Choose a frequency unit by pressing F1~F5."
   },
   {
-   "item": "幅度範圍（20 MHz 以下；20–25 MHz 另列）",
+   "item": "幅度範圍（低於 20 MHz；20–25 MHz 另列，邊界見 GAP-AFG-09）",
    "value": "50 Ω：1 mVpp–10 Vpp；High Z（open-circuit）：2 mVpp–20 Vpp",
    "source": "M-AFG p.61–62 (PDF 61–62)；p.288",
    "evidence": "OT",
@@ -960,21 +960,21 @@
   },
   {
    "item": "dBm 可輸入範圍（由 Vpp 範圍換算）",
-   "value": "手冊只列 dBm 是單位（p.62「Unit」、p.288「Units」），沒有 dBm 數值範圍。依 1 mVpp～10 Vpp（50 Ω）與 GAP-AFG-11 的換算：Sine 為 −56.02～+23.979 dBm（上限對應 10 Vpp；+23.98 dBm 換算後約 10.0007 Vpp，已超過）；20–25 MHz 上限 5 Vpp 對應 +17.958 dBm；負值與 0 都合法。例：−10 dBm＝0.1 mW＝0.07071 Vrms＝0.200 Vpp（50 Ω、Sine）。High Z 不可用 dBm（p.215）。",
-   "source": "M-AFG p.62, p.215, p.288；換算公式見 GAP-AFG-11",
+   "value": "手冊只列 dBm 是單位（p.62「Unit」、p.288「Units」），沒有 dBm 數值範圍，也沒寫換算後怎麼量化。本專案不另設 dBm 硬邊界：dBm 依 GAP-AFG-11 的公式換算成未捨入的 Vpp，再依 Vpp 範圍與 AFG-F08 判定（PD，AFG-F06、GAP-AFG-19）。Sine、50 Ω 時 dBm＝20·log10(Vpp)＋10·log10(2.5)（≈＋3.9794），所以 1 mVpp～10 Vpp 對應 −56.020599913…～+23.979400087… dBm，20–25 MHz 的 5 Vpp 上限對應 +17.958800173… dBm；這些是約值，判定一律回到 Vpp。例（offset 0）：+23.979 dBm≈9.99954 Vpp 接受、+23.98 dBm≈10.00069 Vpp 拒絕；25 MHz 時 +17.958 dBm≈4.99954 Vpp 接受、+17.959 dBm≈5.00012 Vpp 拒絕；−56.02 dBm≈1.00007 mVpp 接受、−56.021 dBm≈0.99995 mVpp 拒絕。負值與 0 都合法：0 dBm≈0.632 Vpp；−10 dBm＝0.1 mW≈0.07071 Vrms＝0.2 Vpp（50 Ω、Sine）。Square、Ramp 依同一公式換算（常數不同），範圍也不同。High Z 不可用 dBm（p.215）。",
+   "source": "M-AFG p.62, p.215, p.288；換算公式見 GAP-AFG-11；判定順序見 AFG-F06、GAP-AFG-19",
    "evidence": "OT+PD",
    "quote": "Unit Vpp, Vrms, dBm"
   },
   {
    "item": "幅度解析度與準確度",
-   "value": "解析度 1 mV 或 3 位；準確度 ±2% of setting ±1 mVpp（1 kHz）",
+   "value": "解析度 1 mV 或 3 位；準確度 ±2% of setting ±1 mVpp（1 kHz）。手冊沒寫這個解析度怎麼套用到輸入；模擬器不拿它量化已提交值（判定見 AFG-F06、GAP-AFG-19，LCD 位數見 GAP-AFG-13）",
    "source": "M-AFG p.288 (PDF 288)",
-   "evidence": "OT",
+   "evidence": "OT+PD（模擬器處理）",
    "quote": "Resolution 1mV or 3 digits"
   },
   {
    "item": "Vpp／Vrms 換算（crest factor）",
-   "value": "Sine：10 Vpp ↔ 3.536 Vrms；5 Vrms 方波改成正弦時變成 3.536 Vrms。其他波形與 dBm 的公式手冊沒有給（GAP-AFG-11）",
+   "value": "Sine：10 Vpp ↔ 3.536 Vrms（p.203 的 SIN 參數也標「(3.536 Vrms)」；10 Vpp 的精確值是 10/(2√2)≈3.5355 Vrms，面板輸入 3.536 VRMS 怎麼判定見來源差異「3.536 Vrms」與 GAP-AFG-19）；5 Vrms 方波改成正弦時變成 3.536 Vrms。其他波形與 dBm 的公式手冊沒有給（GAP-AFG-11）",
    "source": "M-AFG p.202–203, p.207, p.210 (PDF 同)",
    "evidence": "OT（只有 sine 與方波例）",
    "quote": "a 5Vrms square wave must be adjusted to 3.536 Vrms for a sine wave"
@@ -1030,7 +1030,7 @@
   },
   {
    "item": "切換 Load 時顯示值的換算",
-   "value": "50Ω→High Z：幅度與 offset 顯示值 ×2；High Z→50Ω：÷2（內部 EMF 不變）",
+   "value": "50Ω→High Z：幅度與 offset 的 Load 參照值（已提交的未捨入值）×2；High Z→50Ω：÷2（內部 EMF 不變；LCD 再依 GAP-AFG-13 格式化，不拿 LCD 字串計算）",
    "source": "M-AFG p.202–203, p.210–211, p.214–215 (PDF 同)",
    "evidence": "OT（遠端章節）+PD（套用到面板顯示）",
    "quote": "If the amplitude has been set and the output termination is changed from 50Ω to high impedance, the amplitude will double. Changing the output termination from high impedance to 50Ω will half the amplitude."
@@ -1163,31 +1163,31 @@
   {
    "id": "AFG-F05",
    "feature": "旋鈕與方向鍵微調",
-   "rule": "◀▶ 移動游標位數；旋鈕順時針以該位數為步進增加，逆時針減少。結果超出範圍或違反聯合限制時該步不生效（暫定）。",
+   "rule": "◀▶ 移動游標位數；旋鈕順時針以該位數為步進增加，逆時針減少。結果超出範圍或違反聯合限制時該步不生效（暫定）。 幅度的步進基準是已提交的未捨入值（換成目前顯示單位），見 AFG-F06、GAP-AFG-19。",
    "source": "M-AFG p.14–15, p.23 (PDF 同)",
-   "evidence": "OT；超界處理為 PD",
+   "evidence": "OT；超界處理與幅度步進基準為 PD",
    "acceptance": "I02-1：在 1.000000 kHz 把游標移到 kHz 個位，旋鈕順時針一格得 2 kHz，逆時針回到 1 kHz，結果可重現。"
   },
   {
    "id": "AFG-F06",
    "feature": "幅度輸入與單位換算",
-   "rule": "AMPL → 數字 → F1 dBm／F2 mVRMS／F3 VRMS／F4 mVPP／F5 VPP。50 Ω 時 1 mVpp–10 Vpp，High Z 時 2 mVpp–20 Vpp（20–25 MHz 時分別為 5 Vpp／10 Vpp）。Vrms 與 dBm 必須依波形 crest factor 真的換算數值，不能只換文字：sine 10 Vpp＝3.536 Vrms；其他波形與 dBm 的算法為暫定。 合法性判定一律用未捨入的換算值（模擬器暫定規則，PD）：輸入依單位與波形換算成 Vpp 後，直接和幅度範圍、AFG-F08 聯合限制比較，不先捨入；通過後保存未捨入值，LCD 再依 GAP-AFG-13 的顯示格式四捨五入顯示，格式化只影響畫面，不改變判定結果與保存值。手冊 p.288 的「Resolution 1mV or 3 digits」是儀器規格，不當成判定前的捨入規則。 dBm 可為負或 0（例如 −10 dBm），合法與否依換算後的 Vpp 與 AFG-F08 聯合限制判定（PD，GAP-AFG-12）；Vpp／Vrms 必須大於 0。",
+   "rule": "AMPL → 數字 → F1 dBm／F2 mVRMS／F3 VRMS／F4 mVPP／F5 VPP。50 Ω 時 1 mVpp–10 Vpp，High Z 時 2 mVpp–20 Vpp（20–25 MHz 時分別為 5 Vpp／10 Vpp）。Vrms 與 dBm 必須依波形 crest factor 真的換算數值，不能只換文字：sine 10 Vpp＝10/(2√2)≈3.5355 Vrms（手冊標示 3.536）；其他波形與 dBm 的算法為暫定。 提交與判定順序（模擬器暫定，PD；缺口與已知限制見 GAP-AFG-19）：① 輸入緩衝不為空時按單位鍵，把輸入依 GAP-AFG-11 換算成目前 Load 參照的 Vpp，不先捨入；② 用這個未捨入值檢查幅度範圍與 AFG-F08 聯合限制；③ 合法才提交：已提交值保持未捨入（descriptor 的 EMF 由它換算，AFG-F10），顯示單位改成所按的單位；非法則拒絕，已提交值與顯示單位都不變；不論提交或拒絕，輸入緩衝都清空（GAP-AFG-03）；④ LCD 依 GAP-AFG-13 格式化已提交值，顯示字串不回寫、也不重新解析。輸入緩衝為空時按單位鍵＝只換顯示單位：物理幅度不變、不重新判定（GAP-AFG-11；High Z 時按 dBm 仍依 AFG-F11 拒絕）。旋鈕（AFG-F05）：把已提交的未捨入值換成目前顯示單位，順時針加、逆時針減一個游標位權（代數加減，負 dBm 亦同），換回 Vpp 後依 ② 判定，合法才提交（顯示單位不變），再依 ④ 顯示；不合法時該步不生效。 dBm 可為負或 0（例如 −10 dBm），不另設 dBm 或 Vrms 硬邊界，合法與否依換算後的 Vpp 判定（GAP-AFG-12）；Vpp／Vrms 必須大於 0。",
    "source": "M-AFG p.61–62, p.202–203, p.288 (PDF 同)",
-   "evidence": "OT+PD（非 sine 換算與 dBm 公式）",
-   "acceptance": "I02-4、I02-5：Sine、50 Ω 下輸入 3.535 VRMS 後顯示約 9.998 Vpp；輸入 11 VPP 被拒絕且原值保留。另（連續步驟）：Sine、50 Ω、offset 0 V 時輸入 10、+/-、F1 dBm → −10 dBm，等效 0.200 Vpp 被接受；接著把 offset 設為 +4.00 VDC（峰值 4.00＋0.10＝4.10 V，合法）；再輸入 13、F1 dBm（約 2.825 Vpp，峰值 4.00＋1.41＝5.41 V > 5 V）被拒絕，幅度保留 −10 dBm；以 VPP 輸入 0 或負值被拒絕。 邊界（依未捨入值判定）：Sine、50 Ω、offset 0 V 時輸入 23.98 dBm（＝10.00069 Vpp）被拒絕；輸入 23.979 dBm（＝9.99954 Vpp）被接受，LCD 顯示 10.000 VPP；輸入 3.536 VRMS（＝10.00132 Vpp）被拒絕。"
+   "evidence": "OT+PD（非 sine 換算、dBm 公式、提交判定順序與顯示格式）",
+   "acceptance": "I02-4、I02-5。每組都在 CH1 上從 Preset 狀態開始（AFG-F13：Sine、1 kHz、3.000 Vpp、0.00 V、單位 Vpp、50 Ω），按鍵序列照寫；「已提交值」指未捨入的 Vpp，測試以同一公式算期望值並容許 1×10⁻⁹ V 誤差（GAP-AFG-19），下列小數只是約值。(a) AMPL → 3.535 → F3 VRMS：接受，已提交值＝3.535×2√2≈9.998489886 Vpp，LCD 3.535 VRMS；只按 F5 VPP → LCD 9.998 VPP；只按 F3 VRMS → LCD 3.535 VRMS；已提交值始終不變。(b) AMPL → 11 → F5 VPP：拒絕，已提交值 3 Vpp、LCD 3.000 VPP 不變。(c) AMPL → 23.979 → F1 dBm：接受，已提交值≈9.99954 Vpp，LCD 23.98 dBm；接著 23.98 → F1 dBm（≈10.00069 Vpp）：拒絕，已提交值仍≈9.99954 Vpp，LCD 仍是 23.98 dBm（與被拒絕的輸入字面相同，屬 GAP-AFG-19 已知限制）；只按 F5 VPP → LCD 10.00 VPP，已提交值不變。(d) FREQ/Rate → 25 → F5 MHz（3 Vpp、offset 0 時合法）→ AMPL → 17.958 → F1 dBm：接受，已提交值≈4.99954 Vpp（峰值≈2.49977 V ≤ 2.5 V），LCD 17.96 dBm；接著 17.959 → F1 dBm（≈5.00012 Vpp）：拒絕，已提交值不變。(e) AMPL → 10 → F5 VPP：接受，LCD 10.00 VPP；依序只按 F1 dBm → LCD 23.98 dBm、只按 F3 VRMS → LCD 3.536 VRMS、只按 F5 VPP → LCD 10.00 VPP；已提交值始終是 10 Vpp，過程中沒有拒絕。對照：此時輸入 3.536 → F3 VRMS（≈10.00132 Vpp）或 23.98 → F1 dBm（≈10.00069 Vpp）都被拒絕，已提交值仍是 10 Vpp。(f) 連續步驟：AMPL → 0 → F1 dBm：接受（≈0.632456 Vpp，LCD 0.00 dBm）；10 → +/- → F1 dBm：接受，−10 dBm 精確為 0.2 Vpp（LCD −10.00 dBm）；DC Offset → 4 → F2 VDC：接受（峰值 4.00＋0.10＝4.10 V ≤ 5 V）；AMPL → 13 → F1 dBm（≈2.825075 Vpp，峰值≈5.4125 V > 5 V）：拒絕，已提交值仍是 0.2 Vpp（LCD −10.00 dBm）。(g) AMPL → 0 → F5 VPP，以及 AMPL → 1 → +/- → F5 VPP：都拒絕。(h) 旋鈕：AMPL → 3.535 → F3 VRMS → 只按 F5 VPP（LCD 9.998 VPP）→ 游標移到 0.001 V 位 → 順時針一格：LCD 9.999 VPP（≈9.99949 Vpp）→ 再一格：≈10.00049 Vpp 超過上限，該步不生效，LCD 仍是 9.999 VPP（GAP-AFG-19 已知限制）。"
   },
   {
    "id": "AFG-F07",
    "feature": "DC Offset 輸入",
-   "rule": "DC Offset → 數字（可用 +/- 輸入負值）→ F1 mVDC／F2 VDC。50 Ω 時 ±5 Vpk，High Z 時 ±10 Vpk，並受聯合限制約束。",
+   "rule": "DC Offset → 數字（可用 +/- 輸入負值）→ F1 mVDC／F2 VDC。50 Ω 時 ±5 Vpk，High Z 時 ±10 Vpk，並受聯合限制約束。 與幅度相同：以輸入值（不依顯示位數捨入）判定並提交，LCD 依 GAP-AFG-13 顯示（AFG-F08）。",
    "source": "M-AFG p.62–63, p.289 (PDF 同)",
-   "evidence": "OT；+/- 鍵功能為 PD",
+   "evidence": "OT；+/- 鍵功能與提交精度為 PD",
    "acceptance": "I02-5：50 Ω、2 Vpp 時輸入 -3 VDC 被接受；輸入 -4.5 VDC 被拒絕，原值保留。"
   },
   {
    "id": "AFG-F08",
    "feature": "幅度＋offset 聯合限制（共用檢查）",
-   "rule": "|Voffset| + Vpp/2 ≤ Vmax，Vmax＝5 V（50 Ω）或 10 V（High Z），20–25 MHz 時為 2.5／5 V。改 AMPL、Offset、FREQ、波形、Load 都走同一個檢查；非法輸入不污染已提交的值（暫定拒絕，不偽造原廠錯誤碼）。（Vmax 數值由 p.289 推定，手冊公式本身未定義 Vmax：PD） 判定用未捨入值，不先依顯示位數捨入（AFG-F06）。",
+   "rule": "|Voffset| + Vpp/2 ≤ Vmax，Vmax＝5 V（50 Ω）或 10 V（High Z），20–25 MHz 時為 2.5／5 V。改 AMPL、Offset、FREQ、波形、Load 都走同一個檢查；幅度與 offset 一律用未捨入的已提交值或候選值（AFG-F06、GAP-AFG-19）；非法輸入不污染已提交的值（暫定拒絕，不偽造原廠錯誤碼）。（Vmax 數值由 p.289 推定，手冊公式本身未定義 Vmax：PD）",
    "source": "M-AFG p.202, p.210–211, p.289, p.63 (PDF 同)",
    "evidence": "OT+PD",
    "acceptance": "I02-5：50 Ω 下 10 Vpp＋0 V 接受（p.28 範例）；4 Vpp＋3 V 接受；4 Vpp＋3.5 V 被拒絕，原值不變。"
@@ -1203,7 +1203,7 @@
   {
    "id": "AFG-F10",
    "feature": "Load 50 Ω／High Z（顯示參照）",
-   "rule": "CH1/CH2 → F1 Load → F1 50 OHM／F2 High Z。Load 只改變幅度與 offset 顯示所參照的負載：50Ω→High Z 顯示值 ×2，反向 ÷2。內部輸出阻抗永遠是 50 Ω，實際輸出不因切換而跳變。",
+   "rule": "CH1/CH2 → F1 Load → F1 50 OHM／F2 High Z。Load 只改變幅度與 offset 顯示所參照的負載：50Ω→High Z 時，Load 參照值（已提交的未捨入值）×2，反向 ÷2，LCD 再依 GAP-AFG-13 格式化，不拿 LCD 字串計算（AFG-F06 ④）。內部輸出阻抗永遠是 50 Ω，實際輸出不因切換而跳變。",
    "source": "M-AFG p.144–145, p.202–203, p.210–211, p.214–215, p.289 (PDF 同)",
    "evidence": "OT+PD（面板顯示換算取自遠端說明）",
    "acceptance": "I02-4：Preset 後切 High Z，顯示 6.000 Vpp／0.00 V；若 offset 為 1 V 則變成 2 V；切回 50 Ω 顯示 3.000 Vpp；descriptor 的內阻始終為 50 Ω、EMF 不變。"
@@ -1214,7 +1214,7 @@
    "rule": "Load＝High Z 時拒絕 dBm 單位；若切換前單位是 dBm，切換後改成 Vpp。",
    "source": "M-AFG p.202, p.210, p.215, p.278 (PDF 同)",
    "evidence": "OT（遠端章節）+PD（面板呈現）",
-   "acceptance": "I02-4：50 Ω 下設 13.52 dBm 後切 High Z，顯示改為 Vpp 且數值 ×2；在 High Z 下按 dBm 被拒絕。"
+   "acceptance": "I02-4：Preset 後 AMPL → 13.52 → F1 dBm（已提交值≈2.99937 Vpp，LCD 13.52 dBm）；把 CH1 的 Load 切到 High Z（路徑見 AFG-F10、GAP-AFG-01）：單位自動改為 VPP，EMF 不變，Load 參照值×2≈5.99874 Vpp，LCD 5.999 VPP（不是 6.000）；在 High Z 下按 dBm 被拒絕。"
   },
   {
    "id": "AFG-F12",
@@ -1254,7 +1254,7 @@
    "rule": "status tab、參數窗、波形區、軟鍵標籤全部從同一份儀器狀態產生；Phase 列顯示 0.0°（本輪不可編輯）；不新增 Period 欄位。",
    "source": "M-AFG p.18, p.55–63 截圖 (PDF 同)",
    "evidence": "OT",
-   "acceptance": "I02-1 至 I02-8：每一步都比對 LCD 與唯讀 debug 狀態是否一致。"
+   "acceptance": "I02-1 至 I02-8：每一步都比對 LCD 與唯讀 debug 狀態是否一致；一致＝LCD 字串等於 debug 狀態（已提交的未捨入值）依 GAP-AFG-13 格式化的結果，不要求兩者數值相等。"
   }
  ],
  "out_of_scope": [
@@ -1345,7 +1345,7 @@
    "id": "GAP-AFG-03",
    "gap": "數字輸入的提交與取消：沒按單位鍵就按 Return、按其他功能鍵或切通道時，輸入是否提交",
    "impact": "I02-6",
-   "provisional": "只有按單位軟鍵（或 SYM 的 %）才提交；Return、換功能、切通道都捨棄輸入，原值保留",
+   "provisional": "只有按單位軟鍵（或 SYM 的 %）才提交；Return、換功能、切通道都捨棄輸入，原值保留。按單位鍵後，不論提交成功或被拒絕，輸入緩衝都清空，編輯框改顯示已提交值（格式依 GAP-AFG-13）；幅度在輸入緩衝為空時按單位鍵＝只換顯示單位（AFG-F06）",
    "rationale": "手冊所有範例都是「數字＋單位鍵」；02 也要求半截輸入不能成為有效輸出",
    "verify_method": "校機：FREQ/Rate 輸入 5 後分別按 Return、AMPL，看頻率有沒有變"
   },
@@ -1353,7 +1353,7 @@
    "id": "GAP-AFG-04",
    "gap": "旋鈕調整是否立即生效；游標可移動的位數範圍；越界時是停住、夾到極值還是拒絕",
    "impact": "I02-1",
-   "provisional": "旋鈕調整立即生效（改到已提交值）；越界那一步不生效；游標可在顯示的位數之間移動",
+   "provisional": "旋鈕調整立即生效（改到已提交值）；越界那一步不生效；游標可在顯示的位數之間移動；幅度的步進基準（已提交的未捨入值，換成目前顯示單位）與已知限制見 AFG-F06、GAP-AFG-19",
    "rationale": "p.23 只寫順時針增加、逆時針減少",
    "verify_method": "校機：在 Ramp 1 MHz 時把旋鈕往上轉；在 Sine 3 Vpp 時用旋鈕把幅度往上加到超限"
   },
@@ -1385,7 +1385,7 @@
    "id": "GAP-AFG-08",
    "gap": "面板切換 Load 時的顯示換算、High Z 時 status tab 的字樣、High Z 時 dBm 軟鍵是否隱藏",
    "impact": "I02-4",
-   "provisional": "顯示值 ×2 或 ÷2（依遠端說明）；status tab 顯示「High Z」（取軟鍵名稱）；dBm 軟鍵仍顯示，但按下會被拒絕並提示",
+   "provisional": "Load 參照值（已提交的未捨入值）×2 或 ÷2（依遠端說明），LCD 再依 GAP-AFG-13 格式化；status tab 顯示「High Z」（取軟鍵名稱）；dBm 軟鍵仍顯示，但按下會被拒絕並提示",
    "rationale": "p.144 面板章節只說「reference only」；遠端 p.214–215 才寫明倍率",
    "verify_method": "校機：Preset 後切 High Z，看 AMPL 是否變 6.000 Vpp、tab 字樣、F1 標籤"
   },
@@ -1409,7 +1409,7 @@
    "id": "GAP-AFG-11",
    "gap": "非正弦波的 Vrms 換算與 dBm 公式；只按單位鍵、沒輸入數字時，是換算顯示單位還是別的行為",
    "impact": "I02-4 單位",
-   "provisional": "Square（50%）Vrms＝Vpp/2；Ramp 與三角波 Vrms＝Vpp/(2√3)；dBm＝10·log10(Vrms²/50Ω/1mW)（以 50 Ω 為參照）。只按單位鍵時換算目前值的顯示單位，物理幅度不變",
+   "provisional": "Square（50%）Vrms＝Vpp/2；Ramp 與三角波 Vrms＝Vpp/(2√3)；dBm＝10·log10(Vrms²/50Ω/1mW)（以 50 Ω 為參照；Vrms 只算交流成分，不含 offset）。換算不先捨入。只按單位鍵（輸入緩衝為空）時換算目前值的顯示單位，物理幅度不變，不重新判定、不從顯示字串回推（AFG-F06、GAP-AFG-19）",
    "rationale": "手冊只給 sine 的 3.536 Vrms 與方波 5 Vrms 例子（p.202–203）",
    "verify_method": "校機：3 Vpp 的 sine、square、ramp 分別按 VRMS 與 dBm，記錄讀數"
   },
@@ -1417,7 +1417,7 @@
    "id": "GAP-AFG-12",
    "gap": "+/- 鍵的功能",
    "impact": "Offset 負值與負 dBm 的輸入（AFG-F06、AFG-F07）",
-   "provisional": "切換輸入中數值的正負號。提交時依單位判定（PD）：Offset 可正可負；dBm 可正、可負、可為 0，先依波形 crest factor 換算成 Vpp（GAP-AFG-11），再做幅度範圍與 AFG-F08 聯合限制檢查，不因為是負號就拒絕；Vpp／Vrms 必須大於 0，0 或負值拒絕並保留原值；High Z 時 dBm 本身不可用（AFG-F11）。 其他參數（頻率、SYM 等）輸入負值時，依各自範圍規則拒絕。",
+   "provisional": "切換輸入中數值的正負號。提交時依單位判定（PD）：Offset 可正可負；dBm 可正、可負、可為 0，先依波形 crest factor 換算成未捨入的 Vpp（GAP-AFG-11、AFG-F06），再做幅度範圍與 AFG-F08 聯合限制檢查，不因為是負號就拒絕；Vpp／Vrms 必須大於 0，0 或負值拒絕並保留原值；High Z 時 dBm 本身不可用（AFG-F11）。 其他參數（頻率、SYM 等）輸入負值時，依各自範圍規則拒絕。",
    "rationale": "p.15 有畫出此鍵，但沒有說明",
    "verify_method": "校機：DC Offset 輸入 2、按 +/-、再按 VDC；50 Ω、Sine 時 AMPL 輸入 10、按 +/-、再按 dBm，確認得到 −10 dBm（約 0.200 Vpp）；VPP 輸入 0 看是否被拒絕"
   },
@@ -1425,9 +1425,9 @@
    "id": "GAP-AFG-13",
    "gap": "Offset 與幅度的顯示位數，以及用 mVDC 時的顯示格式",
    "impact": "LCD 顯示",
-   "provisional": "依截圖：AMPL 3 位小數（Vpp）、Offset 2 位小數（VDC）、FREQ 參數窗 7 位有效數字、編輯框精確到 μHz。mVDC 格式暫定為整數 mV。顯示時四捨五入到上述位數（PD）；格式化只影響畫面，不影響合法性判定與保存值（AFG-F06）",
-   "rationale": "只有截圖可參考，沒有正文規則",
-   "verify_method": "校機觀察各單位的顯示"
+   "provisional": "依截圖：AMPL 以 VPP 顯示時 3 位小數（3.000 VPP），≥10 時 2 位小數（p.26 說明畫面的 20.00 VPP）；Offset 2 位小數（VDC）、FREQ 參數窗 7 位有效數字、編輯框精確到 μHz。mVDC 格式暫定為整數 mV。沒有截圖的幅度單位暫定：VRMS 同 VPP；mVPP、mVRMS 1 位小數；dBm 2 位小數。格式化方式：以十進位值四捨五入（half away from zero，不直接用二進位浮點的 toFixed）；VPP、VRMS 先取 3 位小數，結果 ≥10 時改取 2 位；顯示為 0 時不帶負號，正值不加 + 號。固定小數位的後果：很小的幅度以 VRMS 顯示可能是 0.000（例：1 mVpp sine≈0.000354 Vrms），要看小幅度請用 mVRMS。顯示位數只影響 LCD 字串，不改已提交值、不參與判定（AFG-F06 ④、GAP-AFG-19）；這些 PD 字樣依 §0.2-5 (2) 列入儀器外近似清單",
+   "rationale": "只有截圖可參考，沒有正文規則；≥10 V 只有 p.26 說明畫面一張（High Z、20.00 VPP）；VRMS、dBm、mV 單位完全沒有截圖",
+   "verify_method": "校機觀察各單位的顯示（含 10 Vpp、VRMS、dBm、mVPP、mVRMS）"
   },
   {
    "id": "GAP-AFG-14",
@@ -1465,9 +1465,17 @@
    "id": "GAP-AFG-18",
    "gap": "幅度單位為 Vrms／dBm 時切換波形，保留的是 Vpp 還是 Vrms（p.207 只有遠端的 5 Vrms 方波→正弦例子）",
    "impact": "AFG.KEY.WAVEFORM、AMPL 顯示",
-   "provisional": "保留物理 Vpp（內部 EMF）不變，Vrms／dBm 顯示依新波形的 crest factor 重算；若換算後超限，沿用 GAP-AFG-05 的拒絕／提示方式",
+   "provisional": "保留物理 Vpp（內部 EMF）不變，Vrms／dBm 顯示依新波形的 crest factor 重算；Vpp 不變，所以不會因單位換算而超限，也不從重算後的顯示值回推判定（GAP-AFG-19）；切到 Ramp 而頻率降到 1 MHz 時，依 AFG-F12 重跑 AFG-F08",
    "rationale": "與 GAP-AFG-11 的「只換顯示單位不改物理幅度」一致；p.207 的遠端例子語意不同，不直接套用",
    "verify_method": "校機：Square 設 5 Vrms 後切到 Sine，記錄顯示值與示波器量到的 Vpp"
+  },
+  {
+   "id": "GAP-AFG-19",
+   "gap": "幅度提交時的量化與判定順序：p.288 只列「Resolution 1mV or 3 digits」，沒寫單位換算後要先捨入再判定，還是先判定再捨入；剛好在捨入後上限附近的輸入（例：+23.98 dBm、3.536 VRMS）面板是否接受未知（遠端超限會夾到上下限並報 -222，p.279）",
+   "impact": "AFG-F06（規則 ①–④ 只寫在那裡）、AFG-F05／GAP-AFG-04（旋鈕）、AFG-F07／AFG-F08（offset 與聯合限制）、AFG-F10／AFG-F11／GAP-AFG-08（切 Load）、AFG-F04／GAP-AFG-09（改頻率）、GAP-AFG-11（只換顯示單位）、GAP-AFG-13（顯示格式）；I02-1、I02-4、I02-5",
+   "provisional": "照 AFG-F06 ①–④：先用未捨入值判定，合法才提交，LCD 只格式化；不另設 dBm、Vrms 硬邊界。數值以一般雙精度浮點計算即可，判定上下限與聯合限制時容許 1×10⁻⁹ V 誤差（只吸收浮點誤差，遠小於任何有意義的輸入差），聯合限制一律用 AFG-F08 的加法形式。已知限制（同一規則的必然結果，不是缺陷）：(1) 顯示值不一定能照打回去：10 Vpp 顯示 3.536 VRMS，但輸入 3.536 VRMS≈10.00132 Vpp 被拒絕；≈9.99954 Vpp 與 10 Vpp 都顯示 23.98 dBm，但輸入 23.98 dBm≈10.00069 Vpp 被拒絕；25 MHz 時 5 Vpp 顯示 17.96 dBm，輸入 17.96 dBm≈5.00069 Vpp 被拒絕。(2) 1 kHz 下 +17.959 dBm≈5.00012 Vpp 合法，只按 VPP 顯示 5.000 VPP，但之後改到 25 MHz 被拒絕（GAP-AFG-09）。(3) 只換顯示單位後，已提交值可能不在顯示格點上：3.535 VRMS 切 VPP 顯示 9.998（≈9.99849），旋鈕在 0.001 位加一格得≈9.99949（顯示 9.999），再加一格≈10.00049 超過上限而不生效，畫面上卻像是要到 10.00；要設 10 Vpp 請直接輸入 10 VPP",
+   "rationale": "修正複核 C1：原本 AFG-F06「單位換算後先依顯示解析度（1 mV 或 3 位有效數字）捨入，再做範圍與聯合限制檢查」有兩種讀法，+23.98 dBm（≈10.00069 Vpp）捨入到 1 mV 得 10.001 被拒絕、捨入到 3 位有效數字得 10.0 被接受。p.288 沒有演算法；p.203 的「(3.536 Vrms)」、p.202／p.210 的「must be adjusted to 3.536 Vrms」、p.207 的「automatically adjusted to 3.536」都在遠端章節，字面上把 3.536 Vrms 當成 sine 的上限讀值；本專案推論（PD）那是 10/(2√2)≈3.5355 捨入到 3 位小數後的標示，不當硬邊界，見來源差異「3.536 Vrms」。選「先判定未捨入值」是因為它唯一、可計算，而且只換顯示單位不會改變物理量",
+   "verify_method": "校機：Sine、50 Ω、1 kHz、offset 0 分別輸入 23.98 dBm 與 3.536 VRMS，記錄是否被接受、接受後只按 VPP 的讀數；再輸入 10 VPP 後只按 dBm、VRMS、VPP 往返，看讀數與示波器量到的 Vpp 有沒有改變；在 VPP 顯示 9.998 附近用旋鈕加到 10.00，看會不會被擋"
   }
  ],
  "discrepancies": [
@@ -1499,7 +1507,7 @@
    "topic": "遠端 APPLy 的 offset 參數 vs 面板 offset 範圍",
    "a": "M-AFG p.203–206：<offset> -4.99V~4.99V (50Ω)",
    "b": "M-AFG p.63：Range ±5Vpk；p.289：±5 Vpk ac+dc",
-   "resolution": "面板採 ±5 Vpk 並套用聯合限制。判定用未捨入值（AFG-F06）：最小幅度 1 mVpp 時 |offset| ≤ 4.9995 V 合法；LCD 兩位小數四捨五入顯示為 5.00 VDC（GAP-AFG-13），只影響畫面。不另訂 4.99 上限。"
+   "resolution": "面板採 ±5 Vpk 並套用聯合限制。最小幅度 1 mVpp 時 |offset| ≤ 4.9995 V（以未捨入值判定，AFG-F08）；LCD 依 GAP-AFG-13 四捨五入到兩位小數，顯示為 5.00 VDC；遠端寫 4.99 的原因不明，不另訂 4.99 上限。"
   },
   {
    "topic": "Ramp 頻率範圍的寫法",
@@ -1529,7 +1537,7 @@
    "topic": "Load 切換時的顯示換算，出處只在遠端章節",
    "a": "面板章節 p.144 只說「actual amplitude and offset will vary accordingly」，沒寫顯示值怎麼變",
    "b": "遠端章節 p.202–203、p.210–211、p.214–215：切到 High Z 時幅度與 offset 加倍，切回 50Ω 時減半",
-   "resolution": "實作採「內部 EMF 不變、顯示值 ×2／÷2」（與 02 的負載參照定義一致），並標示面板顯示部分為 PD（GAP-AFG-08）。"
+   "resolution": "實作採「內部 EMF 不變、Load 參照值（已提交的未捨入值）×2／÷2，LCD 再格式化」（與 02 的負載參照定義一致），並標示面板顯示部分為 PD（GAP-AFG-08）。"
   },
   {
    "topic": "High Z 禁用 dBm：面板章節沒提",
@@ -1554,6 +1562,12 @@
    "a": "M-AFG p.211 範例：「SOUR1:AMP? MAX +5.0000E+00 ... maximum amplitude ... is 5 volts」",
    "b": "M-AFG p.288：50 Ω 為 1mVpp to 10 Vpp",
    "resolution": "範例的條件沒寫（可能受 offset 或頻率影響），不拿來當上限；採規格表。"
+  },
+  {
+   "topic": "3.536 Vrms 是不是 sine 的 Vrms 上限",
+   "a": "M-AFG p.203 APPLy:SINusoid 參數：1mVpp~10Vpp (50Ω)，下一行「(3.536 Vrms)」；p.202、p.210：5 Vrms 方波用在正弦時「must be adjusted to 3.536 Vrms」；p.207：「automatically adjusted to 3.536」（都在遠端章節）。字面上 3.536 Vrms 就是 sine 的上限讀值",
+   "b": "M-AFG p.288：上限 10 Vpp（into 50Ω）；10 Vpp 的精確 Vrms 是 10/(2√2)≈3.53553 Vrms，輸入 3.536 Vrms 換算為≈10.00132 Vpp，超過 10 Vpp",
+   "resolution": "推論（PD）：3.536 是 3.5355… 捨入到 3 位小數後的標示，不當硬邊界。面板一律依未捨入的 Vpp 判定（AFG-F06），所以輸入 3.536 VRMS 被拒絕、10 Vpp 以 VRMS 顯示為 3.536（GAP-AFG-19 已知限制）。遠端超限時夾到上限並報 -222（p.279），面板本輪仍採拒絕（GAP-AFG-05、來源差異「超限處理」）。待校機驗證。"
   },
   {
    "topic": "通道選擇鍵的數量",
