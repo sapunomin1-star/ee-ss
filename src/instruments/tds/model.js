@@ -37,6 +37,7 @@ export const SCENARIOS = [
   { id: 'S3A', label: 'S3a 無輸入', desc: 'CH1、CH2 都沒有訊號', sig: [null, null], probe: [10, 10] },
   { id: 'S3B', label: 'S3b 固定 +1.00 V DC', desc: 'CH1：+1.00 V 直流（沒有邊緣可觸發）', sig: [sine(0, 1, 0), null], probe: [10, 10] },
   { id: 'S3C', label: 'S3c S1＋Level 出範圍', desc: 'S1 訊號；把 Level 轉出 −0.5～+1.5 V，比較 Normal／Auto', sig: [sine(2, 0.5), null], probe: [10, 10] },
+  { id: 'BENCH', label: '實驗台接線', desc: '訊號來自「實驗台」分頁：AFG → RC 電路，探棒接在哪裡就量哪裡（實際探棒倍率看探棒上的 1×／10× 開關）', bench: true },
 ];
 const SCEN = Object.fromEntries(SCENARIOS.map((s) => [s.id, s]));
 
@@ -63,6 +64,38 @@ function firstCycle(x) {
     if (armed && x[j - 1] < ref && x[j] >= ref) { cr.push({ j, k: j - 1 + (ref - x[j - 1]) / (x[j] - x[j - 1]) }); armed = false; }
   }
   return cr.length === 2 ? cr : null;
+}
+
+// ---- 訊號路徑物件（正弦解析式／週期波形表）----
+function sinePath(a, m, f, d) {
+  return {
+    a, m, f, d, mean: m,
+    at: (t) => m + a * Math.sin(2 * Math.PI * f * (t - d)),
+    cross: (L, slope) => { const s = Math.asin((L - m) / a); return d + (slope === 'R' ? s : Math.PI - s) / (2 * Math.PI * f); },
+  };
+}
+// table：一個週期的探棒尖端電壓（等間隔 M 點）；k＝1／實際探棒倍率
+function tablePath(table, period, k) {
+  const M = table.length, v = Float64Array.from(table, (x) => x * k);
+  let mx = -Infinity, mn = Infinity, sum = 0;
+  for (const x of v) { if (x > mx) mx = x; if (x < mn) mn = x; sum += x; }
+  const a = (mx - mn) / 2 > 1e-12 ? (mx - mn) / 2 : 0;
+  const at = (t) => {
+    const u = ((((t / period) % 1) + 1) % 1) * M, j = Math.floor(u) % M, fr = u - Math.floor(u);
+    return v[j] + (v[(j + 1) % M] - v[j]) * fr;
+  };
+  const cross = (L, slope) => { // 一個週期內第一個符合斜率的穿越點
+    for (let j = 0; j < M; j++) {
+      const y0 = v[j], y1 = v[(j + 1) % M];
+      const hit = slope === 'R' ? y0 < L && y1 >= L : y0 > L && y1 <= L;
+      if (hit) return ((j + (L - y0) / (y1 - y0)) / M) * period;
+    }
+    return 0;
+  };
+  return { a, m: (mx + mn) / 2, f: a > 0 && period > 0 ? 1 / period : 0, d: 0, mean: sum / M, at, cross };
+}
+function shiftPath(p, dv) {
+  return { ...p, m: p.m + dv, mean: p.mean + dv, at: (t) => p.at(t) + dv, cross: (L, slope) => p.cross(L - dv, slope) };
 }
 
 export class TdsModel {
@@ -92,12 +125,14 @@ export class TdsModel {
   }
 
   // 模擬器「重設」＝首次載入：Appendix E 的值、兩通道 Probe 10X、情境 S1（GAP-TDS-19，不是校機的開機值）
+  // 例外：已改用實驗台接線時保留（接線是實體的，重設示波器不會拔掉探棒）
   reset() {
+    const bench = this.scen === 'BENCH';
     this.on = true;
     this.seed = 20260930;
     this.acqN = 0;
-    this.scen = 'S1';
-    this.fx = SCEN.S1;
+    this.scen = bench ? 'BENCH' : 'S1';
+    this.fx = bench ? this.benchFx() : SCEN.S1;
     this.ch = [0, 1].map(() => ({ on: false, coupling: 'DC', bw: false, vIdx: 5, pos: 0, probe: 10 }));
     this.applyDefaults();
     this.menu = null;
@@ -137,25 +172,31 @@ export class TdsModel {
   }
 
   // ---- 訊號路徑 ----
-  // 通道 i 在 BNC、經通道耦合後：v(τ) = m + a·sin(2πf(τ − d))（BNC 伏特）
+  // 通道 i 在 BNC、經通道耦合後的訊號（BNC 伏特）。兩種來源：
+  //   正弦情境：v(τ) = m + a·sin(2πf(τ − d))（解析式）
+  //   週期波形表（實驗台電路算出的探棒尖端電壓，一個週期 M 點）：線性內插
+  // 共同欄位：a＝(max−min)/2、m＝(max+min)/2、f（0＝直流或無訊號）、mean、at(t)、cross(L, slope)
   path(i) {
     const s = this.fx.sig[i], c = this.ch[i];
-    if (!s || c.coupling === 'GND') return { a: 0, m: 0, f: 0, d: 0 }; // Ground＝零伏參考線
+    if (!s || c.coupling === 'GND') return sinePath(0, 0, 0, 0); // Ground＝零伏參考線
     const k = 1 / this.fx.probe[i];
+    if (s.table) {
+      const p = tablePath(s.table, s.period, k);
+      return c.coupling === 'AC' ? shiftPath(p, -p.mean) : p; // AC：去掉直流（不模擬低頻傾斜，近似 GAP-TDS-12）
+    }
     let a = (s.vpp / 2) * k, m = s.dc * k, d = s.delay;
     if (c.coupling === 'AC') { // 一階高通 fc＝10 Hz，實際 10× 探棒時 1 Hz，直接呈現穩態（GAP-TDS-12）
       const fc = this.fx.probe[i] === 10 ? 1 : 10;
       m = 0;
       if (s.f > 0) { a *= s.f / Math.hypot(s.f, fc); d -= Math.atan(fc / s.f) / (2 * Math.PI * s.f); } else a = 0;
     }
-    return { a, m, f: s.f, d };
+    return sinePath(a, m, s.f, d);
   }
 
   // 觸發路徑：取自通道耦合後的訊號（GAP-TDS-13）；觸發耦合 AC 再去掉直流（只影響觸發，TDS-F07）
   trigPath() {
-    const p = { ...this.path(this.trig.src) };
-    if (this.trig.coup === 'AC') p.m = 0;
-    return p;
+    const p = this.path(this.trig.src);
+    return this.trig.coup === 'AC' ? shiftPath(p, -p.mean) : p;
   }
 
   // Level 必須落在觸發訊號的最小值與最大值之間才有觸發事件（DC、無訊號永遠沒有）
@@ -164,9 +205,7 @@ export class TdsModel {
   // 觸發事件的絕對時間（依 Slope 與 Level）；沒有觸發 → null
   trigTime() {
     if (!this.crosses()) return null;
-    const p = this.trigPath();
-    const s = Math.asin((this.trig.level - p.m) / p.a);
-    return p.d + (this.trig.slope === 'R' ? s : Math.PI - s) / (2 * Math.PI * p.f);
+    return this.trigPath().cross(this.trig.level, this.trig.slope);
   }
 
   // 觸發頻率讀值：停止時也照樣追蹤目前觸發源（p.112）；沒有觸發事件時不顯示（GAP-TDS-16）
@@ -184,7 +223,7 @@ export class TdsModel {
       const p = this.path(i), arr = new Float64Array(N);
       band[i] = p.a > 0 && p.f * dt > 0.25; // 每週期不到 4 點：畫成包絡帶，不模擬混疊（取樣率與混疊本輪 OUT）
       for (let k = 0; k < N; k++) {
-        arr[k] = band[i] ? p.m + (k % 2 ? -p.a : p.a) : p.m + p.a * Math.sin(2 * Math.PI * p.f * (tau + t0 + k * dt - p.d));
+        arr[k] = band[i] ? p.m + (k % 2 ? -p.a : p.a) : p.at(tau + t0 + k * dt);
       }
       return arr;
     });
@@ -571,11 +610,20 @@ export class TdsModel {
     return null;
   }
 
+  // 實驗台：外殼注入訊號來源（回傳 { sig:[{table,period}|null ×2], probe:[倍率 ×2] }）；電路變了呼叫 inputChanged
+  setBenchSource(fn) { this.benchSource = fn; }
+  benchFx() { return this.benchSource?.() ?? { sig: [null, null], probe: [10, 10] }; }
+  inputChanged() {
+    if (this.scen !== 'BENCH' || !this.on) return;
+    this.fx = this.benchFx();
+    this.tick();
+  }
+
   setScenario(id) {
     const s = SCEN[id];
     if (!s) return null;
     this.scen = id;
-    this.fx = s;
+    this.fx = s.bench ? this.benchFx() : s;
     this.tick();
     const frozen = this.run === 'stop' ? ' 採集已停止：波形與量測仍是舊紀錄，只有右下角觸發頻率會跟著新訊號。' : '';
     return { kind: 'info', text: `單機測試情境 ${s.label}：${s.desc}。${frozen}` };

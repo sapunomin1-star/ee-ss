@@ -41,6 +41,7 @@ export const D1 = [
   { id: 'open', kind: 'R', ohm: Infinity, label: '開路', desc: '電阻類（測試線之間沒有接東西），接 Input HI／LO。' },
   { id: 'dci', kind: 'I', dc: 0.01234, ac: 0, label: 'DC 12.34 mA', desc: '電流類，串在 I 3A／LO。' },
   { id: 'aci', kind: 'I', dc: 0, ac: 0.005, label: 'AC 5.000 mArms（1 kHz 純正弦）', desc: '電流類，串在 I 3A／LO。' },
+  { id: 'bench', bench: true, label: '實驗台接線', desc: '測試線接在「實驗台」分頁的電路上：HI、LO 接在哪裡就量哪裡（電壓、電阻）。' },
 ];
 const TERM = { V: 'Input HI／LO', R: 'Input HI／LO', I: 'I 3A／LO' };
 const CAT = { V: '電壓類', R: '電阻類', I: '電流類' };
@@ -118,6 +119,13 @@ export class DmmModel {
   // 目前功能看得到的物理量；null＝未提供相容測試輸入。AC 功能只取交流成分、DC 功能只取直流成分（DMM-F03）
   input() {
     const fx = this.fx, f = this.f;
+    if (fx.bench) { // 實驗台：由電路算出 HI−LO（J 階段）
+      const b = this.benchSource?.();
+      if (!b) return null;
+      if (f.kind === 'V') return b.v ? (f.part === 'dc' ? b.v.dc : b.v.ac) : null;
+      if (f.kind === 'R') return b.ohm;
+      return null;
+    }
     if (!fx.kind || fx.kind !== f.kind) return null;
     if (f.kind === 'R') return fx.ohm;
     return f.part === 'dc' ? fx.dc : fx.ac;
@@ -197,7 +205,8 @@ export class DmmModel {
     const fx = D1.find((d) => d.id === id);
     if (!fx) return null;
     this.fixture = id;
-    const head = fx.kind ? `單機測試情境：${fx.label}，接在 ${TERM[fx.kind]}。` : '已拔除測試輸入。';
+    const head = fx.bench ? '改用實驗台接線：讀值來自實驗台上的電路（HI、LO 接在哪裡就量哪裡）。'
+      : fx.kind ? `單機測試情境：${fx.label}，接在 ${TERM[fx.kind]}。` : '已拔除測試輸入。';
     if (!this.on) return { kind: 'info', text: `${head}電表電源關閉中，開機後才有讀值。` };
     this.settle();
     const h = this.readingHint();
@@ -218,8 +227,18 @@ export class DmmModel {
     return null;
   }
 
+  // 實驗台：外殼注入電路來源（回傳 { v:{dc,ac}|null, ohm|null, why, whyR, whyI }）
+  setBenchSource(fn) { this.benchSource = fn; }
+
   compatNote() {
     const fx = this.fx;
+    if (fx.bench) {
+      const b = this.benchSource?.() ?? {};
+      if (b.why) return b.why;
+      if (this.f.kind === 'R') return b.whyR || '';
+      if (this.f.kind === 'I') return b.whyI || '';
+      return '';
+    }
     if (!fx.kind) return '目前沒有接測試情境。';
     return `「${fx.label}」是${CAT[fx.kind]}，要用 ${USE[fx.kind]} 量（目前是 ${this.f.key}）。`;
   }

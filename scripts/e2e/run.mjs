@@ -4,9 +4,10 @@ import { run as tds } from './tds.mjs';
 import { run as gpe } from './gpe.mjs';
 import { run as dmm } from './dmm.mjs';
 import { run as i06 } from './i06.mjs';
+import { run as bench } from './bench.mjs';
 
 let fail = 0, pass = 0;
-for (const r of [afg, tds, gpe, dmm, i06]) {
+for (const r of [afg, tds, gpe, dmm, i06, bench]) {
   const T = await r();
   T.print();
   fail += T.fail; pass += T.pass;

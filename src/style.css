@@ -70,3 +70,30 @@ svg.panel { display: block; width: 100%; height: auto; user-select: none; touch-
 .panel-dmm .sub { fill: #6ea8ff; }
 .panel .ctl.active .cap { fill: #8d949b; transform-box: fill-box; transform-origin: center; transform: scale(.88); }
 .panel-dmm .ctl .cap { stroke: #202327; }
+
+/* ---- 實驗台（接線）---- */
+.tabs .tab-bench { border-color: #c98a00; }
+svg.bench-svg { display: block; width: 100%; height: auto; user-select: none; background: #e4e7ea; border-radius: 8px; }
+.bench-svg text { font-family: -apple-system, "PingFang TC", "Noto Sans TC", sans-serif; text-anchor: middle; pointer-events: none; }
+.bench-svg .blk { fill: #1d1f22; }
+.bench-svg .val { fill: #3b2f16; font-weight: 700; }
+.bench-svg .sub-t { fill: #6b5a33; }
+.bench-svg .lead, .bench-svg .post, .bench-svg .mini { cursor: pointer; outline: none; }
+.bench-svg .lead .pill { fill: #fff; stroke: #9aa3ad; stroke-width: 1.2; }
+.bench-svg .lead .pill-t { fill: #1d1f22; font-weight: 600; }
+.bench-svg .lead.on .pill { fill: #eaf6ea; stroke: #2e7d32; }
+.bench-svg .lead.sel .pill { fill: #dbeafe; stroke: #0a84ff; stroke-width: 2.6; }
+.bench-svg .lead:focus-visible .pill, .bench-svg .post:focus-visible .post-c { stroke: #0a84ff; stroke-width: 3; }
+.bench-svg .post-c { fill: #fffdf6; stroke: #8a6d3b; stroke-width: 2; }
+.bench-svg .post.armed .post-c { stroke: #0a84ff; stroke-width: 3; stroke-dasharray: 4 3; }
+.bench-svg .mini:focus-visible rect { stroke: #0a84ff; stroke-width: 3; }
+.side .fld { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 4px 0; }
+.side .fld select { max-width: 200px; font: inherit; }
+.side .muted, .side .howto { color: var(--muted); font-size: 12px; margin: 6px 0; }
+.side .howto { color: var(--ink); font-size: 13px; }
+.side ul.warn, .side ul.wires { margin: 0; padding-left: 18px; }
+.side ul.warn .w-bad { color: var(--reject); font-weight: 600; }
+.side ul.warn .w-info { color: #6b5a00; }
+.side ul.warn .w-ok { color: var(--ok); }
+.side .btns { display: flex; gap: 6px; margin-top: 8px; }
+.side .btns button { flex: 1; padding: 5px; border-radius: 6px; border: 1px solid var(--line); background: #f4f6f8; }

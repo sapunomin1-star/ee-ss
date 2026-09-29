@@ -117,7 +117,7 @@ test('F10／F11 不相容：沒有讀值、讀值欄留空，也不沿用上一�
   assert.ok(h.text.includes('未提供相容測試輸入'));
   assert.ok(!m.lcd().includes('1.234'));
   // 相容表：電壓→DCV／ACV、電阻→Ω2W／Cont、電流→DCI／ACI；未接情境→全部沒有讀值
-  const ok = { none: [], dcv: ['DCV', 'ACV'], acv: ['DCV', 'ACV'], r1k: ['OHM', 'CONT'], short: ['OHM', 'CONT'], open: ['OHM', 'CONT'], dci: ['DCI', 'ACI'], aci: ['DCI', 'ACI'] };
+  const ok = { none: [], dcv: ['DCV', 'ACV'], acv: ['DCV', 'ACV'], r1k: ['OHM', 'CONT'], short: ['OHM', 'CONT'], open: ['OHM', 'CONT'], dci: ['DCI', 'ACI'], aci: ['DCI', 'ACI'], bench: [] }; // bench：單元測試沒有接實驗台電路，全部沒有讀值
   for (const { id } of D1) {
     for (const fn of Object.keys(FUNCS)) {
       const t = fresh(id);
