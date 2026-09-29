@@ -13,11 +13,13 @@ export default {
     <text x="80" y="380" font-size="6.5" font-weight="700" fill="#fff" style="text-anchor:start">KEYSIGHT</text>
     <text x="150" y="380" font-size="6" fill="#dfe3e6" style="text-anchor:start">34460A   6½ Digit Multimeter</text>
     <text x="360" y="380" font-size="6" font-style="italic" fill="#dfe3e6">Truevolt</text>
-    <rect x="74" y="450" width="14" height="36" rx="2" fill="#15171a" stroke="#666"/><text x="81" y="496" font-size="5" fill="#ccc">⭍ USB</text>
+    <rect x="74" y="450" width="14" height="36" rx="2" fill="#15171a" stroke="#666"/>
+    <g stroke="#ccc" stroke-width=".6" fill="none"><path d="M81 500v-8.5M81 498l-2.6-2v-1.4M81 496.5l2.6-1.8v-1.2"/></g>
+    <path d="M81 489.8l-1.1 1.9h2.2z" fill="#ccc"/><circle cx="78.4" cy="494.2" r=".75" fill="#ccc"/><rect x="82.9" y="492.8" width="1.4" height="1.4" fill="#ccc"/>
     <rect x="536" y="400" width="130" height="206" rx="6" fill="#2b2e32" stroke="#555"/>
     <text x="561" y="418" font-size="5" fill="#ddd">Sense</text><text x="561" y="424" font-size="5" fill="#ddd">Ω4W</text>
     <text x="622" y="418" font-size="5" fill="#ddd">Input</text><text x="622" y="424" font-size="5" fill="#ddd">V Ω ⊣▶⊢</text>
-    <text x="545" y="441" font-size="5" fill="#ddd">HI</text><text x="545" y="501" font-size="5" fill="#ddd">LO</text>
+    <text x="541" y="441" font-size="5" fill="#ddd">HI</text><text x="541" y="501" font-size="5" fill="#ddd">LO</text>
     <text x="592" y="467" font-size="4.8" fill="#ddd">200 Vpk</text>
     <text x="652" y="470" font-size="4.5" fill="#ddd">1000 VDC</text><text x="652" y="476" font-size="4.5" fill="#ddd">750 VAC</text>
     <text x="648" y="528" font-size="4.5" fill="#ddd">500 Vpk ⏚</text>
