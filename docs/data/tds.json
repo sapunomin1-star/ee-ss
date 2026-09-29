@@ -1491,7 +1491,7 @@
   {
    "id": "TDS-F15",
    "feature": "AutoSet（一次性）",
-   "rule": "依 p.79–80 表做一次設定：Acquire 固定 Sample、Cursors Off、YT、Trigger Edge／Auto／Level 50%、觸發耦合固定 DC（手冊為「Adjusted to Sample or Peak Detect」與「Adjusted to DC, Noise Reject, or HF Reject」，本輪因 Peak Detect／Noise Reject／HF Reject 為 OUT 而化簡，PD）、BW Full、GND 改 DC；V/div、s/div、水平位置、Slope 依訊號調整；顯示有訊號的通道並依規則選觸發源；自動量測依 TDS-F21。之後輸入改變不再自動調整。不影響 Probe 設定 刻度演算法見 GAP-TDS-10；找不到可用 V/div 時先把該通道垂直位置歸零再選（後備規則，PD），確保按 AutoSet 一定能把波形帶回可視區。",
+   "rule": "依 p.79–80 表做一次設定：Acquire 固定 Sample、Cursors Off、YT、Trigger Edge／Auto／Level 50%、觸發耦合固定 DC（手冊為「Adjusted to Sample or Peak Detect」與「Adjusted to DC, Noise Reject, or HF Reject」，本輪因 Peak Detect／Noise Reject／HF Reject 為 OUT 而化簡，PD）、BW Full、GND 改 DC；V/div、s/div、水平位置、Slope 依訊號調整；顯示有訊號的通道並依規則選觸發源；自動量測依 TDS-F21。之後輸入改變不再自動調整。不影響 Probe 設定。刻度演算法見 GAP-TDS-10；找不到可用 V/div 時先把該通道垂直位置歸零再選（後備規則，PD），讓按 AutoSet 能把波形帶回可視區（輸入超出最大檔時例外，量測顯示 ?）。",
    "source": "M-TDS-13 p.19 (PDF 43)、p.79–81 (PDF 103–105)",
    "evidence": "OT+PD",
    "acceptance": "I03-7：Default Setup→AutoSet 後 S1 可讀、Trig'd；再把 fixture 幅度改 5 倍，V/div 不自動改變；AutoRange LED 保持熄滅；恢復案例（I03-7、I03-9）：S2（實際與儀器都 10×）時先把 CH1 Position 調到 +5.00 div，按 AutoSet → CH1 Position 變 0 div、V/div 500 mV/div，波形回到 ±2 div 內可見；CH2 Position 原本就是 0，照一般規則選 500 mV/div，位置不變。"
@@ -1714,9 +1714,9 @@
    "id": "GAP-TDS-10",
    "gap": "AutoSet 如何選刻度。表中 VOLTS/DIV、Horizontal scale、Horizontal position、Trigger slope 都只寫 Adjusted；垂直位置不在表內；判定『有訊號』的門檻也沒寫（p.79–80）",
    "impact": "AutoSet 之後的畫面與讀值",
-   "provisional": "每個有訊號的通道：在目前垂直位置下，V/div 取能讓整個波形落在 ±4 div 內的最小 1-2-5 檔；後備規則（PD）：若所有檔都不行（例如 Position 已在 +5 div），先把該通道 Position 歸零（0 div）再重選；若 Position 0 時最大檔仍放不下，就用最大檔，量測顯示 ?；s/div 取「能顯示至少 2 個完整週期」的最快 1-2.5-5 檔（1 kHz → 250 µs/div，畫面約 2.5 週期）；水平位置 0；Slope Rising；垂直位置只在後備規則觸發時歸零，否則不改；fixture 未提供或為 0 V 時視為沒有訊號。Multi-cycle sine 的 Cyc RMS 以第一個完整週期計算（APPROX）；Acquire 固定 Sample、觸發耦合固定 DC（化簡，PD）。",
+   "provisional": "每個有訊號的通道：在目前垂直位置下，V/div 取能讓整個波形落在 ±4 div 內的最小 1-2-5 檔；後備規則（PD）：若所有檔都不行（例如 Position 已在 +5 div），先把該通道 Position 歸零（0 div）再重選；若 Position 0 時最大檔仍放不下，就用最大檔，量測顯示 ?；s/div 取「能顯示至少 2 個完整週期」的最快 1-2.5-5 檔（1 kHz → 250 µs/div，畫面約 2.5 週期）；水平位置 0；Slope Rising；垂直位置只在後備規則觸發時歸零，否則不改；fixture 未提供或為 0 V 時視為沒有訊號。Multi-cycle sine 的 Cyc RMS 以第一個完整週期計算（APPROX）；Acquire 固定 Sample、觸發耦合固定 DC（化簡，PD）。 已知限制（PD）：Position 還在 ±4 div 內但接近邊緣時，仍有檔可用、不觸發後備規則，波形可能被壓得很小（例如 S2 在 +3.9 div 時會選到 10 V/div，峰對峰只有 0.2 div）。",
    "rationale": "手冊只描述結果（usable display），演算法需要可重現的教學近似",
-   "verify_method": "到校用類似 S1 的訊號按 AutoSet，記錄 V/div、s/div、位置、Slope 與量測項"
+   "verify_method": "到校用類似 S1 的訊號按 AutoSet，記錄 V/div、s/div、位置、Slope 與量測項；另把 Position 調到接近或超出邊緣（+3.9 div、+5 div）後按 AutoSet，記錄垂直位置是否被改"
   },
   {
    "id": "GAP-TDS-11",

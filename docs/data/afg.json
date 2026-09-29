@@ -444,9 +444,9 @@
    "action": "按下",
    "function": "設定幅度。AMPL 參數高亮，軟鍵顯示 F1 dBm／F2 mVRMS／F3 VRMS／F4 mVPP／F5 VPP",
    "feedback": "LCD AMPL 欄紅字；編輯框如「3.000 VPP」",
-   "range": "50 Ω：1 mVpp–10 Vpp；High Z：2 mVpp–20 Vpp；20–25 MHz 時為 1 mVpp–5 Vpp（50 Ω）／2 mVpp–10 Vpp（open）；解析度 1 mV 或 3 位；dBm 可為負或 0：Sine、50 Ω、<20 MHz 約 −56.02～+23.98 dBm（由 1 mVpp～10 Vpp 換算，PD）；High Z 不可用 dBm",
+   "range": "50 Ω：1 mVpp–10 Vpp；High Z：2 mVpp–20 Vpp；20–25 MHz 時為 1 mVpp–5 Vpp（50 Ω）／2 mVpp–10 Vpp（open）；解析度 1 mV 或 3 位；dBm 可為負或 0：Sine、50 Ω、<20 MHz 為 −56.02～+23.979 dBm（由 1 mVpp～10 Vpp 換算，PD；+23.98 dBm 換算後約 10.0007 Vpp，已超過）；High Z 不可用 dBm",
    "sources": "P1；M-AFG p.13, p.61–62, p.288 (PDF 同)",
-   "evidence": "PH+OT",
+   "evidence": "PH+OT+PD",
    "status": "CORE",
    "card": "I02",
    "notes": "p.13 按鍵圖示印成「AMP」，但照片、p.13 面板圖與內文都是「AMPL」（見 discrepancies）。High Z 不可用 dBm（p.215）。"
@@ -960,7 +960,7 @@
   },
   {
    "item": "dBm 可輸入範圍（由 Vpp 範圍換算）",
-   "value": "手冊只列 dBm 是單位（p.62、p.288），沒有 dBm 數值範圍。依 1 mVpp～10 Vpp（50 Ω）與 GAP-AFG-11 的換算：Sine 約 −56.02～+23.98 dBm；20–25 MHz 上限 5 Vpp 約 +17.96 dBm；負值與 0 都合法。例：−10 dBm＝0.1 mW＝0.07071 Vrms＝0.200 Vpp（50 Ω、Sine）。High Z 不可用 dBm（p.215）。",
+   "value": "手冊只列 dBm 是單位（p.62「Unit」、p.288「Units」），沒有 dBm 數值範圍。依 1 mVpp～10 Vpp（50 Ω）與 GAP-AFG-11 的換算：Sine 為 −56.02～+23.979 dBm（上限對應 10 Vpp；+23.98 dBm 換算後約 10.0007 Vpp，已超過）；20–25 MHz 上限 5 Vpp 對應 +17.958 dBm；負值與 0 都合法。例：−10 dBm＝0.1 mW＝0.07071 Vrms＝0.200 Vpp（50 Ω、Sine）。High Z 不可用 dBm（p.215）。",
    "source": "M-AFG p.62, p.215, p.288；換算公式見 GAP-AFG-11",
    "evidence": "OT+PD",
    "quote": "Unit Vpp, Vrms, dBm"
@@ -1174,7 +1174,7 @@
    "rule": "AMPL → 數字 → F1 dBm／F2 mVRMS／F3 VRMS／F4 mVPP／F5 VPP。50 Ω 時 1 mVpp–10 Vpp，High Z 時 2 mVpp–20 Vpp（20–25 MHz 時分別為 5 Vpp／10 Vpp）。Vrms 與 dBm 必須依波形 crest factor 真的換算數值，不能只換文字：sine 10 Vpp＝3.536 Vrms；其他波形與 dBm 的算法為暫定。 單位換算後先依顯示解析度（1 mV 或 3 位有效數字）捨入，再做範圍與聯合限制檢查（PD）。 dBm 可為負或 0（例如 −10 dBm），合法與否依換算後的 Vpp 與 AFG-F08 聯合限制判定（PD，GAP-AFG-12）；Vpp／Vrms 必須大於 0。",
    "source": "M-AFG p.61–62, p.202–203, p.288 (PDF 同)",
    "evidence": "OT+PD（非 sine 換算與 dBm 公式）",
-   "acceptance": "I02-4、I02-5：Sine、50 Ω 下輸入 3.535 VRMS 後顯示約 9.998 Vpp；輸入 11 VPP 被拒絕且原值保留。另：Sine、50 Ω、offset 0 V 時輸入 10、+/-、F1 dBm → −10 dBm，等效 0.200 Vpp 被接受；offset +4.00 V 時輸入 13、F1 dBm（約 2.825 Vpp，峰值 4.00＋1.41＝5.41 V > 5 V）被拒絕且原值保留；以 VPP 輸入 0 或負值被拒絕。"
+   "acceptance": "I02-4、I02-5：Sine、50 Ω 下輸入 3.535 VRMS 後顯示約 9.998 Vpp；輸入 11 VPP 被拒絕且原值保留。另（連續步驟）：Sine、50 Ω、offset 0 V 時輸入 10、+/-、F1 dBm → −10 dBm，等效 0.200 Vpp 被接受；接著把 offset 設為 +4.00 VDC（峰值 4.00＋0.10＝4.10 V，合法）；再輸入 13、F1 dBm（約 2.825 Vpp，峰值 4.00＋1.41＝5.41 V > 5 V）被拒絕，幅度保留 −10 dBm；以 VPP 輸入 0 或負值被拒絕。"
   },
   {
    "id": "AFG-F07",
@@ -1417,7 +1417,7 @@
    "id": "GAP-AFG-12",
    "gap": "+/- 鍵的功能",
    "impact": "Offset 負值與負 dBm 的輸入（AFG-F06、AFG-F07）",
-   "provisional": "切換輸入中數值的正負號。提交時依單位判定（PD）：Offset 可正可負；dBm 可正、可負、可為 0，先依波形 crest factor 換算成 Vpp（GAP-AFG-11），再做幅度範圍與 AFG-F08 聯合限制檢查，不因為是負號就拒絕；Vpp／Vrms 必須大於 0，0 或負值拒絕並保留原值；High Z 時 dBm 本身不可用（AFG-F11）。",
+   "provisional": "切換輸入中數值的正負號。提交時依單位判定（PD）：Offset 可正可負；dBm 可正、可負、可為 0，先依波形 crest factor 換算成 Vpp（GAP-AFG-11），再做幅度範圍與 AFG-F08 聯合限制檢查，不因為是負號就拒絕；Vpp／Vrms 必須大於 0，0 或負值拒絕並保留原值；High Z 時 dBm 本身不可用（AFG-F11）。 其他參數（頻率、SYM 等）輸入負值時，依各自範圍規則拒絕。",
    "rationale": "p.15 有畫出此鍵，但沒有說明",
    "verify_method": "校機：DC Offset 輸入 2、按 +/-、再按 VDC；50 Ω、Sine 時 AMPL 輸入 10、按 +/-、再按 dBm，確認得到 −10 dBm（約 0.200 Vpp）；VPP 輸入 0 看是否被拒絕"
   },
