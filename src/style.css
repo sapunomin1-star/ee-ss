@@ -67,5 +67,6 @@ svg.panel { display: block; width: 100%; height: auto; user-select: none; touch-
 .panel .lcd-frame .bezel { fill: #111; stroke: #444; }
 .panel.power-off .screen { display: none; }
 .panel.power-off .lcd-frame .bezel { fill: #050505; }
-.panel-dmm .sub { fill: #c9d1d8; }
+.panel-dmm .sub { fill: #6ea8ff; }
+.panel .ctl.active .cap { fill: #8d949b; transform-box: fill-box; transform-origin: center; transform: scale(.88); }
 .panel-dmm .ctl .cap { stroke: #202327; }

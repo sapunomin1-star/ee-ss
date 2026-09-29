@@ -31,20 +31,17 @@ export function fmtWidth(x, d, maxInt = 1) {
   return s;
 }
 
-// 工程記號：1.23k、500m、250µ（示波器讀值用）
-const PREFIX = [[1e9, 'G'], [1e6, 'M'], [1e3, 'k'], [1, ''], [1e-3, 'm'], [1e-6, 'µ'], [1e-9, 'n']];
+// 工程記號：1.23k、500m、250µ（示波器讀值用）；先取有效位數再決定詞頭，999.9999 → 1.000k 不會多一位
+const PREFIX = { 9: 'G', 6: 'M', 3: 'k', 0: '', '-3': 'm', '-6': 'µ', '-9': 'n' };
 export function eng(x, digits = 3) {
   if (!Number.isFinite(x)) return '?';
   if (x === 0) return '0';
   const a = Math.abs(x);
-  for (const [m, p] of PREFIX) {
-    if (a >= m * 0.9995) {
-      const v = x / m;
-      const intLen = Math.floor(Math.log10(Math.abs(v))) + 1;
-      return `${fmtFixed(v, Math.max(0, digits - intLen))}${p}`;
-    }
-  }
-  return `${fmtFixed(x / 1e-9, 0)}n`;
+  let e3 = Math.min(9, Math.max(-9, Math.floor(Math.log10(a) / 3) * 3));
+  let r = Number((a / 10 ** e3).toPrecision(digits));
+  if (r >= 1000 && e3 < 9) { e3 += 3; r = Number((a / 10 ** e3).toPrecision(digits)); }
+  const intLen = Math.floor(Math.log10(r)) + 1;
+  return `${fmtFixed(Math.sign(x) * r, Math.max(0, digits - intLen))}${PREFIX[e3]}`;
 }
 
 export const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));

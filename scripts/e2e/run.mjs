@@ -3,9 +3,10 @@ import { run as afg } from './afg.mjs';
 import { run as tds } from './tds.mjs';
 import { run as gpe } from './gpe.mjs';
 import { run as dmm } from './dmm.mjs';
+import { run as i06 } from './i06.mjs';
 
 let fail = 0, pass = 0;
-for (const r of [afg, tds, gpe, dmm]) {
+for (const r of [afg, tds, gpe, dmm, i06]) {
   const T = await r();
   T.print();
   fail += T.fail; pass += T.pass;

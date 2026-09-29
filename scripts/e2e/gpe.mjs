@@ -33,7 +33,7 @@ export async function run() {
   const longPress = async (id) => {
     const b = await page.locator(`[data-id="${id}"]`).boundingBox();
     await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
-    await page.mouse.down(); await sleep(900); await page.mouse.up(); await sleep(30);
+    await page.mouse.down(); await sleep(2100); await page.mouse.up(); await sleep(30);
   };
   try {
     await ui.tab('gpe');
@@ -116,7 +116,7 @@ export async function run() {
     await scen('ch1-100');
     await ui.press(K.OUT);
     await longPress(K.SET);
-    T.ok((await snap()).lock && (await lit()).includes('Lock'), '滑鼠按住 Set View 0.9 秒 → Lock 亮');
+    T.ok((await snap()).lock && (await lit()).includes('Lock'), '滑鼠按住 Set View 2 秒 → Lock 亮');
     await drag(K.V1, 2);
     T.ok((await snap()).vset[1] === 5 && (await ui.hint()).includes('Lock'), 'Lock 中拖曳 CH1 Voltage：設定不變並提示');
     await ui.press(K.OUT);

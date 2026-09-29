@@ -42,7 +42,7 @@ export default {
     'TDS.KEY.DISPLAY': top('Display', { y: 428 }),
     'TDS.KEY.DEFAULT_SETUP': top('Default Setup', { y: 428, fill: '#bfc3c7' }),
     'TDS.KEY.SINGLE': top('單一', { y: 428 }),
-    'TDS.KEY.RUN_STOP': key('Run/\nStop', { w: 28, h: 26, sub: '執行/停止', subFs: 5.5, subGap: 3, fs: 5.5, led: [10, 9, 2] }),
+    'TDS.KEY.RUN_STOP': key('Run/\nStop', { w: 28, h: 26, sub: '執行/停止', subFs: 5.5, subGap: 3, fs: 5.5 }),
     'TDS.KEY.PRINT': key('⎙', { w: 22, h: 14, fs: 8 }),
     'TDS.LED.SAVE': { shape: 'led', r: 2.4 },
     'TDS.KNOB.CH1_POSITION': { shape: 'knob', r: 10, y: 481 },

@@ -49,7 +49,7 @@ export function startApp(root) {
     applyZoom();
     root.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === cur)));
     hintbar.className = 'hintbar';
-    hintbar.textContent = '點按鍵或拖曳旋鈕操作；旋鈕聚焦後可用 ↑↓←→ 微調；需要長按的鍵按住 0.8 秒（鍵盤 Shift+Enter）。灰色鍵是本輪未納入的功能，按了只會在這裡說明。';
+    hintbar.textContent = '點按鍵或拖曳旋鈕操作；旋鈕聚焦後可用 ↑↓←→ 微調；需要長按的鍵請按住（GPE Set View 的 Lock 要 2 秒；鍵盤用 Shift+Enter）。灰色鍵是本輪未納入的功能，按了只會在這裡說明。';
     refresh();
   }
 
@@ -101,9 +101,10 @@ export function startApp(root) {
     if (meta.status === 'STATIC') return;
     if (meta.status === 'OUT') {
       const spec = models[cur].layout.shapes[id];
-      const name = (spec?.label || meta.label).replace(/\n/g, ' ');
-      hint({ kind: 'out', text: `「${name}」本輪未納入練習範圍，按了不會改變儀器狀態。` });
-      renderSide();
+      const name = (spec?.label || spec?.sub || id.split('.').pop()).replace(/\n/g, ' ');
+      // 模型可選擇知道 OUT 鍵被按（例：34460A 任何鍵都解除 Shift），但不能改其他狀態
+      hint(models[cur].onOut?.(id) || { kind: 'out', text: `「${name}」本輪未納入練習範圍，按了不會改變儀器狀態。` });
+      refresh();
       return;
     }
     hint(fn());
@@ -113,7 +114,7 @@ export function startApp(root) {
   // ---- 事件：按鍵（滑鼠／觸控／鍵盤）與旋鈕（拖曳／方向鍵） ----
   let drag = null;
   let downAt = 0;
-  const LONG_MS = 800; // 按住超過這個時間＝長按（例：GPE Set View 長按＝Lock）
+  const LONG_MS = 800; // 一般長按門檻；需要更久的鍵由模型看 ms 自己判斷（GPE Lock ≥2 s）
   host.addEventListener('pointerdown', (e) => {
     const el = e.target.closest('.ctl[tabindex]');
     if (!el) return;
@@ -136,7 +137,7 @@ export function startApp(root) {
     while (Math.abs(drag.acc) >= DRAG_PX_PER_STEP) {
       const dir = Math.sign(drag.acc);
       drag.acc -= dir * DRAG_PX_PER_STEP;
-      turn(drag.id, dir);
+      turn(drag.id, dir, 'drag');
     }
   });
   const endDrag = () => { if (drag) { drag.el.classList.remove('turning'); drag = null; } };
@@ -145,8 +146,8 @@ export function startApp(root) {
     const el = e.target.closest('.ctl.pressed');
     host.querySelectorAll('.pressed').forEach((p) => p.classList.remove('pressed'));
     if (el) {
-      const long = performance.now() - downAt >= LONG_MS;
-      act(el.dataset.id, () => models[cur].press(el.dataset.id, { long }));
+      const ms = performance.now() - downAt;
+      act(el.dataset.id, () => models[cur].press(el.dataset.id, { long: ms >= LONG_MS, ms }));
     }
   });
   host.addEventListener('pointercancel', () => { endDrag(); host.querySelectorAll('.pressed').forEach((p) => p.classList.remove('pressed')); });
@@ -156,16 +157,16 @@ export function startApp(root) {
     const id = el.dataset.id;
     if (el.classList.contains('knob')) {
       const dir = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key];
-      if (dir) { turn(id, dir); e.preventDefault(); }
+      if (dir) { turn(id, dir, 'key'); e.preventDefault(); }
       return;
     }
     // Enter／空白鍵＝按一下；Shift+Enter＝長按
     if (e.key === 'Enter' || e.key === ' ') { act(id, () => models[cur].press(id, { long: e.shiftKey })); e.preventDefault(); }
   });
 
-  function turn(id, dir) {
+  function turn(id, dir, source) {
     knobAngle[id] = ((knobAngle[id] || 0) + dir * KNOB_DEG) % 360;
-    act(id, () => models[cur].turn(id, dir));
+    act(id, () => models[cur].turn(id, dir, { source }));
   }
 
   root.addEventListener('click', (e) => {

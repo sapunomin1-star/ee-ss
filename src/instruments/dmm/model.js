@@ -180,6 +180,9 @@ export class DmmModel {
     }
   }
 
+  // 外殼按到 OUT 鍵時通知：只解除 Shift 並回報未納入，不改其他狀態（DMM-F12）
+  onOut(id) { return this.on ? this.press(id) : null; }
+
   power() {
     if (this.on) {
       this.on = false;

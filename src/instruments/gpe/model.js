@@ -98,7 +98,8 @@ export class GpeModel {
   touch() { if (this.viewAt != null) this.viewAt = this.setViewLeft() > 0 ? this.now() : null; }
 
   // ---- 按鍵 ----
-  press(id, { long = false } = {}) {
+  press(id, { long = false, ms } = {}) {
+    if (ms != null) long = ms >= 2000; // 手冊 p.27：LOCK 要按住超過 2 秒（GAP-GPE-01 定案 ≥2.0 s）
     if (id === K.POWER) return this.power();
     if (!this.on) return { kind: 'info', text: '電源關閉中，先按 POWER。' };
     this.touch();
