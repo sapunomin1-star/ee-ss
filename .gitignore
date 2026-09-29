@@ -7,3 +7,7 @@ node_modules/
 test-results/
 playwright-report/
 .DS_Store
+
+# 建置產生的中間檔
+src/generated/
+output/

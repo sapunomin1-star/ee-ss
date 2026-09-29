@@ -9,6 +9,19 @@
 
 這是獨立的新專案，不含也不修改任何 HFSS／ADS 練習程式。
 
+## 怎麼打開
+
+**直接用瀏覽器開 `dist/index.html`**（單一檔案、離線可用）。上方分頁切換四台；點按鍵、拖曳旋鈕操作，旋鈕聚焦後也可用方向鍵。進度見 `docs/progress.md`。
+
+改程式後重建：
+
+```sh
+npm install        # 第一次
+npm run build      # 產生 dist/index.html
+npm test           # 模型測試
+npm run e2e        # 真滑鼠／鍵盤操作測試（用本機 Google Chrome）
+```
+
 ## 目前狀態
 
 **I00 來源與基線核定：第 1 次獨立審查 REVIEW FAIL（R1–R7），已完成同卡修正；之後的修正複核（非正式審查）另指出 AFG 幅度判定順序 C1，也已修正，待第 2 次獨立審查。** 還沒有應用程式，也還沒有任何 REVIEW PASS。審查原文與修正對照見 `docs/reviews/I00-review-1.md`、`docs/reviews/I00-fix-1.md`；修正複核原文見 `docs/reviews/I00-correction-recheck.md`，C1 修正對照見 `docs/reviews/I00-fix-C1.md`。
@@ -26,15 +39,13 @@
 | `docs/reviews/` | 每卡實作紀錄、自檢紀錄、給獨立 reviewer 的交接 |
 | `docs/data/*.json` | 控制矩陣與範圍文件的唯一資料來源 |
 
-## 指令（目前只有文件工具，Node 22、沒有相依套件）
+## 規格文件工具
 
 ```sh
 node scripts/render-i00-docs.mjs        # 由 docs/data/*.json 產生兩份矩陣文件
 node scripts/check-control-matrix.mjs   # 矩陣結構與照片硬性數量自檢（不是功能測試）
 node scripts/check-control-matrix.test.mjs  # 確認檢查器會擋下刻意破壞的矩陣
 ```
-
-`npm run build`／`check`／`e2e` 會在 I01 建立。
 
 ## 參考資料
 

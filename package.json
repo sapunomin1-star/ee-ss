@@ -1,0 +1,18 @@
+{
+  "name": "electronics-lab-trainer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "電子學實習四台儀器（AFG-2225、TDS2001C、GPE-4323、34460A）前面板練習模擬器",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "test": "node --test test/*.test.mjs",
+    "check": "node build.mjs && node --test test/*.test.mjs && node scripts/check-control-matrix.mjs",
+    "e2e": "node build.mjs && node scripts/e2e/run.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "playwright-core": "^1.63.0"
+  }
+}
