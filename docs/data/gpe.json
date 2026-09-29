@@ -1,0 +1,1430 @@
+{
+ "instrument": "GW Instek GPE-4323 多路輸出直流電源供應器（四路：CH1/CH2 0–32 V 0–3 A、CH3 0–5 V 1 A max、CH4 0–15 V 1 A max）；P1 下層；手冊 M-GPE＝GPE-1326/2323/3323/4323 Series User Manual，料號 82GP343230E01（PDF metadata 建立日 2019-09-26；04 記原廠索引 F.,EN 2019-10-02；SHA-256 9239f771…a14cb 已核對與 DOWNLOAD_SOURCES.json 一致）。只取 GPE-4323 欄；非 GPE-4323A、非 GPE-3323（固定 5 V/5 A）、非 GPE-1326（coarse/fine、sense 端子）。",
+ "page_map": "M-GPE 共 49 頁 PDF。PDF 第 1 頁（封面）與第 2 頁（版權頁）無印刷頁碼；自 PDF 第 3 頁（目錄，頁尾印「3」）起，印刷頁＝PDF 頁序，無偏移。實際核對例：PDF 15 頁首印「15」且為 Front Panel Overview；PDF 25 印「25」為 Output On/Off；PDF 27 印「27」為 Setting Voltage Lock from Front Panel；PDF 37 印「37」為 CH1/CH2 Series Tracking Mode；PDF 45、46 印「45」「46」為 Specifications；目錄（PDF 3–4）所列章節頁碼與正文一致。引用格式一律「M-GPE p.N (PDF N)」。注意手冊內部交叉引用有誤：p.21 寫遠端端子 \"see page 29\"，實際在 p.30；索引 p.48 寫 \"Front panel Overview ... 16\"（實際 15）、\"tracking mode parallel ... 27, 29, 30\"（實際 41）——一律以正文頁為準。P1 照片：768×1024 原圖，文中座標為原圖像素的近似中心 (x,y)；GPE-4323 位於約 x60–625、y620–985。",
+ "photo_checks": "型號：P1 下層面板左上印「GW INSTEK」「GPE-4323」，右側「DC Power Supply」「32 V 3 A」（與 M-GPE p.15 圖相同）。LCD：左側大窗（約 x100–350, y675–825）全暗，看不到任何圖示/數字。通道：CH1、CH2 黑底白字標頭在旋鈕區頂；CH3、CH4 只見於端子與旋鈕標籤，共四路。旋鈕：共 6 顆（左欄 3、右欄 3）。標籤印在各旋鈕上方（M-GPE p.15 圖 callout 佐證：\"CH1 Voltage Knob\" 指左上、\"CH1 Current Knob\" 指左中、\"CH4 Voltage Knob\" 指左下；右欄同理 CH2 Voltage/CH2 Current/CH3 Voltage）。照片可讀：左欄「Voltage」「Current」「C…age」（中段被中間旋鈕遮住）；右欄「Voltage」「Current」「CH3 …ge」。分隔弧線繞過兩顆 Current 旋鈕下緣，上區為 CH1/CH2 V/I＋模式鍵，下區為 CH4/CH3 Voltage＋顯示切換＋Set View＋On/Off，與手冊圖一致。按鍵：模式鍵 2 顆（鍵上無字，框內圖例 Series/Parallel/Independent，每列左右各一個鍵狀態小圖示：Series 左高右低、Parallel 左右皆低、Independent 左右皆高）；「CH1/CH4」「CH2/CH3」各 1；「Set View」1（鍵下「LOCK」加底線、部分被鍵帽遮住；左下圖例「— : Long Push」）；「On / Off」1（綠色鍵帽，無法判斷是否點亮）；POWER 圓鍵 1（左下，上印「POWER」，右下可見「■ ○」，左側「▁ I」被鍵遮住）。端子：下排共 9 個，左→右：CH4＋（白帽紅環）、CH4−（白帽黑環）［下印「0 - 15…」］、CH1＋（紅）、CH1−（黑）［「0 - 32V」「3A」⚠「MAST…」］、GND（綠）［接地符號］、CH2＋（紅）、CH2−（黑）［「0 - 32V」「3A」⚠「SLAV…」］、CH3＋（紅）、CH3−（黑）［「5V , 1…」］。上方「+ CH4」「+ CH1」「GND」字跡淡且被端子頭遮擋；「+ CH2 −」「+ CH3 −」清楚。藍色色帶可見「PA…」「OUTP…」「OUTP…」，完整字樣依手冊 p.15 圖為「+ COM SERIES OUTPUT −」「+ − PARALLEL OUTPUT」。沒有的：CH3/CH4 電流旋鈕、數字鍵盤、螢幕軟鍵、USB/LAN 等前面板埠、sense 端子（GPE-1326 才有）、coarse/fine 旋鈕（GPE-1326）、GPE-3323 的固定 5 V 端子標示。LCD 下緣兩個小白點經放大為灰塵/反光，不列控制項。照片不能證明任何 LCD 內容、指示燈亮滅、模式鍵當下是否按下、開機值。；端子帽本體都是白色，只有一圈紅／黑／綠色環（驗證者放大確認，手冊 p.32 立體圖同）。",
+ "controls": [
+  {
+   "id": "GPE.KNOB.CH1_VOLTAGE",
+   "group": "CH1 控制（旋鈕區左欄上區）",
+   "photo_location": "P1 下層 GPE 旋鈕區左欄第 1 顆（約 x433,y708），CH1 標頭下",
+   "label": "Voltage（印在旋鈕右上方；CH1 標頭之下）",
+   "kind": "旋鈕（旋轉式；編碼器或電位器未證實）",
+   "action": "旋轉；順時針增加為暫定（PD）",
+   "function": "Independent：設定 CH1 電壓設定值 V1set（p.32 \"Use the voltage and current knob to set the CH1 output voltage and current.\"）。Series：設定 master 與 slave 共同電壓（p.40 \"Use the CH1 voltage knob to set the master & slave output voltage (the same level for both channels).\"）。Parallel：設定合併輸出電壓（p.42 \"Use the CH1 voltage and current knobs to set the output voltage and current.\"）。Lock 時被鎖（p.27 \"lock the voltage knob operation for CH1 & CH2\"）。",
+   "feedback": "LCD 第一列顯示 ① 時的電壓欄：Output OFF 顯示設定值（暫定，依 p.23 開機後 \"showing settings for each channel\"）；Output ON 顯示讀回，按 Set View 看設定（p.19）。LCD 切到 ④ 時轉動不應改 CH4。",
+   "range": "Independent/Parallel 0–32 V（p.31、p.45）；Series 合併 0–64 V（p.37、p.45）；顯示解析 10 mV（4 位）或 100 mV（3 位）（p.45）；旋鈕每格步進／加速未找到（UN）",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.18 (PDF 18)、M-GPE p.27 (PDF 27)、M-GPE p.31 (PDF 31)、M-GPE p.32 (PDF 32)、M-GPE p.40 (PDF 40)、M-GPE p.42 (PDF 42)、M-GPE p.45 (PDF 45)；P1",
+   "evidence": "PH+OT+UN+PD",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "手冊 p.15 圖 callout \"CH1 Voltage Knob\" 指向左上旋鈕，確認標籤在旋鈕上方。旋鈕歸屬固定 CH1，與 CH1/CH4 顯示切換無關。上限是 32.00 V 還是可到顯示滿刻度 33.00 V 未證實（見 GAP-GPE-03）。；證據細節：PH+OT；步進 UN；方向 PD"
+  },
+  {
+   "id": "GPE.KNOB.CH1_CURRENT",
+   "group": "CH1 控制（旋鈕區左欄上區）",
+   "photo_location": "P1 下層 GPE 左欄第 2 顆（約 x428,y772）",
+   "label": "Current（印在此旋鈕上方、上一顆旋鈕之下）",
+   "kind": "旋鈕",
+   "action": "旋轉",
+   "function": "Independent：設定 CH1 限流 I1set（p.32）。Series：設定 master 輸出電流（p.40 \"Use the CH1 current knob to set the master output current.\"）。Parallel：與 CH1 Voltage 一起設定合併輸出（p.42）。CV 時實際電流由負載決定，達 I1set 轉 CC（p.22）。",
+   "feedback": "LCD ① 列電流欄：Output ON 為讀回電流（非 I1set）；看 I1set 需 Output OFF 或 Set View（p.17、p.19）。",
+   "range": "0–3 A（p.31、p.45）；Parallel 合併 0–6 A（p.41、p.45）；顯示解析 1 mA（4 位）或 10 mA（3 位）（p.45）；步進 UN",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.18 (PDF 18)、M-GPE p.22 (PDF 22)、M-GPE p.31 (PDF 31)、M-GPE p.32 (PDF 32)、M-GPE p.40 (PDF 40)、M-GPE p.42 (PDF 42)、M-GPE p.45 (PDF 45)；P1",
+   "evidence": "PH+OT+UN",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "Lock 是否也鎖電流旋鈕：p.27 只寫 voltage knob，p.19 寫 panel keys（見 GAP-GPE-01）。；證據細節：PH+OT；步進 UN"
+  },
+  {
+   "id": "GPE.KNOB.CH4_VOLTAGE",
+   "group": "CH4 控制（旋鈕區左欄下區）",
+   "photo_location": "P1 下層 GPE 左欄第 3 顆（約 x425,y833），CH1/CH4 鍵左側",
+   "label": "照片可見「C…age」（中段被中間旋鈕遮住）；M-GPE p.15 圖印「CH4 Voltage」",
+   "kind": "旋鈕",
+   "action": "旋轉",
+   "function": "設定 CH4 電壓 V4set（p.18 CH3/CH4 \"Sets the voltage for the GPE-4323.\"；p.35 \"Use the voltage knobs to set the voltage.\"）。不參與 tracking（p.35 \"CH4 doesn't have series/parallel tracking mode. The CH4 output is not affected by the CH1 and CH2 modes.\"）。",
+   "feedback": "LCD 第一列切到 ④ 時可見（p.35 \"You can use the CH1/CH4 key to toggle to CH4(④ appears on the LCD display) to check the setting value.\"）。",
+   "range": "0–15 V（p.35、p.45）；電流 1 A max，無電流旋鈕（p.35、p.18）；步進 UN",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.18 (PDF 18)、M-GPE p.35 (PDF 35)、M-GPE p.36 (PDF 36)、M-GPE p.45 (PDF 45)；P1",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "不得增加 CH4 電流旋鈕。1 A 為額定值，不當成精準保護門檻（02）。；證據細節：PH（部分被遮）+OT"
+  },
+  {
+   "id": "GPE.KNOB.CH2_VOLTAGE",
+   "group": "CH2 控制（旋鈕區右欄上區）",
+   "photo_location": "P1 下層 GPE 右欄第 1 顆（約 x580,y722），CH2 標頭下",
+   "label": "Voltage（印在旋鈕左上方；CH2 標頭之下）",
+   "kind": "旋鈕",
+   "action": "旋轉",
+   "function": "Independent：設定 CH2 電壓 V2set（p.32 \"Use the voltage and current knob to set the CH2 output voltage and current.\"）。Series：手冊未寫 CH2 Voltage 是否有效；只寫 CH1 Voltage 設定 master & slave 同電壓（p.40）→ 暫定無效（PD）。Parallel：無效（p.42 \"CH2 control function is disabled.\"）。Lock 時被鎖（p.27）。 依據：p.11、p.37「CH1 (Master) controls the combined output voltage/current level」、p.41；三處都沒寫轉 CH2 Voltage 的效果，所以仍為 PD。",
+   "feedback": "LCD 第二列顯示 ② 時電壓欄；Series/Parallel 下轉動不改變輸出（暫定），設定值是否仍被記錄未證實。",
+   "range": "0–32 V（p.31、p.45）；步進 UN",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.18 (PDF 18)、M-GPE p.27 (PDF 27)、M-GPE p.32 (PDF 32)、M-GPE p.11 (PDF 11)、M-GPE p.37 (PDF 37)、M-GPE p.40 (PDF 40)、M-GPE p.41 (PDF 41)、M-GPE p.42 (PDF 42)、M-GPE p.45 (PDF 45)；P1",
+   "evidence": "PH+OT+PD",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "Series 下 CH2 Voltage 行為見 GAP-GPE-08。；證據細節：PH+OT；Series 下行為 PD"
+  },
+  {
+   "id": "GPE.KNOB.CH2_CURRENT",
+   "group": "CH2 控制（旋鈕區右欄上區）",
+   "photo_location": "P1 下層 GPE 右欄第 2 顆（約 x575,y790）",
+   "label": "Current（印在此旋鈕上方）",
+   "kind": "旋鈕",
+   "action": "旋轉",
+   "function": "Independent：設定 CH2 限流 I2set（p.32）。Series：設定 slave 電流（p.40 \"Use the CH2 current knob to set the slave output current.\"；無共地接法 p.38 \"Use the current knob to set the CH2 output current to the maximum level.\"）。Parallel：無效（p.42 \"CH2 control function is disabled.\"）。",
+   "feedback": "LCD ② 列電流欄；Output ON 顯示讀回，Set View 顯示設定。",
+   "range": "0–3 A（p.31、p.45）；步進 UN",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.18 (PDF 18)、M-GPE p.32 (PDF 32)、M-GPE p.38 (PDF 38)、M-GPE p.40 (PDF 40)、M-GPE p.42 (PDF 42)、M-GPE p.45 (PDF 45)；P1",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "Series 合併限流與 I1set/I2set 的關係為教學模型（見 GAP-GPE-11）。"
+  },
+  {
+   "id": "GPE.KNOB.CH3_VOLTAGE",
+   "group": "CH3 控制（旋鈕區右欄下區）",
+   "photo_location": "P1 下層 GPE 右欄第 3 顆（約 x570,y850），On/Off 鍵右側",
+   "label": "照片可見「CH3 …ge」（中段被中間旋鈕遮住）；M-GPE p.15 圖印「CH3 Voltage」",
+   "kind": "旋鈕",
+   "action": "旋轉",
+   "function": "設定 CH3 電壓 V3set（p.33 \"For GPE-4323: Use the voltage knobs to set the voltage.\"）。不參與 tracking（p.33 \"CH3 doesn't have series/parallel tracking mode. Also, the CH3 output is not affected by the CH1 and CH2 modes.\"）。",
+   "feedback": "LCD 第二列切到 ③ 時可見（p.34 \"You can check the setting of the GPE-4323 by using the CH2/CH3 key to toggle to CH3(③ appears on the LCD display).\"）。",
+   "range": "0–5 V，1 A max（p.33、p.45 \"0~5V, 1A(GPE-4323)\"）；步進 UN",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.18 (PDF 18)、M-GPE p.33 (PDF 33)、M-GPE p.34 (PDF 34)、M-GPE p.45 (PDF 45)；P1",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "不可用 GPE-3323 的固定 5 V/5 A、5.2 A OverLoad 規則。不得增加 CH3 電流旋鈕。；證據細節：PH（部分被遮）+OT"
+  },
+  {
+   "id": "GPE.KEY.TRACK_LEFT",
+   "group": "CH1/CH2 模式鍵（Independent/Series/Parallel）",
+   "photo_location": "P1 下層 GPE 旋鈕區中上圖例框內左鍵（約 x482,y733）",
+   "label": "鍵上無字；所屬框內圖例「Series」「Parallel」「Independent」（左側小圖示：Series 高、Parallel 低、Independent 高）",
+   "kind": "按鍵（圖例以鍵高低表示按下／彈起，推論為可保持按下的自鎖鍵，PD）",
+   "action": "按一下切換本鍵按下／彈起（PD）",
+   "function": "與右鍵組合決定 CH1/CH2 模式（p.25 \"You can toggle the connection mode of CH1/ CH2 by using different combinations of the mode selection key.\"）：兩鍵皆按下＝Parallel（p.26 \"Toggle to parallel mode when both keys are pressed.\"）；左鍵未按＋右鍵按下＝Series（p.26 \"Right key is pressed and the left key is not pressed in series mode.\"）；Independent：p.25 \"For the independent mode, the right key is not pressed\"，圖示兩鍵皆彈起。Output ON 時換模式自動關 Output（p.25）。",
+   "feedback": "LCD 狀態區 SER／PARA 圖示（p.26 \"the corresponding series or parallel icon appears on the LCD display.\"）；兩者皆滅＝Independent（p.31 \"both the SER and PARA icons are off\"）；Output 若原為 ON 變 OFF（ON/OFF 圖示、On/Off 鍵燈）。",
+   "range": "按下／彈起兩態",
+   "sources": "M-GPE p.11 (PDF 11)、M-GPE p.18 (PDF 18)、M-GPE p.25 (PDF 25)、M-GPE p.26 (PDF 26)、M-GPE p.31 (PDF 31)、M-GPE p.37 (PDF 37)、M-GPE p.41 (PDF 41)；P1 圖例",
+   "evidence": "PH+OT+PD",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "圖示判讀：高方塊＝彈起、低扁方塊＝按下（以 p.26 Series 文字「右按左未按」對應 Series 圖示「左高右低」反推）。照片圖例與手冊 p.25 圖示一致。手冊有時稱單一 \"TRACKING key\"（p.11）或 \"Series/Parallel key\"（p.31、37、41），見 discrepancies。；證據細節：PH+OT；自鎖機構 PD；「左按下＋右彈起」組合 PD"
+  },
+  {
+   "id": "GPE.KEY.TRACK_RIGHT",
+   "group": "CH1/CH2 模式鍵（Independent/Series/Parallel）",
+   "photo_location": "P1 下層 GPE 旋鈕區中上圖例框內右鍵（約 x525,y737）",
+   "label": "鍵上無字；圖例右側小圖示：Series 低、Parallel 低、Independent 高",
+   "kind": "按鍵（推論自鎖，PD）",
+   "action": "按一下切換本鍵按下／彈起（PD）",
+   "function": "同 GPE.KEY.TRACK_LEFT：右鍵按下＋左鍵彈起＝Series；兩鍵按下＝Parallel；兩鍵彈起＝Independent（p.25–26）；左按下＋右彈起暫定 Independent（PD）。Output ON 時換模式自動關 Output（p.25 \"Change the operation mode between independent / series tracking / parallel tracking\"）。",
+   "feedback": "LCD SER／PARA 圖示；Output 自動 OFF。",
+   "range": "按下／彈起兩態",
+   "sources": "M-GPE p.25 (PDF 25)、M-GPE p.26 (PDF 26)、M-GPE p.37 (PDF 37)、M-GPE p.41 (PDF 41)；P1 圖例",
+   "evidence": "PH+OT+PD",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "不可做成三顆獨立的 Independent/Series/Parallel 大按鈕（02）。 自鎖機構與第四組合都是推論（GAP-GPE-07）。"
+  },
+  {
+   "id": "GPE.KEY.CH1_CH4",
+   "group": "LCD 顯示切換",
+   "photo_location": "P1 下層 GPE 旋鈕區中段左鍵（約 x477,y803）",
+   "label": "CH1/CH4",
+   "kind": "按鍵（瞬時）",
+   "action": "短按",
+   "function": "LCD 第一列在 CH1 與 CH4 之間切換（p.26 \"Press the CH1/4 key to toggle between CH1 and CH4. The activated channel will be shown on the channel indicator.\"）。只切顯示，不改旋鈕所屬通道；四路設定分開保存（02 規則；p.18 \"Views the channel settings or readback values\"）。",
+   "feedback": "LCD 通道指示 ① ⇔ ④（p.26）；該列 V/A 與 CV/CC 圖示隨所選通道（p.17）。",
+   "range": "CH1 / CH4 兩態",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.18 (PDF 18)、M-GPE p.26 (PDF 26)、M-GPE p.35 (PDF 35)；P1",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "p.18 正文誤寫 \"CH1/3 and CH2/4\"，照片與 p.15、p.26、p.35 為 CH1/CH4；依照片。開機時預設顯示哪一通道未寫（暫定 ①、②，見 GAP-GPE-10）。"
+  },
+  {
+   "id": "GPE.KEY.CH2_CH3",
+   "group": "LCD 顯示切換",
+   "photo_location": "P1 下層 GPE 旋鈕區中段右鍵（約 x518,y808）",
+   "label": "CH2/CH3",
+   "kind": "按鍵（瞬時）",
+   "action": "短按",
+   "function": "LCD 第二列在 CH2 與 CH3 之間切換（p.26 \"Press the CH2/3 key to toggle between CH2 and CH3.\"）。只切顯示。",
+   "feedback": "LCD 通道指示 ② ⇔ ③（p.26）。",
+   "range": "CH2 / CH3 兩態",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.18 (PDF 18)、M-GPE p.26 (PDF 26)、M-GPE p.34 (PDF 34)；P1",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "同上；p.18 寫 \"CH2/4\" 為誤植。"
+  },
+  {
+   "id": "GPE.KEY.SET_VIEW",
+   "group": "設定查看／Lock",
+   "photo_location": "P1 下層 GPE 旋鈕區左下（約 x463,y865），CH4 Voltage 旋鈕右下",
+   "label": "鍵上方「Set View」；鍵下方「LOCK」加底線（部分被鍵帽遮住）；左側圖例「— : Long Push」（底線＝長按）",
+   "kind": "按鍵（短按／長按雙功能）",
+   "action": "短按：查看設定；長按 >2 s：Lock／Unlock",
+   "function": "短按：Output ON 時顯示各通道 V/I 設定值（p.19 \"When the output is ON, you can view the voltage/current settings of each channel by pressing this key. The corresponding channel will be displayed on the LCD display.\"）。長按：Lock（p.27 \"Press the LOCK key (for more than 2 seconds) to lock the voltage knob operation for CH1 & CH2\"；p.19 \"Press and hold the key to lock and unlock the panel keys (except OUTPUT).\"）；Unlock 時 Output 關閉（p.27）。開機組合用途（p.27–29）屬本輪未納入。",
+   "feedback": "LCD「Set」圖示（p.17 \"View setting value\"）；Lock 圖示亮／滅（p.27）；Unlock 時 OFF 圖示、On/Off 鍵燈滅。",
+   "range": "長按門檻 >2 s（p.27）；Set View 顯示多久／如何返回：未找到（UN）",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.19 (PDF 19)、M-GPE p.25 (PDF 25)、M-GPE p.27 (PDF 27)、M-GPE p.28 (PDF 28)、M-GPE p.29 (PDF 29)、M-GPE p.43 (PDF 43)；P1",
+   "evidence": "PH+OT+UN",
+   "status": "APPROX",
+   "card": "I04",
+   "notes": "p.15 面板圖印「V/I Check」，照片、p.19 圖示、p.27–29 正文皆為「Set View」；依照片。Lock 範圍與 Set View 返回時機見 GAP-GPE-01/02；UI 需在儀器外標示近似。；證據細節：PH+OT；返回時機 UN；Lock 範圍 UN（段落不一致）"
+  },
+  {
+   "id": "GPE.KEY.OUTPUT_ON_OFF",
+   "group": "輸出",
+   "photo_location": "P1 下層 GPE 旋鈕區右下（約 x523,y870），綠色鍵帽",
+   "label": "On / Off（鍵帽綠色）",
+   "kind": "按鍵（瞬時，內含燈）",
+   "action": "短按",
+   "function": "一鍵開／關全部通道輸出（p.25 \"Press the Output key to turn on all outputs in each channel.\" \"Push the Output key again to turn off all outputs. The OFF icon will become lit on the LCD display.\"）。不受 Lock 影響（p.27 \"The OUTPUT key is not affected by the lock operation.\"；p.43）。開機預設 OFF（p.28）。",
+   "feedback": "ON：按鍵亮、LCD ON 圖示、各通道 CV/CC 圖示（p.32 \"The Output key will be lit and the ON icon will appear on the LCD display. The CV or CC icon appears on the LCD to indicate the output status for each channel.\"）；OFF：OFF 圖示，CV/CC 圖示熄（p.17）。設定值保留。",
+   "range": "ON / OFF",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.19 (PDF 19)、M-GPE p.25 (PDF 25)、M-GPE p.27 (PDF 27)、M-GPE p.28 (PDF 28)、M-GPE p.32 (PDF 32)、M-GPE p.43 (PDF 43)；P1",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "手冊稱 Output key／OUTPUT key／ON/OFF key，面板實印「On / Off」。開機時按住此鍵可設定開機輸出狀態（p.27–28），本輪未納入。"
+  },
+  {
+   "id": "GPE.PWR.POWER",
+   "group": "電源",
+   "photo_location": "P1 下層 GPE 左下角圓鍵（約 x107,y885）",
+   "label": "POWER（鍵上方）；鍵右下「■ ○」（左側「▁ I」被鍵遮住，p.15/p.19 圖有）",
+   "kind": "電源鍵（按壓式）",
+   "action": "按下開機，再按關機",
+   "function": "主電源開／關（p.19 \"Turns On or Off the main power.\"；p.23 \"Press the power switch to turn on the power. The display will first display all the LCD segments before showing settings for each channel.\" \"Press the power switch again to turn off the power.\"）。",
+   "feedback": "開機：LCD 全段短暫亮起後顯示各通道設定；Output 預設 OFF（p.28）。關機：LCD 全暗、無輸出。",
+   "range": "ON / OFF",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.19 (PDF 19)、M-GPE p.23 (PDF 23)、M-GPE p.28 (PDF 28)；P1",
+   "evidence": "PH+OT+UN",
+   "status": "APPROX",
+   "card": "I04",
+   "notes": "電源開關與 Output 是不同狀態。開機後設定值是否沿用上次（記憶）未寫，暫定見 GAP-GPE-05。；證據細節：PH+OT；全段顯示時長與設定值是否斷電記憶 UN"
+  },
+  {
+   "id": "GPE.LED.OUTPUT_KEY",
+   "group": "輸出",
+   "photo_location": "P1 下層 GPE On / Off 鍵本體（約 x523,y870）",
+   "label": "無獨立標籤（屬 On / Off 鍵）",
+   "kind": "按鍵背光／指示燈",
+   "action": "無（跟隨 Output 狀態）",
+   "function": "Output ON 時按鍵亮（p.32、p.34、p.36、p.38、p.40、p.42 \"The Output key will be lit.\"）；p.25/p.32 圖示 OFF 為灰框、ON 為綠框。",
+   "feedback": "亮＝Output ON；滅＝Output OFF。",
+   "range": "亮／滅",
+   "sources": "M-GPE p.25 (PDF 25)、M-GPE p.32 (PDF 32)、M-GPE p.34 (PDF 34)、M-GPE p.36 (PDF 36)；P1",
+   "evidence": "OT+PH",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "照片的綠色是鍵帽顏色，不能當成 Output ON 的證據。燈與 LCD ON/OFF 圖示須來自同一狀態。；證據細節：OT；PH 只能看到綠色鍵帽，看不出是否點亮"
+  },
+  {
+   "id": "GPE.LCD.MAIN",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側大 LCD 視窗（約 x100–350, y675–825）",
+   "label": "照片未見（LCD 全暗；只確認視窗位置與外框）",
+   "kind": "LCD（4.3\" single color）",
+   "action": "無（顯示）",
+   "function": "兩列顯示：第一列 CH1/CH4、第二列 CH2/CH3 的電壓與電流（p.16 Voltmeter/Ammeter \"GPE-4323: CH1/CH4 and CH2/CH3\"；p.26 \"The voltage and current settings and readback values for 2 channels can be displayed on the LCD display simultaneously.\"）；下方狀態區 SER PARA OTP Lock 與 ON OFF（p.15–16）。",
+   "feedback": "開機先全段亮再顯示設定（p.23）。",
+   "range": "Voltmeter 33.00 V full scale、Ammeter 3.200 A full scale，4 或 3 位（p.46）；預設 4 位（p.29）",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.16 (PDF 16)、M-GPE p.23 (PDF 23)、M-GPE p.26 (PDF 26)、M-GPE p.29 (PDF 29)、M-GPE p.46 (PDF 46)；P1",
+   "evidence": "PH+OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "LCD 圖為系列通用圖，含 OVP/OCP/OTP 與 GPE-3323 CH3 列，不代表 GPE-4323 全部可用。數字前導零／小數點位置未證實（GAP-GPE-10）。；證據細節：PH（位置）+OT（內容）"
+  },
+  {
+   "id": "GPE.LCD.ROW1_CH_IND",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第一列最左",
+   "label": "照片未見（LCD 全暗）；手冊圖為圓圈數字 ①／④",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "指示第一列目前顯示的是 CH1 或 CH4（p.17 \"Channel indicator ① ② ③ ④ Indicates the currently selected channel.\"；p.26）。",
+   "feedback": "按 CH1/CH4 鍵時 ① ⇔ ④。",
+   "range": "① 或 ④",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.26 (PDF 26)",
+   "evidence": "OT+PD",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "p.15 LCD 圖在兩個圓圈數字之間另印「Set」／「Out」。推論（PD）：疑為 GPE-1326 的設定／讀回列標示，GPE-4323 不使用，保持暗段；手冊沒有明說。"
+  },
+  {
+   "id": "GPE.LCD.ROW1_VOLTAGE",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第一列左半「8.8.8.8 V」",
+   "label": "照片未見（LCD 全暗）；手冊圖「8.8.8.8V」",
+   "kind": "LCD 七段數字＋單位 V",
+   "action": "無",
+   "function": "顯示第一列所選通道電壓：Output ON 為讀回（Voltmeter \"Displays output voltage of each channel.\" p.16）；Set View 時顯示設定（p.19）；Output OFF 顯示設定（暫定，p.23）。",
+   "feedback": "隨旋鈕、負載、模式、Output 更新。",
+   "range": "0–33.00 V 顯示滿刻度；4 位 10 mV／3 位 100 mV（p.45–46）",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.16 (PDF 16)、M-GPE p.19 (PDF 19)、M-GPE p.23 (PDF 23)、M-GPE p.45 (PDF 45)、M-GPE p.46 (PDF 46)",
+   "evidence": "OT+PD",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "顯示解析度≠精度（p.46 accuracy ±(0.1%+30mV)），亦不一定等於旋鈕最小步進。Series 無共地時合併電壓需學生自行 ×2（p.38），面板不顯示合併值。；證據細節：OT；OFF 時顯示內容 PD"
+  },
+  {
+   "id": "GPE.LCD.ROW1_CURRENT",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第一列右半「8.8.8.8 A」",
+   "label": "照片未見（LCD 全暗）；手冊圖「8.8.8.8A」",
+   "kind": "LCD 七段數字＋單位 A",
+   "action": "無",
+   "function": "顯示第一列所選通道電流：Output ON 為負載實際電流讀回（p.16 Ammeter \"Displays output current of each channel.\"；p.22 CV 時 \"the Current level fluctuates according to the load condition\"）；Set View 顯示 I-set（p.19）。",
+   "feedback": "無負載時讀回 0（不是 I-set）；CC 時等於 I-set。",
+   "range": "0–3.200 A 顯示滿刻度；4 位 1 mA／3 位 10 mA（p.45–46）",
+   "sources": "M-GPE p.16 (PDF 16)、M-GPE p.19 (PDF 19)、M-GPE p.22 (PDF 22)、M-GPE p.45 (PDF 45)、M-GPE p.46 (PDF 46)",
+   "evidence": "OT+PD",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "CH3/CH4 顯示電流讀回（p.16 Ammeter 列出 CH1/CH4、CH2/CH3），但其 Set View 時電流欄內容未寫（GAP-GPE-09）。Parallel 時 CH1 電流讀數為總電流的一半（p.42）。；證據細節：OT；無負載讀回 0 為 PD（依 p.22 推論）"
+  },
+  {
+   "id": "GPE.LCD.ROW1_SET_ICON",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第一列上方「Set」",
+   "label": "照片未見（LCD 全暗）；手冊圖「Set」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "表示正在顯示設定值（p.17 \"View setting value [Set] When output is ON, you can view the voltage/ current setting value depending on the channel be selected.\"）。",
+   "feedback": "Set View 短按時亮；返回時機 UN。",
+   "range": "亮／滅",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.19 (PDF 19)",
+   "evidence": "OT+PD+UN",
+   "status": "APPROX",
+   "card": "I04",
+   "notes": "p.17 只說有「View setting value」圖示；GPE-4323 按 Set View 時亮的是哪一個 Set 段屬推論（PD），Output OFF 時是否亮 UN（GAP-GPE-02）。"
+  },
+  {
+   "id": "GPE.LCD.ROW1_CV_CC",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第一列上方「CV」「CC」",
+   "label": "照片未見（LCD 全暗）；手冊圖「CV」「CC」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "第一列所選通道的 CV/CC 狀態（p.17 \"You can view the constant current, constant voltage or OVP status for CH1 or CH4, depending on which CH1 ... or CH4 ... is selected. Each state is valid only when the output is ON. When output is OFF, the display is turns off.\"）；CV/CC 由負載與限流決定（p.22）。",
+   "feedback": "Output ON：CV 或 CC 其一亮；Output OFF：皆滅。",
+   "range": "CV／CC／滅",
+   "sources": "M-GPE p.17 (PDF 17)、M-GPE p.22 (PDF 22)、M-GPE p.32 (PDF 32)、M-GPE p.34 (PDF 34)、M-GPE p.36 (PDF 36)、M-GPE p.42 (PDF 42)",
+   "evidence": "OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "使用者不能直接選 CV/CC 字樣（02）。Parallel 時 CH2 顯示 CC（p.42）。"
+  },
+  {
+   "id": "GPE.LCD.ROW1_OVP_OCP",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第一列上方「OVP」「OCP」",
+   "label": "照片未見（LCD 全暗）；手冊圖「OVP」「OCP」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "手冊提到 OVP 狀態（p.17）與 OVP 觸發自動關輸出（p.25），但全冊無 GPE-4323 的 OVP/OCP 設定方法或門檻；OCP 無任何正文。",
+   "feedback": "本輪保持熄滅。",
+   "range": "未找到",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.25 (PDF 25)",
+   "evidence": "OT+UN",
+   "status": "OUT",
+   "card": "I04",
+   "notes": "不得假裝有 OVP/OCP 設定。；證據細節：OT（僅提及）；功能 UN"
+  },
+  {
+   "id": "GPE.LCD.ROW2_CH_IND",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第二列最左",
+   "label": "照片未見（LCD 全暗）；手冊圖為圓圈數字 ②／③",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "指示第二列目前顯示的是 CH2 或 CH3（p.17 \"Channel indicator ① ② ③ ④ Indicates the currently selected channel.\"；p.26）。",
+   "feedback": "按 CH2/CH3 鍵時 ② ⇔ ③。",
+   "range": "② 或 ③",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.26 (PDF 26)",
+   "evidence": "OT+PD",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "p.15 LCD 圖在兩個圓圈數字之間另印「Set」／「Out」。推論（PD）：疑為 GPE-1326 的設定／讀回列標示，GPE-4323 不使用，保持暗段；手冊沒有明說。"
+  },
+  {
+   "id": "GPE.LCD.ROW2_VOLTAGE",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第二列左半「8.8.8.8 V」",
+   "label": "照片未見（LCD 全暗）；手冊圖「8.8.8.8V」",
+   "kind": "LCD 七段數字＋單位 V",
+   "action": "無",
+   "function": "顯示第二列所選通道電壓：Output ON 為讀回（Voltmeter \"Displays output voltage of each channel.\" p.16）；Set View 時顯示設定（p.19）；Output OFF 顯示設定（暫定，p.23）。",
+   "feedback": "隨旋鈕、負載、模式、Output 更新。",
+   "range": "0–33.00 V 顯示滿刻度；4 位 10 mV／3 位 100 mV（p.45–46）",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.16 (PDF 16)、M-GPE p.19 (PDF 19)、M-GPE p.23 (PDF 23)、M-GPE p.45 (PDF 45)、M-GPE p.46 (PDF 46)",
+   "evidence": "OT+PD",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "顯示解析度≠精度（p.46 accuracy ±(0.1%+30mV)），亦不一定等於旋鈕最小步進。Series 無共地時合併電壓需學生自行 ×2（p.38），面板不顯示合併值。；證據細節：OT；OFF 時顯示內容 PD"
+  },
+  {
+   "id": "GPE.LCD.ROW2_CURRENT",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第二列右半「8.8.8.8 A」",
+   "label": "照片未見（LCD 全暗）；手冊圖「8.8.8.8A」",
+   "kind": "LCD 七段數字＋單位 A",
+   "action": "無",
+   "function": "顯示第二列所選通道電流：Output ON 為負載實際電流讀回（p.16 Ammeter \"Displays output current of each channel.\"；p.22 CV 時 \"the Current level fluctuates according to the load condition\"）；Set View 顯示 I-set（p.19）。",
+   "feedback": "無負載時讀回 0（不是 I-set）；CC 時等於 I-set。",
+   "range": "0–3.200 A 顯示滿刻度；4 位 1 mA／3 位 10 mA（p.45–46）",
+   "sources": "M-GPE p.16 (PDF 16)、M-GPE p.19 (PDF 19)、M-GPE p.22 (PDF 22)、M-GPE p.45 (PDF 45)、M-GPE p.46 (PDF 46)",
+   "evidence": "OT+PD",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "CH3/CH4 顯示電流讀回（p.16 Ammeter 列出 CH1/CH4、CH2/CH3），但其 Set View 時電流欄內容未寫（GAP-GPE-09）。Parallel 時 CH1 電流讀數為總電流的一半（p.42）。；證據細節：OT；無負載讀回 0 為 PD（依 p.22 推論）"
+  },
+  {
+   "id": "GPE.LCD.ROW2_SET_ICON",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第二列上方「Set」",
+   "label": "照片未見（LCD 全暗）；手冊圖「Set」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "表示正在顯示設定值（p.17 \"View setting value [Set] When output is ON, you can view the voltage/ current setting value depending on the channel be selected.\"）。",
+   "feedback": "Set View 短按時亮；返回時機 UN。",
+   "range": "亮／滅",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.19 (PDF 19)",
+   "evidence": "OT+PD+UN",
+   "status": "APPROX",
+   "card": "I04",
+   "notes": "p.17 只說有「View setting value」圖示；GPE-4323 按 Set View 時亮的是哪一個 Set 段屬推論（PD），Output OFF 時是否亮 UN（GAP-GPE-02）。"
+  },
+  {
+   "id": "GPE.LCD.ROW2_CV_CC",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第二列上方「CV」「CC」",
+   "label": "照片未見（LCD 全暗）；手冊圖「CV」「CC」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "第二列所選通道的 CV/CC 狀態（p.17 \"You can view the constant current, constant voltage or OVP status for CH2 or CH3, depending on which CH2 ... or CH3 ... is selected. Each state is valid only when the output is ON. When output is OFF, the display is turns off.\"）；CV/CC 由負載與限流決定（p.22）。",
+   "feedback": "Output ON：CV 或 CC 其一亮；Output OFF：皆滅。",
+   "range": "CV／CC／滅",
+   "sources": "M-GPE p.17 (PDF 17)、M-GPE p.22 (PDF 22)、M-GPE p.32 (PDF 32)、M-GPE p.34 (PDF 34)、M-GPE p.36 (PDF 36)、M-GPE p.42 (PDF 42)",
+   "evidence": "OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "使用者不能直接選 CV/CC 字樣（02）。Parallel 時 CH2 顯示 CC（p.42）。"
+  },
+  {
+   "id": "GPE.LCD.ROW2_OVP_OCP",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第二列上方「OVP」「OCP」",
+   "label": "照片未見（LCD 全暗）；手冊圖「OVP」「OCP」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "手冊提到 OVP 狀態（p.17）與 OVP 觸發自動關輸出（p.25），但全冊無 GPE-4323 的 OVP/OCP 設定方法或門檻；OCP 無任何正文。",
+   "feedback": "本輪保持熄滅。",
+   "range": "未找到",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.25 (PDF 25)",
+   "evidence": "OT+UN",
+   "status": "OUT",
+   "card": "I04",
+   "notes": "不得假裝有 OVP/OCP 設定。；證據細節：OT（僅提及）；功能 UN"
+  },
+  {
+   "id": "GPE.LCD.SER_ICON",
+   "group": "LCD 狀態區",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；下方狀態列「SER」",
+   "label": "照片未見（LCD 全暗）；手冊「SER」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "Series tracking 時亮（p.37 \"The SER icon will be lit on the LCD display.\"）。",
+   "feedback": "模式鍵成 Series 組合時亮。",
+   "range": "亮／滅",
+   "sources": "M-GPE p.16 (PDF 16)、M-GPE p.26 (PDF 26)、M-GPE p.31 (PDF 31)、M-GPE p.37 (PDF 37)、M-GPE p.39 (PDF 39)",
+   "evidence": "OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "與 PARA 互斥；兩者皆滅＝Independent（p.31）。"
+  },
+  {
+   "id": "GPE.LCD.PARA_ICON",
+   "group": "LCD 狀態區",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；下方狀態列「PARA」",
+   "label": "照片未見（LCD 全暗）；手冊「PARA」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "Parallel tracking 時亮（p.41 \"The PARA icon will be lit on the LCD display.\"）。",
+   "feedback": "兩模式鍵皆按下時亮。",
+   "range": "亮／滅",
+   "sources": "M-GPE p.16 (PDF 16)、M-GPE p.26 (PDF 26)、M-GPE p.31 (PDF 31)、M-GPE p.41 (PDF 41)",
+   "evidence": "OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "—"
+  },
+  {
+   "id": "GPE.LCD.LOCK_ICON",
+   "group": "LCD 狀態區",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；下方狀態列「Lock」",
+   "label": "照片未見（LCD 全暗）；手冊「Lock」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "Lock 啟用時亮，解鎖時熄（p.27 \"The Lock icon will become lit.\" / \"The Lock icon will then turn off and the output turns off as well.\"）。",
+   "feedback": "長按 Set View(LOCK) >2 s 切換。",
+   "range": "亮／滅",
+   "sources": "M-GPE p.16 (PDF 16)、M-GPE p.27 (PDF 27)",
+   "evidence": "OT",
+   "status": "APPROX",
+   "card": "I04",
+   "notes": "Lock 鎖定範圍有歧義（GAP-GPE-01）。"
+  },
+  {
+   "id": "GPE.LCD.OTP_ICON",
+   "group": "LCD 狀態區",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；下方狀態列「OTP」",
+   "label": "照片未見（LCD 全暗）；手冊「OTP」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "p.16 狀態區列出 OTP 圖示，但全冊無說明或觸發條件。",
+   "feedback": "本輪保持熄滅。",
+   "range": "未找到",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.16 (PDF 16)",
+   "evidence": "OT+UN",
+   "status": "OUT",
+   "card": "I04",
+   "notes": "不模擬過溫。；證據細節：OT（僅圖示）；功能 UN"
+  },
+  {
+   "id": "GPE.LCD.ON_OFF_ICON",
+   "group": "LCD 狀態區",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；右下「ON OFF」",
+   "label": "照片未見（LCD 全暗）；手冊「ON OFF」",
+   "kind": "LCD 圖示",
+   "action": "無",
+   "function": "Output 狀態顯示（p.16 \"Output status display\"；p.25 \"The OFF icon will become lit\"；p.32 \"the ON icon will appear\"）。",
+   "feedback": "Output ON → ON 亮；OFF → OFF 亮。開機輸出狀態設定時會閃爍（p.27，本輪未納入）。",
+   "range": "ON／OFF",
+   "sources": "M-GPE p.16 (PDF 16)、M-GPE p.25 (PDF 25)、M-GPE p.27 (PDF 27)、M-GPE p.32 (PDF 32)",
+   "evidence": "OT",
+   "status": "CORE",
+   "card": "I04",
+   "notes": "須與 On/Off 鍵燈同一狀態來源。"
+  },
+  {
+   "id": "GPE.LCD.CH3_FIXED_ROW",
+   "group": "LCD",
+   "photo_location": "P1 下層 GPE 左側 LCD 視窗內（約 x100–350, y675–825）；照片全暗，此元素位置依 M-GPE p.15 LCD 圖；第三列「③ 5v 3.3v 2.5v 1.8v OverLoad」",
+   "label": "照片未見（LCD 全暗）；手冊圖「③ 5v 3.3v 2.5v 1.8v OverLoad」",
+   "kind": "LCD 圖示列",
+   "action": "無",
+   "function": "p.15 說明此區為 \"CH3 parameter display area for the GPE-3323\"；p.18 OverLoad 為 \"Output status of CH3 in the GPE-3323\"。GPE-4323 的 CH3 改由第二列 ③ 顯示（p.34）。",
+   "feedback": "GPE-4323 本輪保持熄滅。",
+   "range": "不適用 GPE-4323",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.16 (PDF 16)、M-GPE p.18 (PDF 18)、M-GPE p.34 (PDF 34)",
+   "evidence": "OT",
+   "status": "OUT",
+   "card": "I04",
+   "notes": "GPE-4323 實機 LCD 是否具這些段未證實；不用 GPE-3323 規則。"
+  },
+  {
+   "id": "GPE.TERM.CH4_POS",
+   "group": "輸出端子（下排）",
+   "photo_location": "P1 下層 GPE 下排左起第 1（約 x158,y895）",
+   "label": "上方「+ CH4」（字淡、被端子頭遮）；下方「0 - 15…」（手冊 p.15 圖「0 - 15V , 1A」）",
+   "kind": "輸出接線柱（白色端子帽＋紅環；可插香蕉插頭或鎖線，p.24）",
+   "action": "接線（屬 J01；本輪不接）",
+   "function": "CH4 輸出正端（p.19 \"Outputs CH4 voltage and current.\"）",
+   "feedback": "無（被動件）；有效輸出由 Output 與模式決定",
+   "range": "0–15 V，1 A max",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.19 (PDF 19)、M-GPE p.24 (PDF 24)、M-GPE p.35 (PDF 35)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I04",
+   "notes": "CH4 不參與 tracking（p.35）。；卡別細節：J01（I04 只顯示並預留 terminal ID）"
+  },
+  {
+   "id": "GPE.TERM.CH4_NEG",
+   "group": "輸出端子（下排）",
+   "photo_location": "P1 下層 GPE 下排左起第 2（約 x205,y898）",
+   "label": "上方「−」（被遮）；與 CH4＋ 共用「0 - 15…」",
+   "kind": "輸出接線柱（白色端子帽＋黑環；可插香蕉插頭或鎖線，p.24）",
+   "action": "接線（屬 J01；本輪不接）",
+   "function": "CH4 輸出負端",
+   "feedback": "無（被動件）；有效輸出由 Output 與模式決定",
+   "range": "同 CH4",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.19 (PDF 19)、M-GPE p.24 (PDF 24)、M-GPE p.35 (PDF 35)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I04",
+   "notes": "—；卡別細節：J01（I04 只顯示並預留 terminal ID）"
+  },
+  {
+   "id": "GPE.TERM.CH1_POS",
+   "group": "輸出端子（下排）",
+   "photo_location": "P1 下層 GPE 下排左起第 3（約 x252,y905）",
+   "label": "上方「+ CH1」（字淡）；右側「0 - 32V」「3A」⚠「MAST…」（手冊「MASTER」）；下方藍帶起點（手冊「+」SERIES／「+」PARALLEL）",
+   "kind": "輸出接線柱（白色端子帽＋紅環；可插香蕉插頭或鎖線，p.24）",
+   "action": "接線（屬 J01；本輪不接）",
+   "function": "CH1 輸出正端；Series 單電源接法負載接 CH1+ 與 CH2−（p.38 \"Connect the load to the front panel terminals, CH1+ & CH2− (Single supply).\"）；Parallel 負載接 CH1 +/−（p.41）。",
+   "feedback": "無（被動件）；有效輸出由 Output 與模式決定",
+   "range": "Independent 0–32 V/0–3 A；Series 0–64 V/0–3 A（CH1+ 到 CH2−）；Parallel 0–32 V/0–6 A（CH1±）",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.19 (PDF 19)、M-GPE p.24 (PDF 24)、M-GPE p.31 (PDF 31)、M-GPE p.37 (PDF 37)、M-GPE p.38 (PDF 38)、M-GPE p.41 (PDF 41)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I04",
+   "notes": "MASTER 標示對應 CH1 為 master（p.11）。；卡別細節：J01（I04 只顯示並預留 terminal ID）"
+  },
+  {
+   "id": "GPE.TERM.CH1_NEG",
+   "group": "輸出端子（下排）",
+   "photo_location": "P1 下層 GPE 下排左起第 4（約 x300,y912）",
+   "label": "上方「−」；下方藍帶（手冊 SERIES 帶此處為「COM」，PARALLEL 帶為「−」）",
+   "kind": "輸出接線柱（白色端子帽＋黑環；可插香蕉插頭或鎖線，p.24）",
+   "action": "接線（屬 J01；本輪不接）",
+   "function": "CH1 輸出負端；Series 共地接法作 COM（p.39 \"Use the CH1 (−) terminal as the common line connection.\"）；Parallel 負端（p.41）。",
+   "feedback": "無（被動件）；有效輸出由 Output 與模式決定",
+   "range": "Series 共地：CH1~COM 0–32 V、CH2~COM 0~−32 V（p.39）",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.19 (PDF 19)、M-GPE p.24 (PDF 24)、M-GPE p.39 (PDF 39)、M-GPE p.41 (PDF 41)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I04",
+   "notes": "—；卡別細節：J01（I04 只顯示並預留 terminal ID）"
+  },
+  {
+   "id": "GPE.TERM.GND",
+   "group": "輸出端子（下排）",
+   "photo_location": "P1 下層 GPE 下排左起第 5（約 x350,y922）",
+   "label": "上方「GND」（字淡）；右側接地符號",
+   "kind": "輸出接線柱（白色端子帽＋綠環；可插香蕉插頭或鎖線，p.24）",
+   "action": "接線（屬 J01；本輪不接）",
+   "function": "接地端（p.19 \"Accepts a grounding wire.\"）",
+   "feedback": "無（被動件）；有效輸出由 Output 與模式決定",
+   "range": "不輸出電壓",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.19 (PDF 19)、M-GPE p.24 (PDF 24)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I04",
+   "notes": "照片所見綠色與手冊 p.32 圖一致。；卡別細節：J01（I04 只顯示並預留 terminal ID）"
+  },
+  {
+   "id": "GPE.TERM.CH2_POS",
+   "group": "輸出端子（下排）",
+   "photo_location": "P1 下層 GPE 下排左起第 6（約 x400,y925）",
+   "label": "上方「+ CH2」；右側「0 - 32V」「3A」⚠「SLAV…」（手冊「SLAVE」）",
+   "kind": "輸出接線柱（白色端子帽＋紅環；可插香蕉插頭或鎖線，p.24）",
+   "action": "接線（屬 J01；本輪不接）",
+   "function": "CH2 輸出正端（p.19 \"Outputs CH2 voltage and current.\"）",
+   "feedback": "無（被動件）；有效輸出由 Output 與模式決定",
+   "range": "Independent 0–32 V/0–3 A",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.19 (PDF 19)、M-GPE p.24 (PDF 24)、M-GPE p.31 (PDF 31)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I04",
+   "notes": "SLAVE 標示對應 CH2 為 slave（p.11）。；卡別細節：J01（I04 只顯示並預留 terminal ID）"
+  },
+  {
+   "id": "GPE.TERM.CH2_NEG",
+   "group": "輸出端子（下排）",
+   "photo_location": "P1 下層 GPE 下排左起第 7（約 x452,y932）",
+   "label": "上方「−」；手冊 SERIES 帶終點「−」",
+   "kind": "輸出接線柱（白色端子帽＋黑環；可插香蕉插頭或鎖線，p.24）",
+   "action": "接線（屬 J01；本輪不接）",
+   "function": "CH2 輸出負端；Series 接法負載負端（p.38、p.39）",
+   "feedback": "無（被動件）；有效輸出由 Output 與模式決定",
+   "range": "Series 合併輸出負端",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.19 (PDF 19)、M-GPE p.24 (PDF 24)、M-GPE p.38 (PDF 38)、M-GPE p.39 (PDF 39)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I04",
+   "notes": "—；卡別細節：J01（I04 只顯示並預留 terminal ID）"
+  },
+  {
+   "id": "GPE.TERM.CH3_POS",
+   "group": "輸出端子（下排）",
+   "photo_location": "P1 下層 GPE 下排左起第 8（約 x502,y940）",
+   "label": "上方「+ CH3」；右下「5V , 1…」（手冊 p.15 圖「0 - 5V, 1A」，「0 -」在照片中被端子遮住）",
+   "kind": "輸出接線柱（白色端子帽＋紅環；可插香蕉插頭或鎖線，p.24）",
+   "action": "接線（屬 J01；本輪不接）",
+   "function": "CH3 輸出正端（p.19 \"Outputs CH3 voltage and current.\"）",
+   "feedback": "無（被動件）；有效輸出由 Output 與模式決定",
+   "range": "0–5 V，1 A max",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.19 (PDF 19)、M-GPE p.24 (PDF 24)、M-GPE p.33 (PDF 33)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I04",
+   "notes": "CH3 不參與 tracking（p.33）。；卡別細節：J01（I04 只顯示並預留 terminal ID）"
+  },
+  {
+   "id": "GPE.TERM.CH3_NEG",
+   "group": "輸出端子（下排）",
+   "photo_location": "P1 下層 GPE 下排左起第 9（約 x555,y948）",
+   "label": "上方「−」",
+   "kind": "輸出接線柱（白色端子帽＋黑環；可插香蕉插頭或鎖線，p.24）",
+   "action": "接線（屬 J01；本輪不接）",
+   "function": "CH3 輸出負端",
+   "feedback": "無（被動件）；有效輸出由 Output 與模式決定",
+   "range": "同 CH3",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.19 (PDF 19)、M-GPE p.24 (PDF 24)、M-GPE p.33 (PDF 33)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I04",
+   "notes": "—；卡別細節：J01（I04 只顯示並預留 terminal ID）"
+  },
+  {
+   "id": "GPE.MISC.MODEL_PLATE",
+   "group": "固定標籤",
+   "photo_location": "P1 下層 GPE 面板左上（約 x95–355, y655–680）",
+   "label": "GW INSTEK／GPE-4323／DC Power Supply／32 V 3 A",
+   "kind": "固定印字",
+   "action": "無",
+   "function": "型號識別；「32 V 3 A」為 CH1/CH2 額定，不代表 CH3/CH4。",
+   "feedback": "無",
+   "range": "—",
+   "sources": "M-GPE p.15 (PDF 15)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "I04",
+   "notes": "確認不是 GPE-4323A 或 GPE-3323。"
+  },
+  {
+   "id": "GPE.MISC.CH_HEADER",
+   "group": "固定標籤",
+   "photo_location": "P1 下層 GPE 旋鈕區頂端黑帶（約 x400–610, y662–680）",
+   "label": "CH1（左）／CH2（右）",
+   "kind": "固定印字",
+   "action": "無",
+   "function": "標示上區左欄屬 CH1、右欄屬 CH2；下區旋鈕另印 CH4 Voltage／CH3 Voltage。",
+   "feedback": "無",
+   "range": "—",
+   "sources": "M-GPE p.15 (PDF 15)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "I04",
+   "notes": "—"
+  },
+  {
+   "id": "GPE.MISC.TRACKING_LEGEND",
+   "group": "固定標籤",
+   "photo_location": "P1 下層 GPE 旋鈕區中上圓角框（約 x460–550, y695–760）",
+   "label": "Series／Parallel／Independent，每列左右各一鍵狀態小圖示",
+   "kind": "固定印字＋圖例",
+   "action": "無",
+   "function": "說明兩模式鍵的組合（p.25–26）。",
+   "feedback": "無",
+   "range": "—",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.18 (PDF 18)、M-GPE p.25 (PDF 25)、M-GPE p.26 (PDF 26)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "I04",
+   "notes": "照片圖例與手冊圖示一致：Series 左高右低、Parallel 皆低、Independent 皆高。"
+  },
+  {
+   "id": "GPE.MISC.LONG_PUSH_LEGEND",
+   "group": "固定標籤",
+   "photo_location": "P1 下層 GPE 旋鈕區左下（約 x400–440, y872）",
+   "label": "— : Long Push",
+   "kind": "固定印字",
+   "action": "無",
+   "function": "說明底線標示（LOCK）為長按功能（p.27 圖示同樣印 \"— : Long Push\"）。",
+   "feedback": "無",
+   "range": "—",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.27 (PDF 27)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "I04",
+   "notes": "—"
+  },
+  {
+   "id": "GPE.MISC.SER_PAR_BAND",
+   "group": "固定標籤",
+   "photo_location": "P1 下層 GPE 下排 CH1＋ 至 CH2− 下方藍色色帶（約 x250–470, y905–935）",
+   "label": "照片可見「PA…」「OUTP…」「OUTP…」；手冊 p.15 圖全文「+ COM SERIES OUTPUT −」「+ − PARALLEL OUTPUT」",
+   "kind": "固定印字色帶",
+   "action": "無",
+   "function": "提示 Series 輸出取 CH1+／CH2−（COM 在 CH1−），Parallel 輸出取 CH1+／CH1−（p.15 圖；p.38、p.39、p.41）。",
+   "feedback": "無",
+   "range": "—",
+   "sources": "M-GPE p.15 (PDF 15)、M-GPE p.38 (PDF 38)、M-GPE p.39 (PDF 39)、M-GPE p.41 (PDF 41)；P1",
+   "evidence": "PH+OT",
+   "status": "STATIC",
+   "card": "J01/I04",
+   "notes": "被端子遮住的字依手冊補齊，UI 應標示此為手冊圖文字。；證據細節：PH（部分）+OT；卡別細節：J01（I04 顯示）"
+  }
+ ],
+ "menus": [
+  {
+   "path": "總輸出 ON/OFF：On / Off → 全部通道 ON → 再按 On / Off → 全部通道 OFF",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KEY.OUTPUT_ON_OFF 短按一次切換",
+   "source": "M-GPE p.25 (PDF 25)、M-GPE p.32 (PDF 32)",
+   "evidence": "OT+PH",
+   "status": "CORE",
+   "notes": "p.25 \"Press the Output key to turn on all outputs in each channel.\" / \"Push the Output key again to turn off all outputs. The OFF icon will become lit on the LCD display.\"；ON 時鍵亮＋ON 圖示＋CV/CC（p.32）。"
+  },
+  {
+   "path": "選 Independent：兩模式鍵皆彈起 → SER、PARA 圖示皆滅",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KEY.TRACK_LEFT＝彈起、GPE.KEY.TRACK_RIGHT＝彈起",
+   "source": "M-GPE p.25 (PDF 25)、M-GPE p.31 (PDF 31)",
+   "evidence": "OT（文字＋圖示）+PH（圖例）",
+   "status": "CORE",
+   "notes": "p.25 \"For the independent mode, the right key is not pressed\"；p.31 \"Make sure the Series/Parallel key is not activated (both the SER and PARA icons are off).\" 左鍵按下＋右鍵彈起的組合未圖示，暫依文字視為 Independent（GAP-GPE-07）。"
+  },
+  {
+   "path": "選 Series：左模式鍵彈起＋右模式鍵按下 → SER 圖示亮（Output 若 ON 自動 OFF）",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KEY.TRACK_LEFT＝彈起、GPE.KEY.TRACK_RIGHT＝按下",
+   "source": "M-GPE p.25 (PDF 25)、M-GPE p.26 (PDF 26)、M-GPE p.37 (PDF 37)",
+   "evidence": "OT+PH",
+   "status": "CORE",
+   "notes": "p.26 \"Right key is pressed and the left key is not pressed in series mode.\"；p.25 自動關輸出。"
+  },
+  {
+   "path": "選 Parallel：兩模式鍵皆按下 → PARA 圖示亮（Output 若 ON 自動 OFF）",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KEY.TRACK_LEFT＝按下、GPE.KEY.TRACK_RIGHT＝按下",
+   "source": "M-GPE p.25 (PDF 25)、M-GPE p.26 (PDF 26)、M-GPE p.41 (PDF 41)",
+   "evidence": "OT+PH",
+   "status": "CORE",
+   "notes": "p.26 \"Toggle to parallel mode when both keys are pressed.\""
+  },
+  {
+   "path": "CH1/CH2 Independent 操作：確認 SER/PARA 滅 → 接 CH1±、CH2± → CH1 Voltage、CH1 Current → CH2 Voltage、CH2 Current → On / Off → 看 CV/CC",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KNOB.CH1_VOLTAGE、GPE.KNOB.CH1_CURRENT、GPE.KNOB.CH2_VOLTAGE、GPE.KNOB.CH2_CURRENT、GPE.KEY.OUTPUT_ON_OFF",
+   "source": "M-GPE p.31 (PDF 31)、M-GPE p.32 (PDF 32)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "p.32 \"Press the Output key to turn on the output. The Output key will be lit and the ON icon will appear on the LCD display. The CV or CC icon appears on the LCD to indicate the output status for each channel.\" 接線屬 J01，本輪以測試負載代替。"
+  },
+  {
+   "path": "CH3 操作：接 CH3± → CH3 Voltage 旋鈕 → CH2/CH3 鍵切到 ③ 查看設定 → On / Off",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KNOB.CH3_VOLTAGE → GPE.KEY.CH2_CH3 → GPE.KEY.OUTPUT_ON_OFF",
+   "source": "M-GPE p.33 (PDF 33)、M-GPE p.34 (PDF 34)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "p.34 \"You can check the setting of the GPE-4323 by using the CH2/CH3 key to toggle to CH3(③ appears on the LCD display).\""
+  },
+  {
+   "path": "CH4 操作：接 CH4± → CH4 Voltage 旋鈕 → CH1/CH4 鍵切到 ④ 查看設定 → On / Off",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KNOB.CH4_VOLTAGE → GPE.KEY.CH1_CH4 → GPE.KEY.OUTPUT_ON_OFF",
+   "source": "M-GPE p.35 (PDF 35)、M-GPE p.36 (PDF 36)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "p.35 \"You can use the CH1/CH4 key to toggle to CH4(④) appears on the LCD display) to check the setting value.\""
+  },
+  {
+   "path": "Series（無共地）：模式鍵成 Series（SER 亮）→ 負載接 CH1+ 與 CH2− → CH2 Current 調到最大 → CH1 Voltage、CH1 Current → On / Off → 讀 CH1 表（電壓 ×2＝輸出電壓；電流＝輸出電流）",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） TRACK_RIGHT 按下 → GPE.KNOB.CH2_CURRENT（max）→ GPE.KNOB.CH1_VOLTAGE、GPE.KNOB.CH1_CURRENT → GPE.KEY.OUTPUT_ON_OFF",
+   "source": "M-GPE p.37 (PDF 37)、M-GPE p.38 (PDF 38)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "p.38 \"Use the current knob to set the CH2 output current to the maximum level.\" / \"Output voltage level: Double the reading on the CH1 voltage meter.\" / \"Output current level: CH1 meter reading shows the output current.\" 輸出 0–64 V/0–3 A（p.37）。"
+  },
+  {
+   "path": "Series（共地 COM）：SER → 負載接 CH1+、CH2−，CH1(−) 為 COM → CH1 Voltage 設 master & slave 同電壓 → CH1 Current 設 master → CH2 Current 設 slave → On / Off → CH1 表讀 master、CH2 表讀 slave",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KNOB.CH1_VOLTAGE → GPE.KNOB.CH1_CURRENT → GPE.KNOB.CH2_CURRENT → GPE.KEY.OUTPUT_ON_OFF",
+   "source": "M-GPE p.39 (PDF 39)、M-GPE p.40 (PDF 40)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "p.40 \"Use the CH1 voltage knob to set the master & slave output voltage (the same level for both channels).\" \"Use the CH2 current knob to set the slave output current.\" 輸出 CH1~COM 0–32 V、CH2~COM 0~−32 V（p.39）。CH2 Voltage 旋鈕在此模式的效果未寫（GAP-GPE-08）。"
+  },
+  {
+   "path": "Parallel：模式鍵成 Parallel（PARA 亮）→ 負載接 CH1 +/− → CH1 Voltage、CH1 Current（CH2 控制停用）→ On / Off → CH2 顯示 CC → CH1 表：電壓＝輸出；電流 ×2＝輸出",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） 兩模式鍵按下 → GPE.KNOB.CH1_VOLTAGE、GPE.KNOB.CH1_CURRENT → GPE.KEY.OUTPUT_ON_OFF",
+   "source": "M-GPE p.41 (PDF 41)、M-GPE p.42 (PDF 42)",
+   "evidence": "OT",
+   "status": "CORE",
+   "notes": "p.42 \"CH2 control function is disabled.\" \"The operating mode of CH2 will appear as the CC icon on the LCD display.\" \"Output current level: Double the amount of CH1 current meter reading.\" 輸出 0–32 V/0–6 A（p.41）。"
+  },
+  {
+   "path": "顯示切換：CH1/CH4 → 第一列 ① ⇔ ④；CH2/CH3 → 第二列 ② ⇔ ③",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KEY.CH1_CH4、GPE.KEY.CH2_CH3",
+   "source": "M-GPE p.26 (PDF 26)",
+   "evidence": "OT+PH",
+   "status": "CORE",
+   "notes": "p.26 \"This feature is only available for the GPE-4323.\" 只切顯示，不改旋鈕歸屬（02）。"
+  },
+  {
+   "path": "查看設定：Output ON 時短按 Set View → Set 圖示、顯示所選通道 V/I 設定 → 返回讀回（返回方式未找到）",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KEY.SET_VIEW 短按",
+   "source": "M-GPE p.17 (PDF 17)、M-GPE p.19 (PDF 19)",
+   "evidence": "OT；返回 UN",
+   "status": "APPROX",
+   "notes": "p.19 \"When the output is ON, you can view the voltage/current settings of each channel by pressing this key.\" 手冊無「再按返回」或「逾時返回」的描述（GAP-GPE-02）。"
+  },
+  {
+   "path": "Lock：長按 Set View（下方 LOCK）>2 s → Lock 圖示亮；再長按 >2 s → Lock 滅、Output 關閉",
+   "softkeys": "（GPE-4323 無螢幕軟鍵／選單；以下為實體鍵與旋鈕序列） GPE.KEY.SET_VIEW 長按 >2 s",
+   "source": "M-GPE p.19 (PDF 19)、M-GPE p.25 (PDF 25)、M-GPE p.27 (PDF 27)、M-GPE p.43 (PDF 43)",
+   "evidence": "OT；鎖定範圍 UN",
+   "status": "APPROX",
+   "notes": "p.27 \"Press the LOCK key (for more than 2 seconds) to lock the voltage knob operation for CH1 & CH2 in the front panel. The Lock icon will become lit.\" / \"To unlock, press the LOCK key for more than 2 seconds. The Lock icon will then turn off and the output turns off as well.\""
+  },
+  {
+   "path": "Set the output state at startup（頂層名稱；本輪未納入）",
+   "softkeys": "（未納入，不列步驟）",
+   "source": "M-GPE p.27 (PDF 27)、M-GPE p.28 (PDF 28)",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "手冊註記 \"By default the output is set to OFF at startup.\"（p.28）。"
+  },
+  {
+   "path": "Set the displayed digit resolution for the voltage/current（頂層名稱；本輪未納入）",
+   "softkeys": "（未納入，不列步驟）",
+   "source": "M-GPE p.29 (PDF 29)",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "\"By default the number of displayed digits is set to four.\"（p.29）"
+  },
+  {
+   "path": "Remote Control Setting（後面板端子；頂層名稱；本輪未納入）",
+   "softkeys": "（未納入）",
+   "source": "M-GPE p.30 (PDF 30)",
+   "evidence": "OT",
+   "status": "OUT",
+   "notes": "後面板遠端 ON/OFF；切到遠端會自動關輸出（p.25）。"
+  }
+ ],
+ "specs": [
+  {
+   "item": "CH1/CH2 Independent 輸出範圍",
+   "value": "各 0–32 V／0–3 A",
+   "source": "M-GPE p.31 (PDF 31)、M-GPE p.45 (PDF 45)",
+   "evidence": "OT",
+   "quote": "\"0 ~ 32V/0~3A for each channel\"（p.31）；\"CH1/CH2 Independent 0 ~ 32V / 0 ~ 3A\"（p.45）"
+  },
+  {
+   "item": "CH3 輸出範圍（GPE-4323 欄）",
+   "value": "0–5 V 可調，1 A max；無電流旋鈕",
+   "source": "M-GPE p.33 (PDF 33)、M-GPE p.45 (PDF 45)、M-GPE p.18 (PDF 18)",
+   "evidence": "OT",
+   "quote": "\"GPE-4323：0~5V,1A Max.\"（p.33）；\"0~5V, 1A(GPE-4323)\"（p.45）"
+  },
+  {
+   "item": "CH4 輸出範圍",
+   "value": "0–15 V 可調，1 A max；無電流旋鈕",
+   "source": "M-GPE p.35 (PDF 35)、M-GPE p.45 (PDF 45)、M-GPE p.18 (PDF 18)",
+   "evidence": "OT",
+   "quote": "\"0~15V/1A max\"（p.35）；\"CH4 0~15V,1A\"（p.45）；p.18 \"Sets the voltage for the GPE-4323.\""
+  },
+  {
+   "item": "Series tracking（無共地）",
+   "value": "0–64 V／0–3 A；輸出電壓＝CH1 電壓表 ×2，輸出電流＝CH1 電流表",
+   "source": "M-GPE p.37 (PDF 37)、M-GPE p.38 (PDF 38)、M-GPE p.45 (PDF 45)",
+   "evidence": "OT",
+   "quote": "\"0 ~ 64V/0 ~ 3A\"（p.37）；\"Double the reading on the CH1 voltage meter.\"（p.38）"
+  },
+  {
+   "item": "Series tracking（共地 COM）",
+   "value": "CH1~COM 0–32 V／0–3 A；CH2~COM 0～−32 V／0–3 A；CH1(−) 為 COM",
+   "source": "M-GPE p.39 (PDF 39)",
+   "evidence": "OT",
+   "quote": "\"0~32V/0~3A for CH1 ~ COM\" \"0~-32V/0~3A for CH2 ~ COM\"（p.39）"
+  },
+  {
+   "item": "Parallel tracking",
+   "value": "0–32 V／0–6 A；輸出電流＝CH1 電流表 ×2；CH2 控制停用、CH2 顯示 CC",
+   "source": "M-GPE p.41 (PDF 41)、M-GPE p.42 (PDF 42)、M-GPE p.45 (PDF 45)",
+   "evidence": "OT",
+   "quote": "\"0 ~ 32V/0 ~ 6A\"（p.41）；\"CH2 control function is disabled.\"（p.42）；\"Double the amount of CH1 current meter reading.\"（p.42）"
+  },
+  {
+   "item": "Tracking 範圍與誤差",
+   "value": "master 0–32 V；tracking error ≤0.1%+10 mV（教學模型不模擬誤差）",
+   "source": "M-GPE p.45 (PDF 45)",
+   "evidence": "OT",
+   "quote": "\"Tracking Error ≤ 0.1% + 10mV of Master (0 ~ 32V)\""
+  },
+  {
+   "item": "模式鍵組合",
+   "value": "Independent：兩鍵皆彈起（OT+PH）；Series：右鍵按下＋左鍵彈起（OT+PH）；Parallel：兩鍵按下（OT+PH）；左按下＋右彈起：暫定 Independent（PD，GAP-GPE-07）",
+   "source": "M-GPE p.25 (PDF 25)、M-GPE p.26 (PDF 26)；P1 圖例",
+   "evidence": "OT+PH+PD",
+   "quote": "\"For the independent mode, the right key is not pressed\"；\"Toggle to parallel mode when both keys are pressed.\"；\"Right key is pressed and the left key is not pressed in series mode.\""
+  },
+  {
+   "item": "模式切換與 Output 聯動",
+   "value": "Output ON 時切換 Independent／Series／Parallel → Output 自動 OFF",
+   "source": "M-GPE p.25 (PDF 25)",
+   "evidence": "OT",
+   "quote": "\"Any of the following actions during output on automatically turns it off. • Change the operation mode between independent / series tracking / parallel tracking\""
+  },
+  {
+   "item": "其他自動關 Output 條件",
+   "value": "OVP 觸發（本輪不做）；Lock 解除；切到遠端控制（本輪不做）",
+   "source": "M-GPE p.25 (PDF 25)、M-GPE p.27 (PDF 27)",
+   "evidence": "OT",
+   "quote": "\"When OVP is activated on a channel (except CH3 on the GPE-3323)\" \"When the lock function is disabled.\" \"When toggling to remote control\""
+  },
+  {
+   "item": "Output 鍵作用範圍",
+   "value": "一鍵控制全部通道（CH1–CH4）",
+   "source": "M-GPE p.25 (PDF 25)",
+   "evidence": "OT",
+   "quote": "\"Press the Output key to turn on all outputs in each channel.\" \"Push the Output key again to turn off all outputs.\""
+  },
+  {
+   "item": "開機 Output 預設",
+   "value": "OFF（可由開機組合改為 ON，本輪不做；校機設定未知）",
+   "source": "M-GPE p.27 (PDF 27)、M-GPE p.28 (PDF 28)",
+   "evidence": "OT；校機設定 UN",
+   "quote": "\"By default the output is set to OFF at startup.\""
+  },
+  {
+   "item": "開機顯示",
+   "value": "先亮全部 LCD 段，再顯示各通道設定",
+   "source": "M-GPE p.23 (PDF 23)",
+   "evidence": "OT；時長 UN",
+   "quote": "\"The display will first display all the LCD segments before showing settings for each channel.\""
+  },
+  {
+   "item": "CV/CC 判定",
+   "value": "負載電流 < I-set → CV（V＝V-set，I 由負載決定）；電流達 I-set → CC（I＝I-set，V < V-set）；電流降回 → CV",
+   "source": "M-GPE p.22 (PDF 22)、M-GPE p.11 (PDF 11)",
+   "evidence": "OT",
+   "quote": "\"When the current level is smaller than the output setting ... operates in Constant Voltage mode.\" \"When the current level reaches the output setting ... starts operating in Constant Current mode.\""
+  },
+  {
+   "item": "CV/CC 指示有效條件",
+   "value": "僅 Output ON 有效；Output OFF 時 CV/CC 顯示熄滅；指示跟隨該列所選通道",
+   "source": "M-GPE p.17 (PDF 17)",
+   "evidence": "OT",
+   "quote": "\"Each state is valid only when the output is ON. When output is OFF, the display is turns off.\""
+  },
+  {
+   "item": "Set View（查看設定）",
+   "value": "Output ON 時按下顯示所選通道 V/I 設定；Set 圖示；返回時機未找到",
+   "source": "M-GPE p.17 (PDF 17)、M-GPE p.19 (PDF 19)",
+   "evidence": "OT；返回 UN",
+   "quote": "\"When the output is ON, you can view the voltage/current settings of each channel by pressing this key.\""
+  },
+  {
+   "item": "Lock 長按時間與效果",
+   "value": "長按 >2 s 上鎖／解鎖；Lock 圖示；解鎖時 Output 關；OUTPUT 鍵不受影響；鎖定範圍段落不一（見 discrepancies）",
+   "source": "M-GPE p.27 (PDF 27)、M-GPE p.19 (PDF 19)、M-GPE p.43 (PDF 43)",
+   "evidence": "OT；範圍 UN",
+   "quote": "\"Press the LOCK key (for more than 2 seconds) to lock the voltage knob operation for CH1 & CH2\"；\"The OUTPUT key is not affected by the lock operation.\""
+  },
+  {
+   "item": "Meter resolution",
+   "value": "電壓 10 mV 或 100 mV；電流 1 mA 或 10 mA（GPE-4323 不取 GPE-1326 的 2 mA）",
+   "source": "M-GPE p.45 (PDF 45)",
+   "evidence": "OT",
+   "quote": "\"Meter Resolution Voltage 10mV or 100mV current 1mA or 10mA\""
+  },
+  {
+   "item": "顯示位數與滿刻度",
+   "value": "4.3\" 單色 LCD；電壓表 33.00 V 滿刻度、電流表 3.200 A 滿刻度，4 位或 3 位；預設 4 位（對應推論：4 位＝10 mV/1 mA，3 位＝100 mV/10 mA）",
+   "source": "M-GPE p.46 (PDF 46)、M-GPE p.29 (PDF 29)、M-GPE p.45 (PDF 45)",
+   "evidence": "OT；位數↔解析度對應 PD",
+   "quote": "\"Voltmeter 33.00V full scale, 4 digits or 3 digits\"；\"Ammeter 3.200A full scale\"；\"By default the number of displayed digits is set to four.\""
+  },
+  {
+   "item": "設定／讀回精度（不模擬，只用於說明顯示≠精度）",
+   "value": "電壓 ±(0.1% rdg＋30 mV)（4 位）／±(0.1%＋200 mV)（3 位）；電流 ±(0.3%＋6 mA)（4 位）／±(0.3%＋20 mA)（3 位）",
+   "source": "M-GPE p.46 (PDF 46)",
+   "evidence": "OT",
+   "quote": "\"Voltage: ± (0.1% of reading + 30mV) (4digits)\" \"Current: ± (0.3% of reading + 6mA)(4digits)\""
+  },
+  {
+   "item": "旋鈕步進／粗細調",
+   "value": "未找到（GPE-4323 無 coarse/fine；coarse/fine 只屬 GPE-1326）",
+   "source": "M-GPE p.18 (PDF 18)",
+   "evidence": "UN",
+   "quote": "GPE-1326: \"It has coarse and fine adjustment features.\"（p.18，僅 GPE-1326）"
+  },
+  {
+   "item": "CH3/CH4 限流",
+   "value": "無電流旋鈕；額定 1 A max；手冊寫 \"exceeds the setting value\" 轉 CC，但未定義 CH3/CH4 的電流設定值 → 精準門檻 UN，不作核心",
+   "source": "M-GPE p.34 (PDF 34)、M-GPE p.36 (PDF 36)、M-GPE p.18 (PDF 18)",
+   "evidence": "OT+UN",
+   "quote": "\"When the output current level exceeds the setting value, the CV icon changes to the CC icon on the LCD display.\"（p.34、p.36）"
+  },
+  {
+   "item": "規格前提",
+   "value": "開機 30 分鐘、+20–30 °C；規格為 Unlock 狀態；Lock 後輸出約 20 mV 波動（不模擬）",
+   "source": "M-GPE p.45 (PDF 45)、M-GPE p.46 (PDF 46)、M-GPE p.27 (PDF 27)",
+   "evidence": "OT",
+   "quote": "\"Specifications listed above are specifications under the “Unlock” state.\"；\"It is normal for the output voltage to have a fluctuation of around 20mV after the voltage settings are locked.\""
+  },
+  {
+   "item": "Regulation／Ripple（不模擬）",
+   "value": "電壓 line/load ≤0.01%+3 mV；ripple ≤1 mVrms；電流 line/load ≤0.2%+3 mA；recovery ≤100 µs",
+   "source": "M-GPE p.45 (PDF 45)",
+   "evidence": "OT",
+   "quote": "\"Line ≤ 0.01% + 3mV\" \"Ripple & Noise ≤ 1mVrms (5Hz ~ 1MHz)\""
+  },
+  {
+   "item": "L1 測試負載預期值（規劃者 fixture，理想模型）",
+   "value": "CH1 V-set 5 V、I-set 0.1 A：100 Ω → CV，約 5.00 V／0.050 A；10 Ω → CC，約 1.00 V／0.100 A；無負載 → CV，5.00 V／0.000 A",
+   "source": "02 第一階段測試情境 L1；M-GPE p.22 (PDF 22)",
+   "evidence": "PD（依 OT p.22 模型計算）",
+   "quote": "02：\"預期 CV、約 0.05 A；改成 10 Ω 時在理想教學模型下進 CC、約 1 V／0.1 A\""
+  }
+ ],
+ "core_features": [
+  {
+   "id": "GPE-F01",
+   "feature": "四路電壓設定",
+   "rule": "四顆 Voltage 旋鈕各自只改所屬通道的 V-set：GPE.KNOB.CH1_VOLTAGE→CH1（0–32 V）、CH2_VOLTAGE→CH2（0–32 V）、CH3_VOLTAGE→CH3（0–5 V）、CH4_VOLTAGE→CH4（0–15 V）；到上下限夾住不溢位；四路設定分開保存，轉某顆旋鈕不改其他三路。步進為暫定值並在儀器外標示。",
+   "source": "M-GPE p.18 (PDF 18)、M-GPE p.31 (PDF 31)、M-GPE p.32 (PDF 32)、M-GPE p.33 (PDF 33)、M-GPE p.35 (PDF 35)、M-GPE p.45 (PDF 45)",
+   "evidence": "PH+OT；步進 PD",
+   "acceptance": "I04-1：逐一轉四顆 Voltage 旋鈕，只有對應通道的設定改變；I04-7：推到極限後其餘通道不受影響。"
+  },
+  {
+   "id": "GPE-F02",
+   "feature": "CH1／CH2 電流限制",
+   "rule": "只有 GPE.KNOB.CH1_CURRENT、CH2_CURRENT 可調 I-set（0–3 A）；CH3、CH4 沒有電流旋鈕也沒有可調限流 UI。",
+   "source": "M-GPE p.18 (PDF 18)、M-GPE p.31 (PDF 31)、M-GPE p.32 (PDF 32)、M-GPE p.45 (PDF 45)",
+   "evidence": "PH+OT",
+   "acceptance": "I04-1：旋鈕數量＝6，只有 CH1/CH2 有 Current；對照照片。"
+  },
+  {
+   "id": "GPE-F03",
+   "feature": "LCD 通道切換（只切顯示）",
+   "rule": "CH1/CH4 鍵切換第一列 ①⇔④，CH2/CH3 鍵切換第二列 ②⇔③；切換後 V/A 與 CV/CC 圖示改顯示該通道。旋鈕歸屬固定，不隨顯示重新指派；例如第一列顯示 ④ 時轉 CH1 Voltage 仍改 CH1（暫定：顯示不自動跳回 ①，見 GAP-GPE-04）。",
+   "source": "M-GPE p.17 (PDF 17)、M-GPE p.18 (PDF 18)、M-GPE p.26 (PDF 26)、M-GPE p.34 (PDF 34)、M-GPE p.35 (PDF 35)",
+   "evidence": "PH+OT；自動跳回與否 PD",
+   "acceptance": "I04-2：切到 ④ 後轉 CH1 Voltage，再切回 ① 看到 CH1 已變、CH4 未變。"
+  },
+  {
+   "id": "GPE-F04",
+   "feature": "設定值／讀回值區分",
+   "rule": "狀態分三層：旋鈕設定（V-set/I-set）、有效輸出（Output 與模式決定）、LCD 顯示。Output OFF：LCD 顯示設定值（暫定，依 p.23）；Output ON：LCD 顯示讀回（由測試負載計算），短按 Set View 暫時顯示設定並亮 Set 圖示（返回時機暫定，見 GAP-GPE-02）。無負載時讀回電流為 0，不得顯示 I-set。",
+   "source": "M-GPE p.16 (PDF 16)、M-GPE p.17 (PDF 17)、M-GPE p.19 (PDF 19)、M-GPE p.22 (PDF 22)、M-GPE p.23 (PDF 23)",
+   "evidence": "OT；OFF 時顯示內容與返回時機 PD",
+   "acceptance": "I04-3：Output ON、無負載，電流顯示 0.000 A；按 Set View 看到 I-set；I04-6：Set View 行為與矩陣暫定規格一致。"
+  },
+  {
+   "id": "GPE-F05",
+   "feature": "總 Output（一鍵全部通道）",
+   "rule": "GPE.KEY.OUTPUT_ON_OFF 一次開／關 CH1–CH4 全部輸出；ON 時鍵燈亮、LCD ON 圖示、各顯示通道出現 CV/CC；OFF 時 OFF 圖示、CV/CC 熄，所有設定值保留。Output 與 POWER、模式、顯示切換是不同狀態。Lock 不影響 Output 鍵。",
+   "source": "M-GPE p.17 (PDF 17)、M-GPE p.25 (PDF 25)、M-GPE p.27 (PDF 27)、M-GPE p.32 (PDF 32)、M-GPE p.43 (PDF 43)",
+   "evidence": "OT+PH",
+   "acceptance": "I04-3：OFF→ON→OFF，四通道同步；設定值不變；未開輸出時不亮 CV/CC。"
+  },
+  {
+   "id": "GPE-F06",
+   "feature": "Independent／Series／Parallel 切換與自動關 Output",
+   "rule": "兩顆模式鍵各為按下／彈起兩態（依圖例推論為自鎖）：右彈起＝Independent（SER、PARA 皆滅），左彈起＋右按下＝Series（SER 亮），兩鍵按下＝Parallel（PARA 亮）。Output ON 時只要模式改變即自動 OFF；Output OFF 時換模式維持 OFF。左按下＋右彈起暫定為 Independent（GAP-GPE-07）。不得做成三顆模式大按鈕。",
+   "source": "M-GPE p.25 (PDF 25)、M-GPE p.26 (PDF 26)、M-GPE p.31 (PDF 31)、M-GPE p.37 (PDF 37)、M-GPE p.41 (PDF 41)；P1 圖例",
+   "evidence": "PH+OT；自鎖與第四組合 PD",
+   "acceptance": "I04-5：依序操作兩鍵走遍三模式，每次換模式 Output 由 ON 變 OFF、SER/PARA 正確；I04-7：切回 Independent 後可再操作。"
+  },
+  {
+   "id": "GPE-F07",
+   "feature": "Series tracking 控制關係",
+   "rule": "Series：CH1 為 master，CH1 Voltage 同時決定 master 與 slave 電壓；CH1 Current 設 master 限流，CH2 Current 設 slave 限流；CH2 Voltage 暫定無效（PD）。CH1 列顯示 master，CH2 列顯示 slave（共地接法 p.40）；無共地接法的合併電壓＝CH1 讀值 ×2，由學生換算（面板不顯示 64 V 合併值）。CH3/CH4 不受影響。",
+   "source": "M-GPE p.11 (PDF 11)、M-GPE p.37 (PDF 37)、M-GPE p.38 (PDF 38)、M-GPE p.39 (PDF 39)、M-GPE p.40 (PDF 40)、M-GPE p.45 (PDF 45)",
+   "evidence": "OT；CH2 Voltage 無效與合併限流模型 PD",
+   "acceptance": "I04-5：Series 下轉 CH2 Voltage 無輸出變化，轉 CH1 Voltage 兩列同步；CH3/CH4 設定與輸出不變。"
+  },
+  {
+   "id": "GPE-F08",
+   "feature": "Parallel tracking 控制關係",
+   "rule": "Parallel：CH1 Voltage／Current 控制合併輸出（0–32 V、0–6 A）；CH2 兩顆旋鈕停用；Output ON 時 CH2 列顯示 CC 圖示；CH1 電流讀值為總電流的一半（輸出電流＝CH1 讀值 ×2）。CH3/CH4 不受影響。",
+   "source": "M-GPE p.41 (PDF 41)、M-GPE p.42 (PDF 42)、M-GPE p.45 (PDF 45)",
+   "evidence": "OT；合併限流＝2×I1set 為 PD",
+   "acceptance": "I04-5：Parallel 下轉 CH2 旋鈕無效；Output ON 時 CH2 顯示 CC。"
+  },
+  {
+   "id": "GPE-F09",
+   "feature": "以已知測試負載展示 CH1／CH2 的 CV／CC",
+   "rule": "儀器外「單機測試情境」提供理想電阻負載（L1）。理想模型：I＝min(V-set/R, I-set)；若 V-set/R < I-set → CV（V＝V-set）；否則 CC（I＝I-set，V＝I-set×R）。L1：5 V、0.1 A，100 Ω → CV 5.00 V/0.050 A；10 Ω → CC 1.00 V/0.100 A。0 Ω／開路需明確處理，不出 NaN。只在 Output ON 時生效。",
+   "source": "M-GPE p.22 (PDF 22)；02 L1",
+   "evidence": "OT（模型）+PD（fixture 與數值）",
+   "acceptance": "I04-4：100 Ω→10 Ω，CV 轉 CC，讀回 V/I 自洽；空載讀回電流 0。"
+  },
+  {
+   "id": "GPE-F10",
+   "feature": "CH3／CH4 獨立、不參與 tracking",
+   "rule": "CH3/CH4 只有電壓設定；Series/Parallel 不改變其設定或輸出；Output ON 且在測試情境的輕載（≤ 額定）下顯示 CV；過載／CC 轉換不列核心，1 A 不當精準門檻。",
+   "source": "M-GPE p.33 (PDF 33)、M-GPE p.34 (PDF 34)、M-GPE p.35 (PDF 35)、M-GPE p.36 (PDF 36)",
+   "evidence": "OT；過載行為 UN",
+   "acceptance": "I04-1、I04-5：切換模式前後 CH3/CH4 設定與讀回不變。"
+  },
+  {
+   "id": "GPE-F11",
+   "feature": "重設／開機狀態",
+   "rule": "POWER 開機：短暫全段顯示 → 顯示各通道設定；Output＝OFF；模式由兩模式鍵實體狀態決定（PD）；顯示預設 ①、②（PD）；顯示位數 4 位。儀器外提供「重設到已定義狀態」，不宣稱為原廠開機記憶。",
+   "source": "M-GPE p.23 (PDF 23)、M-GPE p.28 (PDF 28)、M-GPE p.29 (PDF 29)",
+   "evidence": "OT；設定值記憶與預設顯示通道 PD/UN",
+   "acceptance": "I04-7：重設後 Output OFF、可再次操作。"
+  },
+  {
+   "id": "GPE-F12",
+   "feature": "Lock（近似）",
+   "rule": "若實作：長按 Set View >2 s 上鎖，Lock 圖示亮；暫定只鎖 CH1、CH2 Voltage 旋鈕（依 p.27 專節）；On/Off 永不被鎖；再長按 >2 s 解鎖，Lock 熄且 Output 關。其他控制是否被鎖在儀器外標為「待校機確認」。若暫緩，Set View 長按顯示範圍說明，不假成功。",
+   "source": "M-GPE p.19 (PDF 19)、M-GPE p.25 (PDF 25)、M-GPE p.27 (PDF 27)、M-GPE p.43 (PDF 43)",
+   "evidence": "OT；範圍 UN→PD",
+   "acceptance": "I04-6：Lock 後 Output 仍可開關；解鎖後 Output 為 OFF。"
+  }
+ ],
+ "out_of_scope": [
+  {
+   "item": "OVP／OCP／OTP 功能與 LCD 圖示",
+   "reason": "手冊只提 OVP 狀態與 OVP 觸發關輸出（p.17、p.25），全冊無 GPE-4323 設定方法或門檻；OCP、OTP 無正文。",
+   "ui_treatment": "LCD 保留圖示段但恆暗；儀器外範圍說明「未納入」。"
+  },
+  {
+   "item": "開機輸出狀態設定（按住 Output 開機）",
+   "reason": "02 未列核心；校機目前設定未知（p.27–28）。",
+   "ui_treatment": "不提供此開機組合；範圍說明寫「原廠預設 OFF，校機設定待確認」。"
+  },
+  {
+   "item": "顯示位數 3／4 設定（按住 Set View 開機）",
+   "reason": "非核心（p.29）；預設 4 位。",
+   "ui_treatment": "固定 4 位顯示；範圍說明提及 3 位選項存在。"
+  },
+  {
+   "item": "遠端控制（後面板 Remote control 端子）",
+   "reason": "後面板功能、非第一階段（p.21、p.30）。",
+   "ui_treatment": "不繪製或僅於說明中提及。"
+  },
+  {
+   "item": "後面板：AC Selector、電源線／保險絲座、風扇",
+   "reason": "照片只拍前面板；第一階段不做後面板（p.21、p.44）。",
+   "ui_treatment": "不繪製。"
+  },
+  {
+   "item": "CH3／CH4 過載與精準保護門檻；GPE-3323 CH3 OverLoad（5.2 A）",
+   "reason": "1 A 為額定，手冊未定義 CH3/CH4 電流設定值；OverLoad 屬 GPE-3323（p.18、p.34、p.43）。",
+   "ui_treatment": "測試情境不提供 CH3/CH4 超載負載，或選到時顯示「本輪未納入」；OverLoad 圖示恆暗。"
+  },
+  {
+   "item": "Overload／反接保護、熱、瞬態、regulation／ripple／recovery、tracking error、設定/讀回精度誤差",
+   "reason": "02／01 列為本輪不做（p.12、p.45–46 僅作說明）。",
+   "ui_treatment": "範圍說明；讀值用理想模型並標示近似。"
+  },
+  {
+   "item": "端子實際接線、Series/Parallel 外部接線計算、任意負載",
+   "reason": "屬 J01／J02。",
+   "ui_treatment": "端子只顯示並保留 terminal ID；CV/CC 用儀器外測試負載。"
+  },
+  {
+   "item": "Lock 後約 20 mV 輸出波動",
+   "reason": "硬體特性，非操作邏輯（p.27）。",
+   "ui_treatment": "不模擬。"
+  },
+  {
+   "item": "其他型號功能：GPE-1326 coarse/fine 與 sense 端子、GPE-3323 固定 5 V/5 A、GPE-4323A 任何功能",
+   "reason": "型號不同（p.18、p.19、p.20）。",
+   "ui_treatment": "不加入面板。"
+  },
+  {
+   "item": "LCD「Set」「Out」列標示（GPE-1326）與「③ 5v 3.3v 2.5v 1.8v OverLoad」列（GPE-3323）",
+   "reason": "推論（PD）：列首 Set/Out 疑為 GPE-1326 的設定／讀回列標示；「③ 5v 3.3v 2.5v 1.8v OverLoad」列依 p.18 屬 GPE-3323。p.15 沒有明說 Set/Out 屬哪一型。",
+   "ui_treatment": "保持暗段。"
+  }
+ ],
+ "gaps": [
+  {
+   "id": "GAP-GPE-01",
+   "gap": "Lock 鎖定範圍原廠說法不一。只鎖 CH1/CH2 電壓的說法：p.12「Inadvertent voltage setting protection」「Function for locking the setting voltage (CH1/CH2)」、p.27「lock the voltage knob operation for CH1 & CH2」「The voltage lock function only applies to CH1 & CH2.」「takes the present channel settings as the reference levels」。鎖面板按鍵（Output 除外）的說法：p.15 callout 與 p.19 小標「View setting value/ Key lock」、p.19「Press and hold the key to lock and unlock the panel keys (except OUTPUT).」、p.43「Q1. I pressed the panel lock key but the output still turns on/off.」「A1. … the output key is not affected by the panel key lock feature.」。一致點：長按、On/Off 不受影響、解鎖時 Output 關閉（p.25、p.27）。",
+   "impact": "I04-6 的 Lock 行為無法宣稱完全還原；若鎖太多會困住學生操作。",
+   "provisional": "近似版（定案）：長按 Set View ≥ 2.0 s 切換 Lock；Lock 期間只鎖 CH1、CH2 Voltage 旋鈕（轉動無作用），其他旋鈕與按鍵照常；On/Off 永不鎖；Lock 圖示亮；解鎖時 Output 自動關閉。儀器外標示「Lock 範圍原廠說法不一（p.19／p.43 說鎖面板按鍵），待校機確認」。",
+   "rationale": "暫採 p.27：它是唯一有逐步操作的段落。p.19／p.43 的「鎖面板按鍵」說法同樣是原廠正文，不是摘要；兩種解讀都保留，校機後再定。",
+   "verify_method": "校機：上鎖後逐一轉 CH1/CH2 Current、CH3/CH4 Voltage、按 CH1/CH4、CH2/CH3、Set View 短按、模式鍵，記錄是否有反應；錄影。"
+  },
+  {
+   "id": "GAP-GPE-02",
+   "gap": "Set View 返回時機與條件未寫：p.17 \"When output is ON, you can view the voltage/ current setting value depending on the channel be selected.\"；p.19 \"When the output is ON, you can view the voltage/current settings of each channel by pressing this key. The corresponding channel will be displayed on the LCD display.\"——沒寫是再按返回、放開返回還是逾時返回；Output OFF 時按下的效果、Set 圖示在 OFF 時是否亮也未寫；看設定時轉旋鈕的顯示也未寫。",
+   "impact": "設定／讀回區分的 UI 細節（I04-3、I04-6）。",
+   "provisional": "定案：Output ON 時短按 Set View → 兩列改顯示該列通道的設定值並亮 Set；再按一次或 3.0 s 無操作即返回讀回（兩者都生效）；Output OFF 時 LCD 本來就顯示設定值，短按沒有額外變化，Set 段不亮。儀器外標示近似。",
+   "rationale": "手冊只保證「Output ON 時可看設定」；p.23 說開機後顯示設定，故 OFF 時顯示設定為最小推論。",
+   "verify_method": "校機：Output ON 接負載，短按 Set View 計時看何時返回；再按一次是否返回；OFF 時按下有無變化；看 Set 圖示。"
+  },
+  {
+   "id": "GAP-GPE-03",
+   "gap": "旋鈕步進、加速、是否為無限旋轉編碼器或有端點的電位器、上限是否可超過 32 V/3 A（顯示滿刻度 33.00 V、3.200 A）皆未找到。",
+   "impact": "旋鈕手感與可重現細調（I01-2、I04-1）。",
+   "provisional": "近似：CH1/CH2 電壓每格 10 mV、電流每格 1 mA（對應 4 位顯示解析），CH3/CH4 電壓每格 10 mV；支援聚焦後細調／粗調倍率；上限夾在額定 32 V/3 A/5 V/15 V。儀器外標示「步進為模擬器設定」。",
+   "rationale": "p.45 的 Meter Resolution（10 mV／1 mA）與 p.46 的 Setting/Read back Accuracy 是分開列的（OT）；「顯示解析度不等於精度、也不一定是旋鈕最小步進」出自規劃文件 02，不是手冊原文。",
+   "verify_method": "校機：慢轉一格記錄讀值變化；快轉是否加速；轉到底是否有機械停點；記錄最大可設值。"
+  },
+  {
+   "id": "GAP-GPE-04",
+   "gap": "轉動目前未顯示通道的旋鈕時，LCD 是否自動跳到該通道（例如顯示 ④ 時轉 CH1 Voltage）未寫。",
+   "impact": "I04-2 的可見回饋。",
+   "provisional": "近似：不自動跳轉；設定照樣改變，切回該通道才看得到；儀器外提示。",
+   "rationale": "p.26 只描述按鍵切換；02 要求旋鈕歸屬與顯示分離。",
+   "verify_method": "校機：切到 ④ 後轉 CH1 Voltage，觀察第一列是否跳回 ①。"
+  },
+  {
+   "id": "GAP-GPE-05",
+   "gap": "開機記憶：開機 Output 狀態可被設定（p.27–28，預設 OFF），校機目前設定未知；斷電後 V/I 設定是否保留、模式鍵狀態（若為機械自鎖則保持）未寫。",
+   "impact": "重設／開機行為（I04-7）。",
+   "provisional": "定案：模擬器「電源開／重設」＝CH1–CH4 V-set 0.00 V、CH1／CH2 I-set 0.100 A、兩模式鍵彈起（Independent）、LCD 顯示 ①②、Output OFF、Lock 解除；儀器外標示「非原廠開機記憶」。原廠預設開機 Output OFF（p.28）與此一致。",
+   "rationale": "p.28 \"By default the output is set to OFF at startup.\"；02 要求開機記憶與重設分開。",
+   "verify_method": "校機：記錄開機後 LCD、Output 狀態；改設定後關機再開看是否保留。"
+  },
+  {
+   "id": "GAP-GPE-06",
+   "gap": "校機顯示位數（3 或 4）未知；位數與解析度對應為推論。",
+   "impact": "LCD 小數點位置。",
+   "provisional": "近似：4 位（10 mV、1 mA），例如 5.00 V、0.050 A。",
+   "rationale": "p.29 預設四位；p.46 \"33.00V full scale\"、\"3.200A full scale\"。",
+   "verify_method": "校機亮屏照片；若為 3 位則加設定選項。"
+  },
+  {
+   "id": "GAP-GPE-07",
+   "gap": "模式鍵第四組合（左按下＋右彈起）未圖示；p.25 文字 \"For the independent mode, the right key is not pressed\" 只約束右鍵。模式鍵是否為機械自鎖也只由圖例高低推論。",
+   "impact": "I04-5 模式邏輯。",
+   "provisional": "近似：右鍵彈起即 Independent（不論左鍵）；兩鍵以可保持按下的 toggle 呈現，按下狀態有明顯視覺差。",
+   "rationale": "依 p.25 文字規則；Series 與 Parallel 條件都要求右鍵按下。",
+   "verify_method": "校機：只按左鍵，看 SER/PARA 是否全滅；觀察鍵是否停在按下位置。"
+  },
+  {
+   "id": "GAP-GPE-08",
+   "gap": "Series 下 CH2 Voltage 旋鈕是否有效未寫；Series/Parallel 下 CH2 列顯示內容（slave 電壓的正負號、Parallel 時數值）未寫；返回 Independent 後 CH2 是否恢復原 V2set 未寫。",
+   "impact": "I04-5 master/slave 控制與顯示。",
+   "provisional": "近似：Series 時 CH2 Voltage 無效、CH2 列顯示 slave 電壓（正值，與 CH1 同）與 slave 電流；Parallel 時 CH2 列顯示 CC 與 CH1 相同電壓、電流約為總電流一半；回 Independent 後 CH2 用自己保存的 V2set/I2set。",
+   "rationale": "p.40 \"Use the CH1 voltage knob to set the master & slave output voltage\"、p.42 \"CH2 control function is disabled\"、p.42 CH2 顯示 CC；其餘為推論。；另 p.11、p.37、p.41 說 CH1 (Master) 控制合併輸出，但沒寫 CH2 Voltage 旋鈕的效果。",
+   "verify_method": "校機：Series 時轉 CH2 Voltage 觀察輸出；拍 Series／Parallel 下 LCD。"
+  },
+  {
+   "id": "GAP-GPE-09",
+   "gap": "CH3/CH4 的 CC 條件：p.34/p.36 \"When the output current level exceeds the setting value\"，但 CH3/CH4 無電流旋鈕（p.18），「setting value」未定義；Set View 時 CH3/CH4 電流欄顯示什麼也未寫。",
+   "impact": "CH3/CH4 過載教學；02 已排除核心。",
+   "provisional": "定案：CH3／CH4 只提供 ≤ 額定的輕載或空載測試，顯示 CV；Set View 時 CH3／CH4 電流欄顯示「---」（不顯示數值，因為沒有電流設定可看）。",
+   "rationale": "02：1 A 額定不能當精準保護門檻。",
+   "verify_method": "校機：CH3/CH4 接已知負載逐步加大電流記錄 CC 門檻；Set View 拍 LCD。"
+  },
+  {
+   "id": "GAP-GPE-10",
+   "gap": "LCD 數字格式（前導零、小數點、負號）、開機全段顯示時長、開機時預設顯示 ①/② 還是上次通道皆未寫；手冊 LCD 圖為系列通用圖。",
+   "impact": "LCD 外觀擬真。",
+   "provisional": "定案：右對齊、無前導零（例 5.00 V、0.050 A）；模擬開機時全段顯示 1.0 s 後進入重設狀態，預設顯示 ①②；標示近似。",
+   "rationale": "照片 LCD 全暗無法佐證。",
+   "verify_method": "校機亮屏照片與開機錄影。"
+  },
+  {
+   "id": "GAP-GPE-11",
+   "gap": "Series 合併限流：無共地接法手冊要求 CH2 Current 調到最大（p.38），暗示 slave 限流也會生效，但合併電流如何由 I1set、I2set 決定未寫；Parallel 合併限流是否＝2×I1set 未寫。",
+   "impact": "tracking 下 CV/CC 示意讀值。",
+   "provisional": "近似：Series 限流＝min(I1set, I2set)，由較早達限的一側決定 CC；Parallel 限流＝2×I1set，CH1 讀值＝總電流/2。僅示意，J 階段再精化。",
+   "rationale": "p.38、p.40、p.42 的操作步驟與 p.45 0–3 A／0–6 A 額定。",
+   "verify_method": "校機：Series 接已知負載，分別降低 I1set、I2set 觀察 CC 圖示出現在哪列。"
+  },
+  {
+   "id": "GAP-GPE-12",
+   "gap": "OVP/OCP/OTP 在 LCD 圖與 p.17、p.25 被提及，但無設定或觸發規格。",
+   "impact": "避免假功能。",
+   "provisional": "全部 OUT，圖示恆暗。",
+   "rationale": "手冊無正文。",
+   "verify_method": "向原廠或新版手冊確認 GPE-4323 是否有 OVP 設定；校機觀察是否有相關操作。"
+  },
+  {
+   "id": "GAP-GPE-13",
+   "gap": "只有一版 GPE 手冊（82GP343230E01），無第二版可交叉核對；校機韌體版本未知。",
+   "impact": "無法排除手冊與校機韌體差異。",
+   "provisional": "以此版為準；差異記錄。",
+   "rationale": "04 僅提供此版。",
+   "verify_method": "校機背板序號標籤、開機畫面；日後取得新版手冊時比對 p.19/p.27 Lock 描述。"
+  },
+  {
+   "id": "GAP-GPE-14",
+   "gap": "照片部分字樣被遮：CH4 下「0 - 15…」、CH3「5V , 1…」、左下旋鈕標籤「C…age」、「+ CH4」「+ CH1」「GND」字淡、藍帶文字、POWER 符號左半。",
+   "impact": "面板印字完整度。",
+   "provisional": "被遮部分依 M-GPE p.15 圖補齊（「0 - 15V , 1A」「0 - 5V, 1A」「CH4 Voltage」「+ COM SERIES OUTPUT −」「+ − PARALLEL OUTPUT」），標記 PH（部分）+OT。",
+   "rationale": "手冊面板圖與照片可見部分完全吻合。",
+   "verify_method": "日後補拍正面近照。"
+  },
+  {
+   "id": "GAP-GPE-15",
+   "gap": "切換到 Series／Parallel 時，若 LCD 正顯示 ③／④，是否自動切回 ①／②（p.18 Parallel/Series Keys 只說 activates tracking；p.19 Set View 的「The corresponding channel will be displayed」不是在講模式鍵）",
+   "impact": "I04-5 的可見回饋",
+   "provisional": "定案：切到 Series 或 Parallel 時 LCD 自動回到 ①②（tracking 讀值都在 CH1／CH2 列）；切回 Independent 時維持 ①②",
+   "rationale": "tracking 只涉及 CH1／CH2，顯示 ③④ 會讓學生看不到 tracking 結果；手冊未寫，屬 PD",
+   "verify_method": "校機：先切到 ④／③，再按模式鍵進 Series，拍 LCD"
+  }
+ ],
+ "discrepancies": [
+  {
+   "topic": "Set View 鍵的印字",
+   "a": "照片 P1：鍵上方「Set View」、下方「LOCK」；M-GPE p.19 圖示「Set View／Lock」；p.27–29 正文 \"Set View\" key、\"LOCK key\"；p.31/33 小面板圖亦為 Set View。",
+   "b": "M-GPE p.15 前面板總圖印「V/I Check」，callout 為 \"View setting value/ Key lock\"。",
+   "resolution": "依照片採「Set View」＋「LOCK」；p.15 為舊圖或誤植。"
+  },
+  {
+   "topic": "顯示切換鍵名稱",
+   "a": "照片 P1「CH1/CH4」「CH2/CH3」；p.15 callout \"CH1/CH4 Toggle Key\"、\"CH2/CH3 Toggle Key\"；p.26 \"CH1/4 key\"、\"CH2/3 key\"；p.34、p.35 \"CH2/CH3 key\"、\"CH1/CH4 key\"。",
+   "b": "p.18 標題 \"CH1/3 and CH2/4\"，正文 \"Press the CH1/3 or CH2/4 key\"（同頁圖示卻印 CH1/ CH4、CH2/CH3）。",
+   "resolution": "依照片與多數段落：CH1/CH4、CH2/CH3；p.18 視為誤植。"
+  },
+  {
+   "topic": "Lock 鎖定範圍（段落間）",
+   "a": "p.12「Inadvertent voltage setting protection」「Function for locking the setting voltage (CH1/CH2)」；p.27「lock the voltage knob operation for CH1 & CH2」「The voltage lock function only applies to CH1 & CH2.」",
+   "b": "p.15／p.19 小標「Key lock」；p.19「Press and hold the key to lock and unlock the panel keys (except OUTPUT).」；p.43「I pressed the panel lock key…」「the output key is not affected by the panel key lock feature」。",
+   "resolution": "未解決。暫定依 p.27（只鎖 CH1/CH2 Voltage），On/Off 不鎖（兩方一致），標 APPROX；GAP-GPE-01 校機確認。"
+  },
+  {
+   "topic": "模式鍵是一顆還是兩顆",
+   "a": "照片 P1：兩顆無字鍵＋Series/Parallel/Independent 圖例；p.18 \"Parallel/Series Keys\"；p.25 \"different combinations of the mode selection key\"、p.26 左右鍵組合。",
+   "b": "p.11「can be selected through pressing the TRACKING key」；p.31「Make sure the Series/Parallel key is not activated」；p.37、p.39、p.41「Press the Series/Parallel key」（單數）。",
+   "resolution": "依照片與 p.25–26：兩顆鍵組合；單數說法視為簡稱。"
+  },
+  {
+   "topic": "Independent 的鍵組合描述",
+   "a": "p.25 文字 \"For the independent mode, the right key is not pressed\"（只限定右鍵）。",
+   "b": "p.25 圖示與照片圖例：Independent 左右兩鍵皆為彈起圖示。",
+   "resolution": "兩者在「兩鍵皆彈起」一致；「左按下＋右彈起」暫定 Independent（GAP-GPE-07）。"
+  },
+  {
+   "topic": "Output 鍵名稱",
+   "a": "照片 P1 鍵上印「On / Off」；p.19、p.25 \"Output Key\"；p.27 註 \"The OUTPUT key\"。",
+   "b": "p.28、p.29 \"Press the “ON/OFF” key\"；LCD 圖示也是 ON / OFF。",
+   "resolution": "同一顆鍵；面板標籤用「On / Off」，功能名稱為 Output。"
+  },
+  {
+   "topic": "CH3/CH4 的 CC 條件",
+   "a": "p.34（GPE-4323 CH3）、p.36（CH4）：\"When the output current level exceeds the setting value, the CV icon changes to the CC icon\"。",
+   "b": "p.18：CH3/CH4 旋鈕 \"Sets the voltage for the GPE-4323.\"（無電流設定）；額定 \"1A Max\"（p.33、p.35）。",
+   "resolution": "未解決；「setting value」無對應控制。不作核心，不把 1 A 當精準門檻（GAP-GPE-09）。"
+  },
+  {
+   "topic": "CC 是否只在 Independent",
+   "a": "p.11 \"When in the CC mode (independent mode only), the maximum (ceiling) output voltage can be controlled via the front panel.\"",
+   "b": "p.38、p.40 Series 要求看 CH1/CH2 \"indicators for the output level and CV/CC status\"；p.42 Parallel 時 \"The operating mode of CH2 will appear as the CC icon\"。",
+   "resolution": "tracking 模式下 CV/CC 圖示仍會出現；p.11 的限定理解為「CC 時可調電壓上限」僅就 Independent 描述。模擬器在 tracking 模式仍依限流顯示 CV/CC（PD）。"
+  },
+  {
+   "topic": "LCD 圖示與 GPE-4323 功能",
+   "a": "p.15 GPE-4323 LCD 圖含 Set/CV/CC/OVP/OCP、SER/PARA/OTP/Lock、ON/OFF 與「③ 5v 3.3v 2.5v 1.8v OverLoad」列、行首「Set」「Out」。",
+   "b": "p.18 說明 CH3 固定電壓列屬 GPE-3323；列首「Set」「Out」疑為 GPE-1326 標示（推論，p.15 未明說）；OVP/OCP/OTP 無 GPE-4323 設定正文。",
+   "resolution": "只實作 GPE-4323 有正文的圖示；其餘保留暗段並標 OUT。"
+  },
+  {
+   "topic": "端子額定印字（照片遮擋）",
+   "a": "照片 P1：CH4 下「0 - 15…」；CH3 右下「5V , 1…」（未見「0 -」）。",
+   "b": "M-GPE p.15 圖：「0 - 15V , 1A」「0 - 5V, 1A」。",
+   "resolution": "照片可見部分與手冊一致，被遮字依手冊補，證據 PH（部分）+OT。"
+  },
+  {
+   "topic": "手冊內部交叉引用頁碼",
+   "a": "正文：遠端控制在 p.30、Front Panel Overview 在 p.15、Parallel Tracking 在 p.41。",
+   "b": "p.21 \"see page 29\"（遠端端子）；索引 p.48 \"Front panel Overview ... 16\"、\"tracking mode parallel ... 27, 29, 30\"。",
+   "resolution": "以正文頁為準；引用一律用實際閱讀的正文頁。"
+  },
+  {
+   "topic": "規劃文件 vs 手冊（Set View／標籤位置）",
+   "a": "02／提示中照片觀察：旋鈕標籤「看起來印在旋鈕上方」；左欄 Voltage→Current→CH4 Voltage，右欄 Voltage→Current→CH3 Voltage。",
+   "b": "M-GPE p.15 callout：CH1 Voltage Knob（左上）、CH1 Current Knob（左中）、CH4 Voltage Knob（左下）、CH2 Voltage/CH2 Current/CH3 Voltage（右上/中/下）。",
+   "resolution": "一致，無衝突；確認標籤在各旋鈕上方。"
+  },
+  {
+   "topic": "手冊版本間比對",
+   "a": "本包只有 M-GPE 82GP343230E01 一版。",
+   "b": "無第二版可比對（與 TDS 有 2011/2013 兩版不同）。",
+   "resolution": "不適用；列 GAP-GPE-13。"
+  },
+  {
+   "topic": "Series 合併電流由誰設定",
+   "a": "p.37「CH1 (Master) controls the combined output voltage/current level which is set independently.」",
+   "b": "p.38 步驟 3「Use the current knob to set the CH2 output current to the maximum level.」；p.40 步驟 5「Use the CH2 current knob to set the slave output current.」",
+   "resolution": "未解決；暫定依 GAP-GPE-11（Series 限流＝min(I1set, I2set)），只做示意讀值，J 階段與校機再確認。"
+  }
+ ],
+ "pages_read": "M-GPE（印刷頁＝PDF 頁）：抽出全文 PDF 1–49 全部逐頁讀過（text/GPE-4323_User_Manual_EN_82GP343230E01.txt）。另以 pymupdf 渲染成圖並用 Read 目視：p.15（含 300 dpi 放大裁切：旋鈕區、LCD、端子列）、16、17、18、19、20、21、22、23、25（400 dpi 放大模式鍵圖示）、26（400 dpi 放大圖示）、27、28、29、31、32、33、34、35、36、37、38、39、40、41、42、45、46。p.1–14、24、30、43、44、47–49 僅讀文字，未目視圖。照片：P1 原圖全圖；既有裁切 crops/gpe_right.png、crops/gpe_bottom.png；自行裁切放大 agents/GPE/g_top、g_lcd、g_kl、g_kr、g_track、g_setview、g_mid、g_term1、g_term2、t_lab1、t_band、pwr、lcd_bottom、markers（座標核對圖）。規劃文件：00、01、02（全文）、03（全文，含 I00/I04）、04（全文）、05／07（僅 grep GPE 相關列）、DOWNLOAD_SOURCES.json、PHOTO_ORIGINS.json；並核對 GPE PDF 與 P1 的 SHA-256。"
+}

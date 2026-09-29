@@ -1,0 +1,1544 @@
+{
+ "instrument": "Keysight 34460A Truevolt 6½ Digit Multimeter（P1 中層；D-DMM＝datasheet 5991-1983EN，2026-06-10 版；M-DMM 操作手冊未取得）",
+ "page_map": "D-DMM（Truevolt_34460A_DataSheet_5991-1983EN.pdf，28 PDF 頁；p.28 印「Published in USA, June 10, 2026, 5991-1983EN」）：PDF 1＝封面，無印刷頁碼；PDF 2–27 的頁尾印刷頁碼＝PDF 頁序（已核對：PDF 2 印 \"2\"（目錄）、PDF 3 印 \"3\"、PDF 4 印 \"4\"、PDF 11 印 \"11\"、PDF 12 印 \"12\"、PDF 21 印 \"21\"、PDF 23 印 \"23\"、PDF 24 印 \"24\"、PDF 25 印 \"25\"、PDF 26 印 \"26\"、PDF 27 印 \"27\"）；PDF 28＝封底 Definitions，無頁碼。目錄（p.2）對照：Overview p.3、Specifications 34460A p.11、34461A p.13、34465A p.15、34470A p.18、Measurement Characteristics p.21、Operating Characteristics p.23、System Speeds p.24、General Characteristics p.25（p.26 為其續頁，無標題）、Options p.27、Definitions p.28——與 PDF 頁序一致。因此本檔一律寫「D-DMM p.N (PDF N)」。04 指定頁核對：p.3 機型表、p.11–12 34460A 規格、p.21 量測特性、p.26–27 一般特性與選配，皆已開啟文字與渲染圖。P1（01_校機_AFG2225_34460A_GPE4323.jpeg，768×1024）：34460A 位於原圖約 x30–720、y330–650；controls 中的「原圖約 x,y」為原始像素座標估計。M-DMM：未取得，無頁碼可對照。",
+ "photo_checks": "P1 中層核對結果：型號標「KEYSIGHT 34460A 6 1/2 Digit Multimeter Truevolt」（Keysight 波形 logo），確認為 34460A。單一量測輸入的電表（無通道概念）；旋鈕 0 顆；無數字鍵盤。左側：LCD 1 面（全暗）、其下藍灰色軟鍵 6 顆（鍵面無字）、LCD 左方 USB-A 1 個（下印 USB 圖示）、圓形電源（待機）鍵 1 個與其下小圓點 1 個。右側功能鍵 4 列×3 共 12 顆：第 1 列 DCV〔上 DCI〕、ACV〔上 ACI〕、Ω2W〔上 Ω4W〕；第 2 列 Freq〔上方無次標籤〕、Cont ·))〔上方藍色二極體符號〕、Temp〔上方無次標籤〕；第 3 列 Run/Stop〔上 Reset〕、Single〔上 Probe Hold〕、Null〔上 Math〕；第 4 列 Display〔上 Utility〕、Acquire〔上 Help〕、藍色 Shift〔下 Local〕。功能鍵下方：十字方向鍵 ▲▼◀▶＋中央 Select（5 顆，▲ 上方無 ACAL 字樣）；Shift 正下方直列 +、Range、−（3 顆）。端子 5 個，排列：上排 Sense Ω4W HI（紅）、Input V Ω ⊣▶⊢ HI（紅）；中排 Sense LO（黑）、Input LO（黑）；下排右 I 3A（紅）。下排左為深色圓形平面件（非端子）、最下方為深色橢圓件（非端子）。印字：200 Vpk（Sense 側括號）、1000 VDC / 750 VAC（Input HI–LO 括號）、500 Vpk＋接地符號（Input LO）、LO→I 連線上保險絲符號＋⚠、CAT II (300V)＋其下 ⚠、右上角閃電 ⚠。沒有：10 A 端子、Front/Rear 切換、後面板端子（照片看不到後面板；DS p.3 表示 34460A 無 rear input）、ACAL 標示、數字鍵盤、旋鈕。LCD 全暗：不能證明任何畫面、選單、開機值或預設量程。面板顏色為淺灰白（DS 產品照為黑色）。",
+ "controls": [
+  {
+   "id": "DMM.LCD.MAIN",
+   "group": "顯示",
+   "photo_location": "P1 中層左半，型號列下方大面積螢幕（原圖約 x105–375, y385–557）；拍攝時全暗",
+   "label": "無印字（LCD 全暗）",
+   "kind": "LCD（彩色 TFT）",
+   "action": "無（被動顯示）",
+   "function": "顯示功能名稱、讀值＋單位、量程狀態、觸發狀態與 6 個軟鍵標籤。D-DMM p.26 (PDF 26)：\"4.3” color TFT WQVGA (480 x 272) with LED backlight\"；\"Supports: Basic number, bar meter, trend chart (34461A, 34465A, 34470A), histogram views.\"（34460A 無 trend chart）。D-DMM p.3 (PDF 3) 34460A 產品照畫面：左上 \"DC Voltage\"、上方 \"Auto Trigger\"、讀值 \"+0.634 450\"、單位 \"VDC\"、左下 \"Auto 1V\"；p.4 (PDF 4) 畫面圖另有 \"+000.030 6 mVDC\"、\"Auto 100mV\"。",
+   "feedback": "第一版：Number view 的讀值、單位前綴、Auto／手動量程字樣、Null 標示、Shift 暫定指示、超量程／未提供輸入狀態（後兩者字樣為 PD）。",
+   "range": "480×272 像素；對角 4.3 in／109 mm（D-DMM p.3 (PDF 3) 圖示 \"4.3 in. / 109 mm\"）；Dual line display: Yes（p.3）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3) 產品照與表、p.4 (PDF 4) 畫面圖、p.26 (PDF 26) Display",
+   "evidence": "PH+DS+PD",
+   "status": "CORE",
+   "card": "I05",
+   "notes": "P1 LCD 全暗，不能證明任何畫面、開機值或選單；畫面配置只來自 datasheet 行銷產品照（韌體版本未知）。bar meter／histogram 為 OUT；不得畫 trend chart。雙行顯示（Dual line）本輪 OUT。 LCD 版面與字樣取自 datasheet 行銷合成畫面，屬 PD。"
+  },
+  {
+   "id": "DMM.SOFT.S1",
+   "group": "軟鍵（LCD 下方）",
+   "photo_location": "P1 中層，LCD 正下方一排 6 個藍灰色長圓鍵，由左數第 1 個（原圖約 x128, y577）",
+   "label": "鍵面無印字（功能由 LCD 標籤決定）",
+   "kind": "軟鍵",
+   "action": "按下",
+   "function": "DCV 畫面時 LCD 標籤為 \"Range\"／\"Auto\"（D-DMM p.3 (PDF 3)、p.1 (PDF 1) 34460A 產品照）。其他功能畫面的 S1 標籤：未找到。",
+   "feedback": "LCD 最下列對應位置的標籤／狀態（P1 LCD 全暗，無法確認）",
+   "range": "DCV：100 mV/1 V/10 V/100 V/1000 V 或 Auto（D-DMM p.11 (PDF 11)）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照",
+   "evidence": "PH+PD",
+   "status": "APPROX",
+   "card": "I05",
+   "notes": "暫定（PD）：DCV/DCI/ACV/ACI/Ω2W 畫面的 S1 顯示 \"Range\" 與目前 Auto 或量程值；按下等同前面板 Range 鍵（切 Auto／手動）。Cont 畫面不顯示 Range（D-DMM p.12 (PDF 12) Continuity 只有 1 kΩ）。原廠按下後是否展開下一層選單未找到，列 GAP-DMM-04。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+  },
+  {
+   "id": "DMM.SOFT.S2",
+   "group": "軟鍵（LCD 下方）",
+   "photo_location": "P1 中層，LCD 正下方一排 6 個藍灰色長圓鍵，由左數第 2 個（原圖約 x171, y577）",
+   "label": "鍵面無印字（功能由 LCD 標籤決定）",
+   "kind": "軟鍵",
+   "action": "按下",
+   "function": "DCV 畫面標籤 \"Aperture\"／\"10 PLC\"（D-DMM p.3 (PDF 3) 產品照）。積分時間與位數關係見 D-DMM p.23 (PDF 23)。",
+   "feedback": "LCD 最下列對應位置的標籤／狀態（P1 LCD 全暗，無法確認）",
+   "range": "D-DMM p.23 (PDF 23)：100 PLC、10 PLC、1 PLC、0.2 PLC、0.02 PLC",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照；p.23 (PDF 23)",
+   "evidence": "PH+PD+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "只顯示 DS 產品照上的標籤，按下顯示「本輪未納入」；不改變位數／讀取速率。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+  },
+  {
+   "id": "DMM.SOFT.S3",
+   "group": "軟鍵（LCD 下方）",
+   "photo_location": "P1 中層，LCD 正下方一排 6 個藍灰色長圓鍵，由左數第 3 個（原圖約 x214, y577）",
+   "label": "鍵面無印字（功能由 LCD 標籤決定）",
+   "kind": "軟鍵",
+   "action": "按下",
+   "function": "DCV 畫面標籤 \"Auto Zero\"／\"Off On\"（D-DMM p.3 (PDF 3) 產品照）。",
+   "feedback": "LCD 最下列對應位置的標籤／狀態（P1 LCD 全暗，無法確認）",
+   "range": "Off／On（產品照）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照",
+   "evidence": "PH+PD+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "只顯示標籤；按下顯示範圍說明。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+  },
+  {
+   "id": "DMM.SOFT.S4",
+   "group": "軟鍵（LCD 下方）",
+   "photo_location": "P1 中層，LCD 正下方一排 6 個藍灰色長圓鍵，由左數第 4 個（原圖約 x257, y577）",
+   "label": "鍵面無印字（功能由 LCD 標籤決定）",
+   "kind": "軟鍵",
+   "action": "按下",
+   "function": "DCV 畫面標籤 \"Input Z\"／\"10M Auto\"（D-DMM p.3 (PDF 3) 產品照）。D-DMM p.21 (PDF 21)：0.1 V、1 V、10 V 量程 \"Selectable 10 MΩ or >10 GΩ\"，100 V、1000 V 量程 \"10 MΩ ± 1%\"。",
+   "feedback": "LCD 最下列對應位置的標籤／狀態（P1 LCD 全暗，無法確認）",
+   "range": "10 MΩ／>10 GΩ（D-DMM p.21 (PDF 21)）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照；p.21 (PDF 21)",
+   "evidence": "PH+PD+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "只顯示標籤；模擬器以理想輸入（不計負載效應），按下顯示範圍說明。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+  },
+  {
+   "id": "DMM.SOFT.S5",
+   "group": "軟鍵（LCD 下方）",
+   "photo_location": "P1 中層，LCD 正下方一排 6 個藍灰色長圓鍵，由左數第 5 個（原圖約 x300, y577）",
+   "label": "鍵面無印字（功能由 LCD 標籤決定）",
+   "kind": "軟鍵",
+   "action": "按下",
+   "function": "DCV 畫面標籤 \"DCV Ratio\"／\"Off On\"（D-DMM p.3 (PDF 3) 產品照）。DC Ratio 規格見 D-DMM p.12 (PDF 12)、p.21 (PDF 21)（使用 Sense 端子作 reference）。",
+   "feedback": "LCD 最下列對應位置的標籤／狀態（P1 LCD 全暗，無法確認）",
+   "range": "Input 100 mV–1000 V；Reference 100 mV–10 V（D-DMM p.21 (PDF 21)）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照；p.21 (PDF 21)",
+   "evidence": "PH+PD+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "只顯示標籤；按下顯示範圍說明。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+  },
+  {
+   "id": "DMM.SOFT.S6",
+   "group": "軟鍵（LCD 下方）",
+   "photo_location": "P1 中層，LCD 正下方一排 6 個藍灰色長圓鍵，由左數第 6 個（原圖約 x345, y577）",
+   "label": "鍵面無印字（功能由 LCD 標籤決定）",
+   "kind": "軟鍵",
+   "action": "按下",
+   "function": "D-DMM p.3 (PDF 3) 產品照（Number view）此位置無標籤；p.1 (PDF 1) 產品照（histogram view）為 \"Clear Readings\"。",
+   "feedback": "LCD 最下列對應位置的標籤／狀態（P1 LCD 全暗，無法確認）",
+   "range": "未找到",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照",
+   "evidence": "PH+PD+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "第一版保持空白；按下無動作並顯示範圍說明。軟鍵標籤會隨 view 改變（兩張 DS 產品照比較）。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+  },
+  {
+   "id": "DMM.PORT.USB_HOST",
+   "group": "左側面板",
+   "photo_location": "P1 中層最左側，LCD 左方直立 USB-A 母座（原圖約 x72–90, y450–487），下方印 USB 圖示",
+   "label": "USB 三叉圖示（印在插座下方），無文字",
+   "kind": "USB-A 埠（Host）",
+   "action": "無（被動）",
+   "function": "D-DMM p.25 (PDF 25)：\"Front-Panel USB Host Port (FAT32) Supports USB 2.0 high-speed mass storage (MSC) class devices\"；\"Capability: Import/export instrument configuration files, save volatile readings and screen captures\"。",
+   "feedback": "無",
+   "range": "USB 2.0 MSC、FAT32",
+   "sources": "P1 中層；D-DMM p.25 (PDF 25)",
+   "evidence": "PH+DS",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": "只畫外觀；不模擬隨身碟存取（OUT）。不是遠端控制用的 USB device 埠（後者在後面板，D-DMM p.24 (PDF 24) 後面板照）。"
+  },
+  {
+   "id": "DMM.PWR.POWER",
+   "group": "左側面板",
+   "photo_location": "P1 中層左下角，USB 圖示下方的圓形白色鍵（原圖約 x82, y542）",
+   "label": "⏻ 電源符號（無文字）",
+   "kind": "電源（待機）按鍵",
+   "action": "按下",
+   "function": "開／關機。D-DMM p.26 (PDF 26) 註 3：\"Power-off state only when power-down is initiated via front-panel power switch.\"；Internal Flash：\"Store and recall user-defined states, power-off state\"。開機時是否回復關機狀態：未找到。",
+   "feedback": "關機：LCD 暗、所有鍵無作用；開機：LCD 顯示暫定預設畫面（PD）",
+   "range": "On／Off（模擬）",
+   "sources": "P1 中層；D-DMM p.26 (PDF 26)",
+   "evidence": "PH+DS+PD",
+   "status": "APPROX",
+   "card": "I05",
+   "notes": "暫定（PD）：開機一律進入明示的模擬器預設（DCV、Auto、Null off），儀器外註明「非原廠開機記憶」。原廠開機記憶列 GAP-DMM-14。"
+  },
+  {
+   "id": "DMM.LED.POWER",
+   "group": "左側面板",
+   "photo_location": "P1 中層，電源鍵正下方的小圓點（原圖約 x82, y565）；照片中不亮",
+   "label": "無印字",
+   "kind": "指示燈（推定）",
+   "action": "無",
+   "function": "未找到（D-DMM 未描述此指示燈）。",
+   "feedback": "未知；照片中未亮",
+   "range": "未找到",
+   "sources": "P1 中層",
+   "evidence": "PH+UN",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": "只畫外觀；不要賦予未證實的待機／電源燈語義（GAP-DMM-13）。；證據細節：PH（存在）+UN（功能）"
+  },
+  {
+   "id": "DMM.KEY.DCV",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 1 列左（原圖約 x408, y404）；上方藍字 \"DCI\"",
+   "label": "DCV（上方次標籤 DCI）",
+   "kind": "實體按鍵",
+   "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
+   "function": "DCV：直流電壓（D-DMM p.3 (PDF 3) \"DCV 100 mV to 1,000 V\"）。次功能 DCI：直流電流（p.3 \"DCI 100 μA to 3 A\"）；以 Shift→DCV 進入為依標籤推論（PD）。",
+   "feedback": "LCD 功能名（DS 範例 \"DC Voltage\"）、讀值、單位 mVDC／VDC；DCI 單位字樣未找到（PD：µA/mA/A）",
+   "range": "DCV：100 mV、1 V、10 V、100 V、1000 V（D-DMM p.11 (PDF 11)）；DCI：100 µA、1 mA、10 mA、100 mA、1 A、3 A（p.11）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.11 (PDF 11)",
+   "evidence": "PH+DS+PD",
+   "status": "CORE",
+   "card": "I05",
+   "notes": "DCV 與 DCI 都是 02 第一版必做。DCI 必須對應 I 3A＋LO 端子語義；不得出現 10 A 量程。；證據細節：PH+DS（功能與量程）+PD（Shift 路徑）"
+  },
+  {
+   "id": "DMM.KEY.ACV",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 1 列中（原圖約 x456, y405）；上方藍字 \"ACI\"",
+   "label": "ACV（上方次標籤 ACI）",
+   "kind": "實體按鍵",
+   "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
+   "function": "ACV：真有效值交流電壓，D-DMM p.21 (PDF 21) \"AC–coupled True RMS. Measures the AC component of the input.\"。次功能 ACI：p.21 \"AC True RMS measurement (Measures the AC component only).\"；Shift→ACV 路徑為 PD。",
+   "feedback": "LCD 讀值與單位（PD：mVAC／VAC、µA/mA/A AC；原廠字樣未找到）",
+   "range": "ACV：100 mV、1 V、10 V、100 V、750 V，3 Hz–300 kHz（D-DMM p.11 (PDF 11)）；ACI：100 µA、1 mA、10 mA、100 mA、1 A、3 A，3 Hz–5 kHz（5–10 kHz typ）（p.11–12）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.11 (PDF 11)、p.12 (PDF 12)、p.21 (PDF 21)",
+   "evidence": "PH+DS+PD",
+   "status": "CORE",
+   "card": "I05",
+   "notes": "02：第一版用明確純正弦測試情境，不宣稱任意波形完整 AC 效能。；證據細節：PH+DS+PD（Shift 路徑、單位字樣）"
+  },
+  {
+   "id": "DMM.KEY.OHM_2W",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 1 列右（原圖約 x502, y407）；上方藍字 \"Ω4W\"",
+   "label": "Ω2W（鍵面印 \"Ω 2W\"；上方次標籤 \"Ω4W\"）",
+   "kind": "實體按鍵",
+   "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
+   "function": "二線電阻；次功能四線電阻（Shift 路徑 PD）。D-DMM p.3 (PDF 3) \"2- and 4-wire resistance 100 Ω to 100 MΩ\"；p.21 (PDF 21) \"Selectable 4-wire or 2-wire ohms. Current source referenced to LO input.\"",
+   "feedback": "LCD 讀值，單位 Ω／kΩ／MΩ（PD 字樣）；開路顯示超量程狀態（字樣 PD）",
+   "range": "100 Ω(1 mA)、1 kΩ(1 mA)、10 kΩ(100 µA)、100 kΩ(10 µA)、1 MΩ(5 µA)、10 MΩ(500 nA)、100 MΩ(500 nA ∥ 10 MΩ)（D-DMM p.11 (PDF 11)，括號為 Test Current）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.11 (PDF 11)、p.21 (PDF 21)",
+   "evidence": "PH+DS+PD",
+   "status": "CORE",
+   "card": "I05",
+   "notes": "Ω2W 為 CORE；次功能 Ω4W 本輪 OUT（02 允許），按 Shift→Ω2W 只顯示範圍說明，不假裝兩線完成四線量測。；證據細節：PH+DS+PD（Shift 路徑）"
+  },
+  {
+   "id": "DMM.KEY.FREQ",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 2 列左（原圖約 x407, y436）；P1 放大確認上方無任何次標籤",
+   "label": "Freq（上方無次標籤）",
+   "kind": "實體按鍵",
+   "action": "按下（P1 上方沒有 Shift 次標籤）",
+   "function": "頻率／週期（D-DMM p.3 (PDF 3) \"Frequency, period 3 Hz to 300 kHz\"；p.22 (PDF 22) \"Reciprocal-counting technique. Measurement is AC-coupled\"）。",
+   "feedback": "按下顯示「本輪未納入」說明",
+   "range": "3 Hz–300 kHz；Gate time 10 ms、100 ms、1 s（1 ms 只限 34465/70A，p.22）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.22 (PDF 22)",
+   "evidence": "PH+DS",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "D-DMM p.3 產品照在 Freq 上方有藍色電容符號，但 P1 沒有 → 見 discrepancies；電容功能入口未確認（GAP-DMM-10）。 DS 行銷照在 Freq 上方有電容符號，校機沒有（GAP-DMM-10）。"
+  },
+  {
+   "id": "DMM.KEY.CONT",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 2 列中（原圖約 x455, y438）；上方藍色二極體符號",
+   "label": "Cont ·))（上方次標籤：二極體符號 ⊣▶⊢）",
+   "kind": "實體按鍵",
+   "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
+   "function": "導通測試；次功能二極體測試（Shift 路徑 PD）。D-DMM p.12 (PDF 12)：Continuity 量程 \"1 kΩ\"、Diode Test \"5 V\"；p.21 (PDF 21)：\"Response time 300 samples/s with audible tone\"、\"Continuity threshold Fixed at 10 Ω\"；p.12 註 9 \"The 1 mA test current is typical.\"（二極體）。",
+   "feedback": "低於門檻時提示音＋可見指示（PD，需有非聲音替代）；LCD 顯示電阻值或開路狀態（字樣 PD）",
+   "range": "導通：固定 1 kΩ 量程、門檻固定 10 Ω；二極體：5 V、1 mA typ（D-DMM p.12、p.21）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.12 (PDF 12)、p.21 (PDF 21)",
+   "evidence": "PH+DS+PD",
+   "status": "CORE",
+   "card": "I05",
+   "notes": "導通為 CORE；二極體（Shift→Cont）不在 02 必做清單 → OUT。門檻已有 DS 數字（10 Ω），不再是教學近似值；但 <10 Ω 或 ≤10 Ω 的比較方式、蜂鳴開關設定未找到（GAP-DMM-08）。；證據細節：PH+DS（門檻、量程、提示音）+PD（邊界、顯示、Shift 路徑）"
+  },
+  {
+   "id": "DMM.KEY.TEMP",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 2 列右（原圖約 x502, y441）；P1 放大確認上方無次標籤",
+   "label": "Temp（上方無次標籤）",
+   "kind": "實體按鍵",
+   "action": "按下（P1 上方沒有 Shift 次標籤）",
+   "function": "溫度量測：D-DMM p.3 (PDF 3) 34460A 欄 \"RTD/PT100, thermistor\"（無 thermocouples，後者只限 34465A/34470A）；p.21 (PDF 21) PT100 轉換 -200 °C–600 °C、Thermistor -80 °C–150 °C。",
+   "feedback": "按下顯示「本輪未納入」說明",
+   "range": "PT100 -200–600 °C；Thermistor -80–150 °C（p.21）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.12 (PDF 12)、p.21 (PDF 21)",
+   "evidence": "PH+DS",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "不得加入熱電偶類型（高階機型功能）。"
+  },
+  {
+   "id": "DMM.KEY.RUN_STOP",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 3 列左（原圖約 x405, y470）；上方藍字 \"Reset\"",
+   "label": "Run/Stop（上方次標籤 Reset）",
+   "kind": "實體按鍵",
+   "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
+   "function": "Run/Stop 與 Reset 的操作定義：未找到（M-DMM 未取得；D-DMM 未描述前面板鍵）。D-DMM p.3 (PDF 3) 產品照畫面顯示 \"Auto Trigger\" 狀態字。",
+   "feedback": "按下顯示「本輪未納入」說明；讀值照常更新",
+   "range": "未找到",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3) 產品照",
+   "evidence": "PH+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "不得把 Run/Stop 做成 Probe Hold 或任意 Freeze；Reset 不作為已確認的原廠重設（模擬器重設放在儀器外，GAP-DMM-15）。；證據細節：PH（標籤）+UN（功能）"
+  },
+  {
+   "id": "DMM.KEY.SINGLE",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 3 列中（原圖約 x452, y472）；上方藍字 \"Probe Hold\"",
+   "label": "Single（上方次標籤 Probe Hold）",
+   "kind": "實體按鍵",
+   "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
+   "function": "Single：未找到正文。Probe Hold：D-DMM p.26 (PDF 26) \"Probe Hold — Capture and navigate stable list of readings\"（一般特性，適用所有機型）；穩定判定條件未找到。",
+   "feedback": "按下顯示「本輪未納入」說明",
+   "range": "未找到",
+   "sources": "P1 中層；D-DMM p.26 (PDF 26)",
+   "evidence": "PH+DS+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "02：Probe Hold 不列核心，也不能簡化成任意 Freeze。；證據細節：PH+DS（Probe Hold 存在）+UN（操作與判定）"
+  },
+  {
+   "id": "DMM.KEY.NULL",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 3 列右（原圖約 x500, y475）；上方藍字 \"Math\"",
+   "label": "Null（上方次標籤 Math）",
+   "kind": "實體按鍵",
+   "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
+   "function": "Null：相對讀值（顯示值＝量測值－基準）。D-DMM p.26 (PDF 26) Math Functions：\"Per function null, min/max/avg/Sdev, dB, dBm, span, count, limit test, histogram\"；p.12 (PDF 12) 註 7 \"2-wire ohms function using math null for offset\"。按下即以當下讀值為基準：PD。次功能 Math（Shift 路徑 PD）。",
+   "feedback": "LCD 顯示 Null 標示（字樣 PD）與差值；關閉後回原量測值",
+   "range": "每個量測功能各自一組 Null（\"Per function null\"）",
+   "sources": "P1 中層；D-DMM p.12 (PDF 12)、p.26 (PDF 26)",
+   "evidence": "PH+DS+PD",
+   "status": "CORE",
+   "card": "I05",
+   "notes": "Null 為 CORE；Math（min/max/avg/Sdev、dB、dBm、limit、histogram 等）本輪 OUT。Null 基準數值編輯 OUT（GAP-DMM-07）。；證據細節：PH+DS（per function null 存在）+PD（按鍵語義、基準擷取）"
+  },
+  {
+   "id": "DMM.KEY.DISPLAY",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 4 列左（原圖約 x404, y501）；上方藍字 \"Utility\"",
+   "label": "Display（上方次標籤 Utility）",
+   "kind": "實體按鍵",
+   "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
+   "function": "顯示模式：D-DMM p.3 (PDF 3) 34460A 欄 Statistical graphics \"Histogram, bar meter\"；p.4 (PDF 4) Number／Bar meter／Histogram 三種畫面；p.26 (PDF 26) trend chart 只限 34461A/65A/70A。Display 鍵與 view 切換的對應、Utility 內容：未找到（PD 推論 Display 鍵切 view）。",
+   "feedback": "按下顯示「本輪未納入」說明（第一版固定 Number view）",
+   "range": "Number、Bar meter、Histogram（34460A 無 Trend chart）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.4 (PDF 4)、p.26 (PDF 26)",
+   "evidence": "PH+DS+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "不得提供 trend chart；不得以無效輸入畫出統計圖。；證據細節：PH+DS+UN（按鍵路徑）"
+  },
+  {
+   "id": "DMM.KEY.ACQUIRE",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 4 列中（原圖約 x451, y504）；上方藍字 \"Help\"",
+   "label": "Acquire（上方次標籤 Help）",
+   "kind": "實體按鍵",
+   "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
+   "function": "Acquire 內容：未找到（D-DMM p.26 (PDF 26) 有 Triggering and Memory：\"Samples per trigger 1 to 1,000,000\"、\"Trigger delay 0 s to 3600 s\"，但未寫在哪個鍵）。Help：p.26 \"Integrated, context-sensitive system helps through press-and-hold buttons\"。",
+   "feedback": "按下顯示「本輪未納入」說明",
+   "range": "未找到",
+   "sources": "P1 中層；D-DMM p.26 (PDF 26)",
+   "evidence": "PH+UN+DS",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "DS 說原廠說明是「長按按鍵」；模擬器不要把長按當成未證實的功能觸發。；證據細節：PH+UN（Acquire 內容）+DS（help 以長按提供）"
+  },
+  {
+   "id": "DMM.KEY.SHIFT",
+   "group": "功能鍵（右側 4×3）",
+   "photo_location": "P1 中層功能鍵區第 4 列右（原圖約 x498, y507）；藍色橢圓鍵，下方黑字 \"Local\"",
+   "label": "Shift（藍色鍵；下方標籤 Local）",
+   "kind": "實體按鍵（藍色）",
+   "action": "按下（暫定為 latch：先按 Shift 再按目標鍵）",
+   "function": "存取各鍵上方藍字次功能（DCI、ACI、Ω4W、二極體、Reset、Probe Hold、Math、Utility、Help）：依 P1 標籤顏色與位置推論（PD）。",
+   "feedback": "PD：LCD 顯示暫定 Shift 指示；執行一次次功能後自動解除",
+   "range": "無",
+   "sources": "P1 中層；M-DMM 未取得",
+   "evidence": "PH+PD",
+   "status": "CORE",
+   "card": "I05",
+   "notes": "核心只靠 Shift 進入 DCI／ACI，因此列 CORE；latch／同時按、解除時機未確認（GAP-DMM-02）。Shift 下方黑字「Local」不是 Shift 次功能：推論（PD）為遠端控制時回本地；本輪沒有遠端狀態，不觸發。；證據細節：PH（標籤、顏色）+PD（操作語義）"
+  },
+  {
+   "id": "DMM.KEY.UP",
+   "group": "方向／選擇鍵",
+   "photo_location": "P1 中層功能鍵區下方、LCD 右側的十字鍵群：方向鍵上（原圖約 x428, y535）",
+   "label": "▲（無次標籤；P1 確認 ▲ 上方沒有高階機型的 \"ACAL\" 字樣）",
+   "kind": "實體按鍵",
+   "action": "按下",
+   "function": "選單導覽／數值編輯用途：未找到（M-DMM 未取得）。",
+   "feedback": "按下顯示「本輪未納入」說明",
+   "range": "未找到",
+   "sources": "P1 中層",
+   "evidence": "PH+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "第一版核心功能不需方向鍵；不可自行設計未有來源的選單。D-DMM p.1 (PDF 1) 封面照中 34470A 在 ▲ 上方有 \"ACAL\"，34460A 與 P1 都沒有 → 不加 ACAL。"
+  },
+  {
+   "id": "DMM.KEY.DOWN",
+   "group": "方向／選擇鍵",
+   "photo_location": "P1 中層功能鍵區下方、LCD 右側的十字鍵群：方向鍵下（原圖約 x426, y586）",
+   "label": "▼（無次標籤；P1 確認 ▲ 上方沒有高階機型的 \"ACAL\" 字樣）",
+   "kind": "實體按鍵",
+   "action": "按下",
+   "function": "選單導覽／數值編輯用途：未找到（M-DMM 未取得）。",
+   "feedback": "按下顯示「本輪未納入」說明",
+   "range": "未找到",
+   "sources": "P1 中層",
+   "evidence": "PH+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "第一版核心功能不需方向鍵；不可自行設計未有來源的選單。D-DMM p.1 (PDF 1) 封面照中 34470A 在 ▲ 上方有 \"ACAL\"，34460A 與 P1 都沒有 → 不加 ACAL。"
+  },
+  {
+   "id": "DMM.KEY.LEFT",
+   "group": "方向／選擇鍵",
+   "photo_location": "P1 中層功能鍵區下方、LCD 右側的十字鍵群：方向鍵左（原圖約 x396, y561）",
+   "label": "◀（無次標籤；P1 確認 ▲ 上方沒有高階機型的 \"ACAL\" 字樣）",
+   "kind": "實體按鍵",
+   "action": "按下",
+   "function": "選單導覽／數值編輯用途：未找到（M-DMM 未取得）。",
+   "feedback": "按下顯示「本輪未納入」說明",
+   "range": "未找到",
+   "sources": "P1 中層",
+   "evidence": "PH+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "第一版核心功能不需方向鍵；不可自行設計未有來源的選單。D-DMM p.1 (PDF 1) 封面照中 34470A 在 ▲ 上方有 \"ACAL\"，34460A 與 P1 都沒有 → 不加 ACAL。"
+  },
+  {
+   "id": "DMM.KEY.RIGHT",
+   "group": "方向／選擇鍵",
+   "photo_location": "P1 中層功能鍵區下方、LCD 右側的十字鍵群：方向鍵右（原圖約 x458, y563）",
+   "label": "▶（無次標籤；P1 確認 ▲ 上方沒有高階機型的 \"ACAL\" 字樣）",
+   "kind": "實體按鍵",
+   "action": "按下",
+   "function": "選單導覽／數值編輯用途：未找到（M-DMM 未取得）。",
+   "feedback": "按下顯示「本輪未納入」說明",
+   "range": "未找到",
+   "sources": "P1 中層",
+   "evidence": "PH+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "第一版核心功能不需方向鍵；不可自行設計未有來源的選單。D-DMM p.1 (PDF 1) 封面照中 34470A 在 ▲ 上方有 \"ACAL\"，34460A 與 P1 都沒有 → 不加 ACAL。"
+  },
+  {
+   "id": "DMM.KEY.SELECT",
+   "group": "方向／選擇鍵",
+   "photo_location": "P1 中層功能鍵區下方、LCD 右側的十字鍵群：方向鍵中央（原圖約 x426, y562）",
+   "label": "Select（無次標籤；P1 確認 ▲ 上方沒有高階機型的 \"ACAL\" 字樣）",
+   "kind": "實體按鍵",
+   "action": "按下",
+   "function": "選單導覽／數值編輯用途：未找到（M-DMM 未取得）。",
+   "feedback": "按下顯示「本輪未納入」說明",
+   "range": "未找到",
+   "sources": "P1 中層",
+   "evidence": "PH+UN",
+   "status": "OUT",
+   "card": "I05",
+   "notes": "第一版核心功能不需方向鍵；不可自行設計未有來源的選單。D-DMM p.1 (PDF 1) 封面照中 34470A 在 ▲ 上方有 \"ACAL\"，34460A 與 P1 都沒有 → 不加 ACAL。"
+  },
+  {
+   "id": "DMM.KEY.RANGE_UP",
+   "group": "量程鍵（+／Range／−）",
+   "photo_location": "P1 中層 Shift 正下方三鍵直列的最上鍵（原圖約 x498, y540）",
+   "label": "+",
+   "kind": "實體按鍵",
+   "action": "按下",
+   "function": "手動量程往上一檔（PD，依位置與符號推論）。D-DMM p.21 (PDF 21) 只證明有 Auto／manual ranging：\"Will select higher range if peak input overload is detected during auto range. Overload is reported in manual ranging.\"",
+   "feedback": "LCD 量程字樣改變（手動字樣 PD）；讀值依新量程解析度重新顯示",
+   "range": "依目前功能的量程表（見 specs）；到最大量程停住（PD）",
+   "sources": "P1 中層；D-DMM p.21 (PDF 21)、p.24 (PDF 24)",
+   "evidence": "PH+DS+PD",
+   "status": "CORE",
+   "card": "I05",
+   "notes": "若在 Auto 時按 +，暫定轉為手動並升一檔（PD，GAP-DMM-03）。Cont 功能下無作用並顯示「固定 1 kΩ」說明（PD）。；證據細節：PH+DS（量程存在）+PD（鍵語義）"
+  },
+  {
+   "id": "DMM.KEY.RANGE",
+   "group": "量程鍵（+／Range／−）",
+   "photo_location": "P1 中層三鍵直列的中間鍵（原圖約 x497, y568）",
+   "label": "Range",
+   "kind": "實體按鍵",
+   "action": "按下",
+   "function": "切換 Auto／手動量程（PD）。自動量程行為依 D-DMM p.21 (PDF 21) Overload ranging；Autorange time \"< 40 ms\"（DC）、\"<35ms\"（AC）（p.24 (PDF 24)）。",
+   "feedback": "LCD 左下量程字樣（DS 範例 \"Auto 1V\"、\"Auto 100mV\"；手動字樣 PD）",
+   "range": "Auto／手動",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.4 (PDF 4)、p.21 (PDF 21)、p.24 (PDF 24)",
+   "evidence": "PH+DS+PD",
+   "status": "CORE",
+   "card": "I05",
+   "notes": "暫定：Auto→手動時鎖定目前量程；手動→Auto 立即依輸入重新選檔（PD）。原廠是否以 Range 鍵或 S1 軟鍵切換未確認（GAP-DMM-03、GAP-DMM-04）。；證據細節：PH+DS+PD（鍵語義）"
+  },
+  {
+   "id": "DMM.KEY.RANGE_DOWN",
+   "group": "量程鍵（+／Range／−）",
+   "photo_location": "P1 中層三鍵直列的最下鍵（原圖約 x495, y593）",
+   "label": "−",
+   "kind": "實體按鍵",
+   "action": "按下",
+   "function": "手動量程往下一檔（PD）。",
+   "feedback": "LCD 量程字樣改變；若新量程過小則顯示超量程狀態（手動量程不自動換檔：AC 依 D-DMM p.21，DC 為 PD）",
+   "range": "到最小量程停住（PD）",
+   "sources": "P1 中層；D-DMM p.21 (PDF 21)、p.24 (PDF 24)",
+   "evidence": "PH+DS+PD",
+   "status": "CORE",
+   "card": "I05",
+   "notes": "與 + 對稱；過小量程時必須顯示超量程，不可截斷成滿格數字或 0。"
+  },
+  {
+   "id": "DMM.TERM.SENSE_HI",
+   "group": "量測端子",
+   "photo_location": "P1 中層端子區上排左（原圖約 x565, y437），紅色；上方標題 \"Sense\" \"Ω4W\"，左側 \"HI\"",
+   "label": "Sense Ω4W — HI（紅）",
+   "kind": "香蕉插座端子",
+   "action": "（J01 接線；I05 只作 terminal ID 與 fixture 語義）",
+   "function": "四線電阻 sense HI；DC Ratio 的 reference HI（D-DMM p.21 (PDF 21) \"Input HI-LO/reference (sense) HI-LO\"）。",
+   "feedback": "無（被動）",
+   "range": "D-DMM p.21 (PDF 21)：\"HI and LO reference (sense) terminals reference to LO input < 12 V\"；面板印 \"200 Vpk\"（意義未找到）",
+   "sources": "P1 中層；D-DMM p.21 (PDF 21)",
+   "evidence": "PH+DS",
+   "status": "STATIC",
+   "card": "I05/J01",
+   "notes": "四線量測本輪 OUT；端子可見但不可假裝已完成四線。；卡別細節：I05（terminal ID 預留）／J01（接線）"
+  },
+  {
+   "id": "DMM.TERM.SENSE_LO",
+   "group": "量測端子",
+   "photo_location": "P1 中層端子區中排左（原圖約 x557, y495），黑色；左側 \"LO\"",
+   "label": "Sense Ω4W — LO（黑）",
+   "kind": "香蕉插座端子",
+   "action": "（J01 接線；I05 只作 terminal ID 與 fixture 語義）",
+   "function": "四線電阻 sense LO；DC Ratio reference LO。",
+   "feedback": "無（被動）",
+   "range": "同 Sense HI",
+   "sources": "P1 中層；D-DMM p.21 (PDF 21)",
+   "evidence": "PH+DS",
+   "status": "STATIC",
+   "card": "I05/J01",
+   "notes": "四線量測本輪 OUT。；卡別細節：I05（terminal ID 預留）／J01（接線）"
+  },
+  {
+   "id": "DMM.TERM.INPUT_HI",
+   "group": "量測端子",
+   "photo_location": "P1 中層端子區上排右（原圖約 x625, y440），紅色；上方標題 \"Input\" \"V Ω ⊣▶⊢\"，右側 \"HI\"",
+   "label": "Input V Ω ⊣▶⊢ — HI（紅）",
+   "kind": "香蕉插座端子",
+   "action": "（J01 接線；I05 只作 terminal ID 與 fixture 語義）",
+   "function": "電壓、電阻、導通、二極體的輸入 HI（面板標題「V Ω ⊣▶⊢」，PH）；電容／頻率／溫度是否也用此端子屬推論（PD，頻率可參考 D-DMM p.22 間接依據）。DCV、ACV、Ω2W、Cont 的 fixture 以 Input HI/LO 為量測端。",
+   "feedback": "無（被動）",
+   "range": "\"1000 VDC\" \"750 VAC\"（P1 印字）；D-DMM p.21 (PDF 21) DCV \"Input protection 1,000 V on all ranges\"、ACV \"750 Vrms all ranges\"",
+   "sources": "P1 中層；D-DMM p.21 (PDF 21)",
+   "evidence": "PH+DS+PD",
+   "status": "STATIC",
+   "card": "I05/J01",
+   "notes": "P1 端子標題只印一個二極體符號（無電容符號）。；卡別細節：I05（terminal ID 預留）／J01（接線）"
+  },
+  {
+   "id": "DMM.TERM.INPUT_LO",
+   "group": "量測端子",
+   "photo_location": "P1 中層端子區中排右（原圖約 x620, y500），黑色；右側 \"LO\"",
+   "label": "Input — LO（黑）",
+   "kind": "香蕉插座端子",
+   "action": "（J01 接線；I05 只作 terminal ID 與 fixture 語義）",
+   "function": "所有功能的共同 LO（電壓／電阻的回路；電流量測時與 I 3A 配對，P1 面板連線圖示 LO→保險絲符號→I）。D-DMM p.21 (PDF 21)：\"Current source referenced to LO input.\"",
+   "feedback": "無（被動）",
+   "range": "\"500 Vpk\"＋接地符號（P1 印字，意義未找到）",
+   "sources": "P1 中層；D-DMM p.21 (PDF 21)",
+   "evidence": "PH+DS",
+   "status": "STATIC",
+   "card": "I05/J01",
+   "notes": "電流功能的 fixture 以 I 3A＋LO 為量測端（P1 圖示）。；卡別細節：I05（terminal ID 預留）／J01（接線）"
+  },
+  {
+   "id": "DMM.TERM.I_3A",
+   "group": "量測端子",
+   "photo_location": "P1 中層端子區下排右（原圖約 x612, y557），紅色；左側印 \"I\"、右側印 \"3A\"",
+   "label": "I — 3A（紅）",
+   "kind": "香蕉插座端子",
+   "action": "（J01 接線；I05 只作 terminal ID 與 fixture 語義）",
+   "function": "直流／交流電流輸入（DCI、ACI）。D-DMM p.21 (PDF 21)：\"Input protection 3 A — Externally accessible 3.15 A, 500 V fuse ... Internal 11 A, 1,000 V fuse\"。",
+   "feedback": "無（被動）",
+   "range": "最大 3 A（D-DMM p.3 (PDF 3) \"DCI 100 μA to 3 A\"、\"ACI 100 μA to 3 A\"）；3 A 量程無 20% 超量程（p.12 註 2）",
+   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.12 (PDF 12)、p.21 (PDF 21)",
+   "evidence": "PH+DS",
+   "status": "STATIC",
+   "card": "I05/J01",
+   "notes": "34460A 只有這一個電流端子；沒有 10 A 端子（p.21 \"Input protection 10 A (34461/65/70A only)\"）。；卡別細節：I05（terminal ID 預留）／J01（接線）"
+  },
+  {
+   "id": "DMM.MISC.ROUND_PART",
+   "group": "端子區被動件",
+   "photo_location": "P1 中層端子區下排左，\"I\" 字左側的深色圓形平面件（原圖約 x552, y552）；其右上方為保險絲符號＋⚠",
+   "label": "無印字",
+   "kind": "被動件（功能不明）",
+   "action": "無",
+   "function": "未找到正文。D-DMM p.24 後面板照顯示電流保險絲在後面板，所以「前面板保險絲座」的推論不成立。較合理的推論（PD）：D-DMM p.1 封面 34470A 在同一位置是 10A 端子，34460A 此處為封蓋。",
+   "feedback": "無",
+   "range": "無",
+   "sources": "P1 中層；D-DMM p.1 (PDF 1) 封面產品照；p.24 (PDF 24) 後面板照",
+   "evidence": "PH+PD+UN",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": "只畫外觀、不可互動、不可作為端子或 10 A 插孔（GAP-DMM-11）。"
+  },
+  {
+   "id": "DMM.MISC.OVAL_PART",
+   "group": "端子區被動件",
+   "photo_location": "P1 中層端子區最下方，3A 端子正下方偏左、\"CAT II (300V)\" 左側的深色橢圓件（原圖約 x579, y595），周圍有凹框",
+   "label": "無印字",
+   "kind": "被動件（功能不明）",
+   "action": "無",
+   "function": "未找到。D-DMM p.1 (PDF 1) 封面照中 34470A 在同一位置是標有 \"Front\"／\"Rear\" 的切換鍵；34460A 無後面板輸入（D-DMM p.3 (PDF 3) \"Rear input terminals No\"），故此件推論為無功能的封蓋（PD）。",
+   "feedback": "無",
+   "range": "無",
+   "sources": "P1 中層；D-DMM p.1 (PDF 1)、p.3 (PDF 3)、p.24 (PDF 24) 後面板照",
+   "evidence": "PH+PD+UN",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": "絕對不能做成 Front/Rear 切換（GAP-DMM-12）。；證據細節：PH（存在）+PD（推論）+UN"
+  },
+  {
+   "id": "DMM.MISC.MODEL_LABEL",
+   "group": "固定標籤",
+   "photo_location": "P1 中層頂列，LCD 上方由左至右（原圖約 x67–380, y372–382）",
+   "label": "Keysight 波形 logo \"KEYSIGHT\"、\"34460A\"、\"6 1/2 Digit Multimeter\"、斜體 \"Truevolt\"",
+   "kind": "印刷標籤",
+   "action": "無",
+   "function": "機型識別；D-DMM p.3 (PDF 3) \"Digits of resolution 6½\"。",
+   "feedback": "無",
+   "range": "無",
+   "sources": "P1 中層；D-DMM p.1 (PDF 1)、p.3 (PDF 3)",
+   "evidence": "PH+DS",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": "機型確認為 34460A（不是 34461A/65A/70A）。P1 面板為淺灰白色；D-DMM 產品照為黑色面板（見 discrepancies）。"
+  },
+  {
+   "id": "DMM.MISC.LABEL_200VPK",
+   "group": "固定標籤",
+   "photo_location": "P1 中層端子區，Sense HI 右下方括號旁（原圖約 x592, y465），括號連到 Sense LO 與 Input LO 間的連線",
+   "label": "200 Vpk",
+   "kind": "印刷額定標示",
+   "action": "無",
+   "function": "Sense 端子相關的額定值；精確意義未找到（D-DMM p.21 只寫 \"HI and LO reference (sense) terminals reference to LO input < 12 V\"，是 DC Ratio 量測條件）。",
+   "feedback": "無",
+   "range": "200 Vpk（面板印字）",
+   "sources": "P1 中層；D-DMM p.21 (PDF 21)",
+   "evidence": "PH+UN",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": "照印，不延伸成模擬器保護門檻。；證據細節：PH+UN（意義）"
+  },
+  {
+   "id": "DMM.MISC.LABEL_1000VDC_750VAC",
+   "group": "固定標籤",
+   "photo_location": "P1 中層端子區，Input HI 與 Input LO 之間右側括號（原圖約 x650, y470）",
+   "label": "1000 VDC / 750 VAC",
+   "kind": "印刷額定標示",
+   "action": "無",
+   "function": "Input HI–LO 最大輸入。D-DMM p.21 (PDF 21)：DCV \"Input protection 1,000 V on all ranges\"；ACV \"Input protection 750 Vrms all ranges\"。",
+   "feedback": "無",
+   "range": "1000 VDC；750 VAC",
+   "sources": "P1 中層；D-DMM p.21 (PDF 21)",
+   "evidence": "PH+DS",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": "與 DCV 最大量程 1000 V、ACV 最大量程 750 V 一致（p.11）。"
+  },
+  {
+   "id": "DMM.MISC.LABEL_500VPK_GND",
+   "group": "固定標籤",
+   "photo_location": "P1 中層端子區，Input LO 右下方括號（原圖約 x647, y527–542），下接接地符號",
+   "label": "500 Vpk ＋ ⏚（接地符號）",
+   "kind": "印刷額定標示",
+   "action": "無",
+   "function": "LO 對大地的額定。D-DMM p.22：「1 kΩ LO lead unbalance (± 500 V peak maximum)」可佐證 LO 端 ±500 V 峰值；面板印字的精確意義仍屬 PD。",
+   "feedback": "無",
+   "range": "500 Vpk（面板印字）",
+   "sources": "P1 中層；D-DMM p.22 (PDF 22)",
+   "evidence": "PH+DS+PD",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": "照印即可。"
+  },
+  {
+   "id": "DMM.MISC.FUSE_WARN",
+   "group": "固定標籤",
+   "photo_location": "P1 中層端子區，Input LO 往下接到 I 3A 的連線上（原圖約 x585, y526）",
+   "label": "保險絲符號（▭ 穿線）＋ ⚠ 警告三角",
+   "kind": "印刷符號",
+   "action": "無",
+   "function": "表示電流路徑經保險絲。D-DMM p.21：「Externally accessible 3.15 A, 500 V fuse」；保險絲座位置見 D-DMM p.24 後面板照（套用到校機為 PD）。",
+   "feedback": "無",
+   "range": "3.15 A, 500 V（DS）",
+   "sources": "P1 中層；D-DMM p.21 (PDF 21)、p.24 (PDF 24)",
+   "evidence": "PH+DS",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": "保險絲熔斷行為本輪不模擬（見 out_of_scope）。"
+  },
+  {
+   "id": "DMM.MISC.CAT_II_300V",
+   "group": "固定標籤",
+   "photo_location": "P1 中層右下角（原圖約 x627, y595），其下方有 ⚠ 警告三角（原圖約 x627, y609）",
+   "label": "CAT II (300V) ＋ ⚠",
+   "kind": "印刷額定標示",
+   "action": "無",
+   "function": "量測類別。D-DMM p.25 (PDF 25)：\"Measurement Category II to 300 V\"。",
+   "feedback": "無",
+   "range": "CAT II 300 V",
+   "sources": "P1 中層；D-DMM p.25 (PDF 25)",
+   "evidence": "PH+DS",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": ""
+  },
+  {
+   "id": "DMM.MISC.WARN_HV_TOP",
+   "group": "固定標籤",
+   "photo_location": "P1 中層右上角，\"Input\" 標題右方（原圖約 x657, y392）",
+   "label": "三角形內閃電符號（高壓警告）",
+   "kind": "印刷符號",
+   "action": "無",
+   "function": "高電壓警告符號（面板印刷）。",
+   "feedback": "無",
+   "range": "無",
+   "sources": "P1 中層",
+   "evidence": "PH",
+   "status": "STATIC",
+   "card": "I05",
+   "notes": "與下方兩個「!」警告三角不同，請分別繪製。"
+  }
+ ],
+ "menus": [
+  {
+   "path": "DCV（按 DCV 鍵後的 DCV Number 畫面）→ 軟鍵列",
+   "softkeys": "S1 \"Range\"〔Auto〕｜S2 \"Aperture\"〔10 PLC〕｜S3 \"Auto Zero\"〔Off On〕｜S4 \"Input Z\"〔10M Auto〕｜S5 \"DCV Ratio\"〔Off On〕｜S6（空白）",
+   "source": "D-DMM p.3 (PDF 3) 34460A 產品照（放大可讀）；D-DMM p.1 (PDF 1) 封面 34460A 產品照（同一組 S1–S5，histogram view 時 S6＝\"Clear Readings\"）",
+   "evidence": "PD",
+   "status": "S1 APPROX（按下＝Range 鍵，PD）；S2–S6 OUT（只顯示標籤）",
+   "notes": "只證明該畫面出現過這些標籤與當下值；按下後是否展開下一層、值如何循環、是否為開機預設、韌體版本皆未找到。第一版可照此繪製 DCV 軟鍵標籤。 路徑與標籤只來自 datasheet 行銷照，未經手冊確認（PD）。"
+  },
+  {
+   "path": "Shift → DCV（上方藍字 DCI）→ DCI 畫面",
+   "softkeys": "未找到（M-DMM 未取得）；暫定只顯示 S1 \"Range\"（PD）",
+   "source": "P1 中層（DCV 上方 \"DCI\"）；D-DMM p.3 (PDF 3) DCI 100 μA to 3 A",
+   "evidence": "PH（標籤）+DS（功能存在）+PD（Shift 路徑與軟鍵）",
+   "status": "APPROX",
+   "notes": "核心功能；路徑以面板藍字推論，GAP-DMM-02／04。"
+  },
+  {
+   "path": "ACV → ACV 畫面",
+   "softkeys": "未找到；D-DMM p.12 (PDF 12) 註 6 指出有 \"three filter settings are available: 3 Hz, 20 Hz, 200 Hz\"，但設定路徑未找到。暫定只顯示 S1 \"Range\"（PD）",
+   "source": "P1；D-DMM p.11 (PDF 11)、p.12 (PDF 12)",
+   "evidence": "PH+DS+PD",
+   "status": "APPROX",
+   "notes": "AC filter 本輪 OUT；純正弦 1 kHz 測試情境不受 filter 影響。"
+  },
+  {
+   "path": "Shift → ACV（上方藍字 ACI）→ ACI 畫面",
+   "softkeys": "未找到；暫定只顯示 S1 \"Range\"（PD）",
+   "source": "P1（ACV 上方 \"ACI\"）；D-DMM p.3 (PDF 3)、p.11–12 (PDF 11–12)",
+   "evidence": "PH+DS+PD",
+   "status": "APPROX",
+   "notes": "核心功能；路徑推論。"
+  },
+  {
+   "path": "Ω2W → 二線電阻畫面",
+   "softkeys": "未找到；暫定只顯示 S1 \"Range\"（PD）",
+   "source": "P1；D-DMM p.11 (PDF 11)",
+   "evidence": "PH+DS+PD",
+   "status": "APPROX",
+   "notes": "Offset compensation 等其他選項未找到，不自行加入。"
+  },
+  {
+   "path": "Cont ·)) → 導通畫面",
+   "softkeys": "未找到；暫定不顯示 Range（D-DMM p.12 (PDF 12) 導通只有 1 kΩ 一檔），不自行加入蜂鳴設定軟鍵",
+   "source": "P1；D-DMM p.12 (PDF 12)、p.21 (PDF 21)",
+   "evidence": "PH+DS+PD",
+   "status": "APPROX",
+   "notes": "門檻 10 Ω 固定（DS）；是否有蜂鳴開關設定未找到（GAP-DMM-08）。"
+  },
+  {
+   "path": "前面板 Range／+／−（實體鍵，非軟鍵）",
+   "softkeys": "Range：Auto⇄手動（PD）；+：手動升一檔（PD）；−：手動降一檔（PD）",
+   "source": "P1 中層（三鍵直列）；D-DMM p.21 (PDF 21) Overload ranging",
+   "evidence": "PH+DS（auto/manual 存在）+PD（鍵語義）",
+   "status": "CORE（行為暫定）",
+   "notes": "GAP-DMM-03。"
+  },
+  {
+   "path": "Null（實體鍵）→ Null on／off",
+   "softkeys": "Null 開啟後的軟鍵（基準值編輯等）：未找到",
+   "source": "P1（Null 鍵）；D-DMM p.26 (PDF 26) \"Per function null\"",
+   "evidence": "PH+DS+PD",
+   "status": "CORE（on/off 與擷取基準行為暫定）；基準編輯 OUT",
+   "notes": "GAP-DMM-07。"
+  },
+  {
+   "path": "Display → view：Number／Bar meter／Histogram",
+   "softkeys": "view 名稱來自 datasheet；按鍵／軟鍵路徑未找到",
+   "source": "D-DMM p.3 (PDF 3) Statistical graphics \"Histogram, bar meter\"；p.4 (PDF 4)；p.26 (PDF 26)",
+   "evidence": "DS+UN（路徑）",
+   "status": "OUT（第一版固定 Number view）",
+   "notes": "34460A 沒有 Trend chart（p.3、p.26）。"
+  },
+  {
+   "path": "頂層（本輪未納入，只列名稱）：Freq、Temp、Run/Stop、Single、Acquire",
+   "softkeys": "不列",
+   "source": "P1 中層鍵面字樣",
+   "evidence": "PH",
+   "status": "OUT",
+   "notes": "按下顯示範圍說明，不改狀態。"
+  },
+  {
+   "path": "頂層 Shift 次功能（本輪未納入，只列名稱）：Ω4W（Shift→Ω2W）、二極體（Shift→Cont）、Reset（Shift→Run/Stop）、Probe Hold（Shift→Single）、Math（Shift→Null）、Utility（Shift→Display）、Help（Shift→Acquire）",
+   "softkeys": "不列",
+   "source": "P1 中層藍字次標籤；Probe Hold／Math 內容見 D-DMM p.26 (PDF 26)",
+   "evidence": "PH+PD（Shift 對應）",
+   "status": "OUT",
+   "notes": "Probe Hold 不可做成任意 Freeze。 Local 不是 Shift 次功能（印在 Shift 鍵下方的黑字），另見 DMM.KEY.SHIFT。"
+  }
+ ],
+ "specs": [
+  {
+   "item": "機型與位數",
+   "value": "34460A，6½ 位數；Basic DCV accuracy 75 ppm",
+   "source": "D-DMM p.3 (PDF 3) Key Specifications 34460A 欄；P1 型號標",
+   "evidence": "PH+DS",
+   "quote": "Digits of resolution 6½ ... Basic DCV accuracy 75 ppm"
+  },
+  {
+   "item": "DCV 量程",
+   "value": "100 mV、1 V、10 V、100 V、1000 V",
+   "source": "D-DMM p.11 (PDF 11) DC Voltage；p.3 (PDF 3)",
+   "evidence": "DS",
+   "quote": "DCV 100 mV to 1,000 V"
+  },
+  {
+   "item": "ACV 量程與頻率",
+   "value": "100 mV、1 V、10 V、100 V、750 V（真有效值）；3 Hz–300 kHz",
+   "source": "D-DMM p.11 (PDF 11) True RMS AC Voltage；p.3 (PDF 3)",
+   "evidence": "DS",
+   "quote": "100 mV, 1 V, 10 V, 100 V, and 750 V Ranges ... 3 Hz to 5 Hz ... 100 kHz to 300 kHz"
+  },
+  {
+   "item": "ACV 量測型態",
+   "value": "AC 耦合真有效值，只量交流成分；數位取樣＋抗混疊濾波",
+   "source": "D-DMM p.21 (PDF 21) True RMS AC Voltage",
+   "evidence": "DS",
+   "quote": "AC–coupled True RMS. Measures the AC component of the input."
+  },
+  {
+   "item": "ACV 輸入限制",
+   "value": "最大輸入 400 DCV、1,100 Vpeak；輸入阻抗 1 MΩ ± 1% ∥ < 100 pF；保護 750 Vrms；750 V 量程限 8×10^7 V·Hz",
+   "source": "D-DMM p.21 (PDF 21)；p.12 (PDF 12) 註 5",
+   "evidence": "DS",
+   "quote": "Maximum input 400 DCV, 1,100 Vpeak ... Input protection 750 Vrms all ranges"
+  },
+  {
+   "item": "DCI 量程與負擔電壓",
+   "value": "100 µA(<0.011 V)、1 mA(<0.11 V)、10 mA(<0.05 V)、100 mA(<0.5 V)、1 A(<0.7 V)、3 A(<2.0 V)",
+   "source": "D-DMM p.3 (PDF 3) 機型表（100 μA to 3 A）、p.11 (PDF 11) DC Current",
+   "evidence": "DS",
+   "quote": "DCI 100 μA to 3 A"
+  },
+  {
+   "item": "ACI 量程與頻率",
+   "value": "100 µA、1 mA、10 mA、100 mA、1 A、3 A；3 Hz–5 kHz（5–10 kHz 為 typ）；只量交流成分",
+   "source": "D-DMM p.11–12 (PDF 11–12) True RMS AC Current；p.21 (PDF 21)",
+   "evidence": "DS",
+   "quote": "Directly coupled to the fuse and shunt. AC True RMS measurement (Measures the AC component only)."
+  },
+  {
+   "item": "電流上限（無 10 A）",
+   "value": "34460A 最大 3 A；10 A 輸入只限 34461A/65A/70A",
+   "source": "D-DMM p.3 (PDF 3) DCI/ACI 34460A 欄；p.21 (PDF 21)",
+   "evidence": "PH+DS",
+   "quote": "Input protection 10 A (34461/65/70A only)"
+  },
+  {
+   "item": "電流輸入保護",
+   "value": "外部可取用 3.15 A 500 V 保險絲＋內部 11 A 1,000 V 保險絲；保險絲座位置：後面板左下（D-DMM p.24 34460A 後面板照「Current Input 3.15A (500V)」）",
+   "source": "D-DMM p.21 (PDF 21)、p.24 (PDF 24) 後面板照",
+   "evidence": "DS",
+   "quote": "Externally accessible 3.15 A, 500 V fuse"
+  },
+  {
+   "item": "電阻量程與測試電流",
+   "value": "100 Ω(1 mA)、1 kΩ(1 mA)、10 kΩ(100 µA)、100 kΩ(10 µA)、1 MΩ(5 µA)、10 MΩ(500 nA)、100 MΩ(500 nA ∥ 10 MΩ)；2 線與 4 線可選",
+   "source": "D-DMM p.11 (PDF 11) Resistance；p.3 (PDF 3)；p.21 (PDF 21)",
+   "evidence": "DS",
+   "quote": "2- and 4-wire resistance 100 Ω to 100 MΩ"
+  },
+  {
+   "item": "2 線電阻與 Null",
+   "value": "規格以 4 線或 2 線加 math null 為準；不做 null 時 2 線另加 0.2 Ω 誤差",
+   "source": "D-DMM p.12 (PDF 12) 註 7",
+   "evidence": "DS",
+   "quote": "Without math null, add 0.2 Ω additional error in 2-wire ohms function."
+  },
+  {
+   "item": "超量程比例",
+   "value": "所有量程可超量程 20%（顯示到 1.2×量程）；例外：1000 V DCV、750 V ACV、3 A 電流、二極體測試（例外之比例未明寫，34465A/70A 同註寫 0%）",
+   "source": "D-DMM p.12 (PDF 12) 註 2；對照 p.17 (PDF 17)、p.20 (PDF 20)",
+   "evidence": "DS+PD（例外視為 0%）",
+   "quote": "20% overrange on all ranges, except 1,000 V DCV, 750 ACV, 3 A Current, and diode test."
+  },
+  {
+   "item": "自動／手動量程與超量程回報",
+   "value": "Auto 下偵測到峰值過載會升檔；手動量程下回報 overload（顯示字樣未找到）（p.21 的「Overload ranging」原文位於 AC Crest Factor 段，只作 ACV／ACI 的 DS 依據；DC 功能有 Auto 量程引 p.24 換檔時間；DC 的手動超量程呈現屬 PD）",
+   "source": "D-DMM p.21 (PDF 21) AC Crest Factor and Peak Input → Overload ranging",
+   "evidence": "DS+PD",
+   "quote": "Will select higher range if peak input overload is detected during auto range. Overload is reported in manual ranging."
+  },
+  {
+   "item": "自動換檔時間",
+   "value": "DCV/DCI/Ω < 40 ms；ACV/ACI < 35 ms；Freq < 55 ms（≤ 10 V、≤ 10 MΩ）",
+   "source": "D-DMM p.24 (PDF 24) System Speeds 34460A 欄",
+   "evidence": "DS",
+   "quote": "Autorange time < 40 ms"
+  },
+  {
+   "item": "導通測試",
+   "value": "量程固定 1 kΩ；門檻固定 10 Ω；300 samples/s 並有提示音",
+   "source": "D-DMM p.12 (PDF 12) Continuity；p.21 (PDF 21) Continuity / Diode Test",
+   "evidence": "DS",
+   "quote": "Continuity threshold Fixed at 10 Ω ... 300 samples/s with audible tone"
+  },
+  {
+   "item": "二極體測試",
+   "value": "5 V 滿刻度；測試電流 1 mA（typ）；無 20% 超量程",
+   "source": "D-DMM p.12 (PDF 12) Diode Test 與註 9；p.8 (PDF 8)；p.3 (PDF 3) \"Continuity, diode Y, 5 V\"",
+   "evidence": "DS",
+   "quote": "The 1 mA test current is typical."
+  },
+  {
+   "item": "頻率／週期（OUT）",
+   "value": "3 Hz–300 kHz；電壓量程 100 mVrms–750 Vrms，Auto 或手動；gate 10 ms、100 ms、1 s（1 ms 只限 34465/70A）",
+   "source": "D-DMM p.3 (PDF 3)；p.22 (PDF 22)",
+   "evidence": "DS",
+   "quote": "Gate time 1 ms (34465/70A), 10 ms, 100 ms, or 1 s"
+  },
+  {
+   "item": "溫度（OUT）",
+   "value": "PT100/RTD（-200 °C–600 °C）、thermistor（-80 °C–150 °C）；34460A 無熱電偶",
+   "source": "D-DMM p.3 (PDF 3)；p.21 (PDF 21)",
+   "evidence": "DS",
+   "quote": "Temperature RTD/PT100, thermistor"
+  },
+  {
+   "item": "電容（OUT）",
+   "value": "1 nF、10 nF、100 nF、1 µF、10 µF、100 µF",
+   "source": "D-DMM p.11 (PDF 11) Capacitance；p.3 (PDF 3)",
+   "evidence": "DS",
+   "quote": "Capacitance 1 nF to 100 µF"
+  },
+  {
+   "item": "DCV 輸入電阻",
+   "value": "0.1 V／1 V／10 V：可選 10 MΩ 或 >10 GΩ；100 V／1000 V：10 MΩ ± 1%；輸入保護 1,000 V",
+   "source": "D-DMM p.21 (PDF 21)",
+   "evidence": "DS",
+   "quote": "Selectable 10 MΩ or >10 GΩ"
+  },
+  {
+   "item": "AC 規格前提（第一版只用純正弦）",
+   "value": "ACV：正弦且 > 0.3% 量程、> 1 mVrms；ACI：正弦且 > 1% 量程、> 10 µA；crest factor 最大 10:1（滿刻度 3:1）",
+   "source": "D-DMM p.12 (PDF 12) 註 1、5、8；p.21 (PDF 21) Crest factor",
+   "evidence": "DS",
+   "quote": "Specifications are for sine wave input > 0.3% of range and > 1 mVrms."
+  },
+  {
+   "item": "讀值位數與速率（DC/Ω）",
+   "value": "100 PLC：6½ 位、0.6 rdg/s；10 PLC：6½、6/s；1 PLC：5½、60/s；0.2 PLC：5½、100/s；0.02 PLC：3½、300/s；最大 300 rdgs/s",
+   "source": "D-DMM p.23 (PDF 23) 34460A 欄；p.3 (PDF 3)",
+   "evidence": "DS",
+   "quote": "Max reading rate 300 rdgs/s"
+  },
+  {
+   "item": "讀值位數與速率（AC）",
+   "value": "ACV/ACI 皆 6½ 位；ACV 0.4/1.6/20/50 rdg/s、ACI 0.6/4/20/50 rdg/s（Slow/Medium/Fast/Fast）",
+   "source": "D-DMM p.23 (PDF 23)",
+   "evidence": "DS",
+   "quote": "34460A, 34461A, 34465A, 34470A 6½ 0.4/s 0.6/s Slow"
+  },
+  {
+   "item": "LCD 讀值格式範例",
+   "value": "\"DC Voltage\"、\"Auto Trigger\"、\"+0.634 450 VDC\"、\"Auto 1V\"；100 mV 量程例 \"+000.030 6 mVDC\"、\"Auto 100mV\"",
+   "source": "D-DMM p.3 (PDF 3) 34460A 產品照；p.4 (PDF 4) 畫面圖",
+   "evidence": "PD",
+   "quote": "+0.634 450 VDC / Auto 1V"
+  },
+  {
+   "item": "顯示器",
+   "value": "4.3 吋彩色 TFT WQVGA 480×272；Number、Bar meter、Histogram；Trend chart 只限 34461A/65A/70A；Dual line display",
+   "source": "D-DMM p.26 (PDF 26) Display；p.3 (PDF 3)",
+   "evidence": "DS",
+   "quote": "Supports: Basic number, bar meter, trend chart (34461A, 34465A, 34470A), histogram views."
+  },
+  {
+   "item": "Math／Null",
+   "value": "Per function null、min/max/avg/Sdev、dB、dBm、span、count、limit test、histogram",
+   "source": "D-DMM p.26 (PDF 26) Math Functions",
+   "evidence": "DS",
+   "quote": "Per function null, min/max/avg/Sdev, dB, dBm, span, count, limit test, histogram"
+  },
+  {
+   "item": "Probe Hold（OUT）",
+   "value": "擷取並瀏覽穩定讀值清單；穩定判定未找到",
+   "source": "D-DMM p.26 (PDF 26)",
+   "evidence": "DS",
+   "quote": "Capture and navigate stable list of readings"
+  },
+  {
+   "item": "讀值記憶",
+   "value": "揮發性 1,000 筆（34461A 10,000；34465A/70A 50,000 std、MEM 選配 2 M）",
+   "source": "D-DMM p.26 (PDF 26)；p.3 (PDF 3)；p.27 (PDF 27) MEM 只限 34465/70A",
+   "evidence": "DS",
+   "quote": "Volatile reading memory 10,000 (34461A), 1,000 (34460A)"
+  },
+  {
+   "item": "前面板 USB Host",
+   "value": "FAT32；USB 2.0 mass storage；匯入／匯出設定、存讀值與螢幕截圖",
+   "source": "D-DMM p.25 (PDF 25)",
+   "evidence": "PH+DS",
+   "quote": "Front-Panel USB Host Port (FAT32)"
+  },
+  {
+   "item": "介面與選配（34460A）",
+   "value": "USB 2.0 標準；LAN/LXI 選配（3446LANU：LAN＋外部觸發）；GPIB 選配（3446GPBU）；SEC（3446SECU）；ACC（3446ACCU：34138A 測試線、USB 線）；Z54 校正證書；MEM 不適用 34460A",
+   "source": "D-DMM p.3–4 (PDF 3–4)；p.25 (PDF 25)；p.27 (PDF 27)",
+   "evidence": "DS",
+   "quote": "LAN 3446LANU 34460A Enable LAN interface and external triggering"
+  },
+  {
+   "item": "34460A 標配附件",
+   "value": "只有電源線與校正證書（無測試線；測試線需 ACC 選配）",
+   "source": "D-DMM p.27 (PDF 27) Accessories Included",
+   "evidence": "DS",
+   "quote": "34460A Power cord Calibration certificate"
+  },
+  {
+   "item": "後面板輸入／Front-Rear",
+   "value": "34460A 無後面板量測端子，故無 Front/Rear 切換",
+   "source": "D-DMM p.3 (PDF 3)；p.24 (PDF 24) 後面板照；P1",
+   "evidence": "PH+DS",
+   "quote": "Rear input terminals No"
+  },
+  {
+   "item": "外部觸發（OUT）",
+   "value": "TTL 相容邊緣觸發，34460A 最高 300 Hz；Voltmeter complete 3.3 V 輸出；34460A 需 3446LANU 軟體授權才啟用（p.27「Enable LAN interface and external triggering」）",
+   "source": "D-DMM p.25 (PDF 25) Triggering Conditions、p.27 (PDF 27)",
+   "evidence": "DS",
+   "quote": "Up to 1 kHz (34461A), up to 300 Hz (34460A)"
+  },
+  {
+   "item": "安全額定",
+   "value": "Measurement Category II to 300 V（面板 CAT II (300V)）",
+   "source": "D-DMM p.25 (PDF 25)；P1",
+   "evidence": "PH+DS",
+   "quote": "Measurement Category II to 300 V"
+  },
+  {
+   "item": "關機狀態保存",
+   "value": "只有用前面板電源開關關機時才保存 power-off state；開機是否回復未找到",
+   "source": "D-DMM p.26 (PDF 26) 註 3",
+   "evidence": "DS+UN",
+   "quote": "Power-off state only when power-down is initiated via front-panel power switch."
+  },
+  {
+   "item": "外型比例（面板繪製）",
+   "value": "Bench 261.2 × 103.8 × 303.2 mm（W×H×D）；Rack 212.8 × 88.3 × 272.3 mm；螢幕對角 4.3 in／109 mm",
+   "source": "D-DMM p.25 (PDF 25) Mechanical；p.3 (PDF 3) 圖示",
+   "evidence": "DS",
+   "quote": "Bench dimensions (W x H x D): 261.2 mm x 103.8 mm x 303.2 mm"
+  },
+  {
+   "item": "開機預設功能／量程／觸發",
+   "value": "未找到（UN）；第一版暫定 DCV、Auto、Null off（PD）",
+   "source": "未找到（M-DMM 未取得）",
+   "evidence": "UN+PD",
+   "quote": "未找到"
+  },
+  {
+   "item": "超量程顯示字樣",
+   "value": "未找到（UN）；以模擬器近似字樣並在儀器外標示",
+   "source": "未找到；D-DMM p.21 (PDF 21) 只說會回報",
+   "evidence": "UN+PD",
+   "quote": "Overload is reported in manual ranging."
+  }
+ ],
+ "core_features": [
+  {
+   "id": "DMM-F01",
+   "feature": "面板布局與端子（無 10 A、無 Front/Rear）",
+   "rule": "只提供 5 個端子：上排 Sense Ω4W HI（紅）、Input V Ω ⊣▶⊢ HI（紅）；中排 Sense LO（黑）、Input LO（黑）；下排 I 3A（紅）。功能鍵 12（4 列×3）、方向鍵 4＋Select、+／Range／− 3 鍵、軟鍵 6、USB-A、電源鍵與小指示點。深色圓形件與橢圓件為不可互動外觀。不得出現 10 A 端子、Front/Rear 切換、後面板輸入、數字鍵盤或旋鈕。",
+   "source": "P1 中層；D-DMM p.3 (PDF 3) \"Rear input terminals No\"；p.21 (PDF 21) \"Input protection 10 A (34461/65/70A only)\"",
+   "evidence": "PH+DS",
+   "acceptance": "I05-1、I00-1：對照 P1 逐項計數；搜尋 UI 不得有 10A／Front／Rear 控制。"
+  },
+  {
+   "id": "DMM-F02",
+   "feature": "DCV",
+   "rule": "按 DCV 進入直流電壓；量程 100 mV／1 V／10 V／100 V／1000 V，除 1000 V 外可讀到 1.2×量程；單位 mVDC（100 mV 量程）、VDC。D1 DC 1.234 V：依暫定選檔規則（GAP-DMM-05）預期 Auto 落在 10 V 量程（1 V 量程上限 1.2 V）顯示 ≈ +1.234 V；手動 10 V 或 100 V 物理值相同只差解析度；手動 1 V／100 mV 顯示超量程狀態（不顯示 0、不截斷成 1.2）。",
+   "source": "D-DMM p.11 (PDF 11)、p.12 (PDF 12) 註 2、p.21 (PDF 21)、p.4 (PDF 4) 畫面範例；DC Auto 量程存在：p.24 (PDF 24)",
+   "evidence": "DS+PD",
+   "acceptance": "I05-2、I05-3：真 UI 選 D1 DC 1.234 V → DCV → 讀值與單位；Range 切手動逐檔比對。"
+  },
+  {
+   "id": "DMM-F03",
+   "feature": "ACV（純正弦）",
+   "rule": "按 ACV；AC 耦合真有效值，只計交流成分（fixture 含 DC 成分時不得加進 ACV）；量程 100 mV／1 V／10 V／100 V／750 V（750 V 無超量程）。D1 1 kHz 純正弦 2 Vrms：依暫定選檔規則（GAP-DMM-05）預期 Auto 落在 10 V 量程顯示 ≈ 2 V；手動 1 V 量程為超量程。3 Hz–300 kHz 以外或非正弦不宣稱準確度。",
+   "source": "D-DMM p.21 (PDF 21) \"AC–coupled True RMS. Measures the AC component of the input.\"；p.11 (PDF 11)；p.12 (PDF 12) 註 2、5",
+   "evidence": "DS+PD（頻寬外／非正弦處理）",
+   "acceptance": "I05-2、I05-3：D1 2 Vrms 1 kHz；另測 DC fixture 於 ACV 不得顯示 1.234 V。"
+  },
+  {
+   "id": "DMM-F04",
+   "feature": "DCI（3 A 端子）",
+   "rule": "Shift 後按 DCV 進入 DCI（路徑 PD）；量程 100 µA／1 mA／10 mA／100 mA／1 A／3 A，3 A 無超量程，>3 A 顯示超量程；單位 µA／mA／A；量測端語義為 I 3A＋LO。沒有 10 A 量程。電壓或電阻 fixture 在 DCI 不得顯示成電流值。",
+   "source": "P1（DCV 上方 \"DCI\"；\"I\"\"3A\" 端子）；D-DMM p.3 (PDF 3)、p.11 (PDF 11)、p.12 (PDF 12) 註 2、p.21 (PDF 21)",
+   "evidence": "PH+DS+PD",
+   "acceptance": "I05-1、I05-2、I05-3：D1 已知 DC 電流（fixture 值由 I01 定）→ Auto／手動比對；過小量程超量程。"
+  },
+  {
+   "id": "DMM-F05",
+   "feature": "ACI（純正弦）",
+   "rule": "Shift 後按 ACV 進入 ACI（路徑 PD）；量程 100 µA…3 A；只計交流成分；規格頻率 3 Hz–5 kHz（5–10 kHz typ）；第一版只用純正弦已知電流 fixture；3 A 無超量程。",
+   "source": "P1（ACV 上方 \"ACI\"）；D-DMM p.11–12 (PDF 11–12)、p.21 (PDF 21)",
+   "evidence": "PH+DS+PD",
+   "acceptance": "I05-2、I05-3。"
+  },
+  {
+   "id": "DMM-F06",
+   "feature": "二線電阻",
+   "rule": "按 Ω2W；量程 100 Ω／1 kΩ／10 kΩ／100 kΩ／1 MΩ／10 MΩ／100 MΩ（皆可 20% 超量程）；單位 Ω／kΩ／MΩ；量測端 Input HI／LO。D1 1 kΩ：依暫定選檔規則（GAP-DMM-05）預期 Auto 落在 1 kΩ 量程顯示 ≈ 1.000 kΩ；手動 100 Ω 為超量程；D1 開路顯示超量程／開路狀態而非 0。",
+   "source": "D-DMM p.11 (PDF 11) Resistance；p.12 (PDF 12) 註 2；p.21 (PDF 21)",
+   "evidence": "DS+PD（開路字樣）",
+   "acceptance": "I05-2、I05-3、I05-5。"
+  },
+  {
+   "id": "DMM-F07",
+   "feature": "導通",
+   "rule": "按 Cont ·))；固定 1 kΩ 量程（+／Range／− 不改量程，顯示範圍說明，PD）；電阻低於門檻 10 Ω 時提示音＋可見指示（音效可關但可見指示必須有）；D1 導通 fixture → 提示；D1 開路 → 無提示並顯示開路／超量程狀態。門檻恰為 10 Ω 的比較方式未確認，fixture 避開 10 Ω。門檻值 10 Ω 標 DS，不是教學近似；顯示字樣與邊界屬 PD。",
+   "source": "D-DMM p.12 (PDF 12) \"Continuity 1 kΩ\"；p.21 (PDF 21) \"Continuity threshold Fixed at 10 Ω\"、\"300 samples/s with audible tone\"",
+   "evidence": "DS+PD",
+   "acceptance": "I05-2、I05-5：導通／開路兩種 fixture 真 UI 比對。"
+  },
+  {
+   "id": "DMM-F08",
+   "feature": "自動／手動量程與正確單位",
+   "rule": "每個核心功能（導通除外）有 Auto 與手動。Auto：超量程自動升檔、讀值落回最合適量程（降檔門檻 PD）；手動：不自動換檔，超量程時顯示超量程狀態。Range 鍵切 Auto⇄手動（PD，進手動時鎖定目前量程）；+／− 在手動逐檔升降，到端點停住（PD）。同一固定輸入在 Auto 與任何不超量程的手動量程下物理值一致。LCD 顯示 \"Auto <量程>\"（DS 範例 \"Auto 1V\"）或手動量程字樣（PD）；單位前綴隨量程換算（mV/V、µA/mA/A、Ω/kΩ/MΩ），不是只換文字。",
+   "source": "D-DMM p.21 (PDF 21) Overload ranging；p.24 (PDF 24) Autorange time；p.3–4 (PDF 3–4) 畫面範例；DC Auto 量程存在：p.24 (PDF 24)",
+   "evidence": "DS+PD",
+   "acceptance": "I05-3：固定值切 Auto／Manual；+／− 連續可恢復；過小量程 out-of-range。"
+  },
+  {
+   "id": "DMM-F09",
+   "feature": "Null 基本相對讀值",
+   "rule": "按 Null 開啟：以當下有效讀值為基準（PD），顯示＝量測值－基準、同單位；Null 開啟時改 fixture 顯示差值，不自動重取基準；再按 Null 關閉並回到原量測值。基準按功能分別保存（DS \"Per function null\"），切功能不得套用其他功能的基準或不相容單位；讀值超量程／無輸入時不得做減法。Null 基準編輯（Math 選單）OUT。",
+   "source": "P1 Null 鍵；D-DMM p.26 (PDF 26) \"Per function null\"；p.12 (PDF 12) 註 7、15",
+   "evidence": "PH+DS+PD",
+   "acceptance": "I05-4：設基準→改 fixture→看差值→關 Null 恢復；切到另一功能再切回，驗矩陣所定的保存策略。"
+  },
+  {
+   "id": "DMM-F10",
+   "feature": "超量程／未提供輸入／正常零值可區分",
+   "rule": "(a) fixture 明確為 0（0 V 或短路）→ 顯示數值 0 與單位；(b) 超量程（手動量程過小，或超出 1000 VDC／750 VAC／3 A）→ 顯示超量程狀態；(c) 未選 fixture 或 fixture 與目前功能不相容 → LCD 不顯示數值讀值，儀器外顯示「未提供相容測試輸入」。(b)(c) 的 LCD 字樣原廠未找到，採模擬器暫定字樣並在儀器外標示近似，不偽造原廠錯誤碼。",
+   "source": "D-DMM p.21 (PDF 21) \"Overload is reported in manual ranging.\"；02 34460A 關鍵規則；DC Auto 量程存在：p.24 (PDF 24)",
+   "evidence": "DS+PD",
+   "acceptance": "I05-5、I05-2。"
+  },
+  {
+   "id": "DMM-F11",
+   "feature": "功能切換語義",
+   "rule": "切換 DCV／ACV／DCI／ACI／Ω2W／Cont 時換成該功能自己的量程表、單位與 Null 基準；不得沿用上一功能的讀值；D1 各 fixture 只在相容功能產生讀值（電壓→DCV/ACV、電阻／導通→Ω2W/Cont、電流→DCI/ACI）。",
+   "source": "P1；D-DMM p.3 (PDF 3)；02 D1",
+   "evidence": "PH+DS+PD",
+   "acceptance": "I05-2。"
+  },
+  {
+   "id": "DMM-F12",
+   "feature": "Shift 次功能（暫定操作）",
+   "rule": "暫定 latch：按 Shift 進入 Shift 狀態（LCD 暫定指示），下一個有藍字次標籤的鍵執行次功能後自動解除；再按 Shift 取消。核心只用 DCI／ACI；其餘次功能（Ω4W、二極體、Reset、Probe Hold、Math、Utility、Help）只顯示「本輪未納入」並解除 Shift，不改量測狀態。儀器外標示此流程為近似。",
+   "source": "P1 藍字次標籤與藍色 Shift 鍵；M-DMM 未取得",
+   "evidence": "PH+PD",
+   "acceptance": "I05-6、I05-7。"
+  },
+  {
+   "id": "DMM-F13",
+   "feature": "未納入功能不假成功、不加高階機型功能",
+   "rule": "Freq、Temp、Ω4W、二極體、Probe Hold、Math、Display 其他 view、Utility、Help、Acquire、Run/Stop、Single、Reset、Local、方向鍵／Select、S2–S6：可見可按，但只顯示範圍說明。Probe Hold 不得做成任意 Freeze。不得出現 trend chart、digitizing、ACAL、1 µA 量程、10 A、1 GΩ、熱電偶、Front/Rear、2 M 記憶。 data logging 是否屬 34460A 為 UN，本輪以範圍決策不提供（GAP-DMM-23）。",
+   "source": "P1；D-DMM p.3 (PDF 3)、p.15 (PDF 15)／p.18 (PDF 18) ACAL、p.17 (PDF 17)／p.20 (PDF 20) Digitizing、p.26 (PDF 26)、p.27 (PDF 27)",
+   "evidence": "PH+DS",
+   "acceptance": "I05-7、I00-3。"
+  },
+  {
+   "id": "DMM-F14",
+   "feature": "LCD 讀值格式",
+   "rule": "讀值帶正負號、6½ 位並以空格三位分組（DS 範例 \"+0.634 450\"、\"+000.030 6\"）；單位字尾含前綴（DS 範例 VDC、mVDC）；左下量程字樣（\"Auto 1V\"）；左上功能名（\"DC Voltage\"）。AC、電流、電阻畫面字樣未找到，比照 DCV 格式並列 PD。 格式範例出自 datasheet 行銷合成畫面，只當 PD 參考。",
+   "source": "D-DMM p.3 (PDF 3) 產品照；p.4 (PDF 4)；p.23 (PDF 23) 位數",
+   "evidence": "PD",
+   "acceptance": "I05-2、I05-3：截圖比對格式與單位換算。"
+  },
+  {
+   "id": "DMM-F15",
+   "feature": "電源與重設（恢復到已定義狀態）",
+   "rule": "電源鍵模擬開／關：關機 LCD 暗、其他鍵無作用；開機進入明示暫定預設（DCV、Auto、Null off；PD）。原廠關機狀態保存／開機回復未確認，不宣稱。模擬器重設放在儀器外（I01），不把 Shift→Run/Stop（Reset）當已確認的原廠重設。",
+   "source": "P1 電源鍵；D-DMM p.26 (PDF 26) 註 3",
+   "evidence": "PH+DS+PD",
+   "acceptance": "I05-6；I06-3（DMM range／Null 的錯誤與恢復）。"
+  }
+ ],
+ "out_of_scope": [
+  {
+   "item": "四線電阻 Ω4W（Shift→Ω2W）與 Sense HI/LO 實際使用",
+   "reason": "02 允許首版不做；需四端接線（J01）",
+   "ui_treatment": "Sense 端子可見；Shift→Ω2W 顯示「四線量測本輪未納入」，不假裝兩線完成四線。"
+  },
+  {
+   "item": "二極體測試（Shift→Cont）",
+   "reason": "不在 02 第一版必做清單（DS 有 5 V、1 mA typ 規格）",
+   "ui_treatment": "顯示範圍說明，不改功能。"
+  },
+  {
+   "item": "頻率／週期（Freq）",
+   "reason": "不在第一版必做；DS 3 Hz–300 kHz",
+   "ui_treatment": "按下顯示範圍說明。"
+  },
+  {
+   "item": "溫度（Temp）",
+   "reason": "不在第一版必做；需 PT100／thermistor 探棒",
+   "ui_treatment": "按下顯示範圍說明；不得列熱電偶。"
+  },
+  {
+   "item": "電容量測",
+   "reason": "34460A 具備（DS p.3、p.11），但 P1 找不到前面板入口（Freq 上方無符號），M-DMM 未取得",
+   "ui_treatment": "不配置到任何鍵；在功能範圍說明列「具備但入口待校機確認」。"
+  },
+  {
+   "item": "DCV Ratio、Aperture/NPLC、Auto Zero、Input Z、AC filter",
+   "reason": "非核心；只見於 DS 產品照標籤或註腳",
+   "ui_treatment": "DCV 畫面照 DS 產品照顯示 S2–S5 標籤，按下顯示範圍說明；模擬器固定理想輸入與 6½ 位。"
+  },
+  {
+   "item": "Math（min/max/avg/Sdev、dB、dBm、span、count、limit test、histogram）",
+   "reason": "非核心（DS p.26 列出）",
+   "ui_treatment": "Shift→Null 顯示範圍說明。"
+  },
+  {
+   "item": "Display 的 Bar meter／Histogram view、Dual line 次顯示",
+   "reason": "非核心",
+   "ui_treatment": "Display 鍵顯示範圍說明；固定 Number view。"
+  },
+  {
+   "item": "Probe Hold（Shift→Single）",
+   "reason": "02 明定不列核心，且穩定判定未找到",
+   "ui_treatment": "顯示範圍說明；不可做成任意 Freeze。"
+  },
+  {
+   "item": "Run/Stop、Single、Acquire（觸發／取樣設定）、Reset",
+   "reason": "操作定義未找到",
+   "ui_treatment": "顯示範圍說明；讀值維持連續更新；Reset 不作原廠重設。"
+  },
+  {
+   "item": "Utility、Help（長按說明）、Local",
+   "reason": "非核心；Help 依 DS 為長按按鍵提供；Local 與遠端控制相關",
+   "ui_treatment": "顯示範圍說明；長按不觸發未證實功能。"
+  },
+  {
+   "item": "方向鍵 ▲▼◀▶ 與 Select",
+   "reason": "選單內容未找到，核心不需要",
+   "ui_treatment": "按下顯示範圍說明。"
+  },
+  {
+   "item": "前面板 USB 隨身碟存取、內部 Flash 狀態存取、讀值記憶 1,000 筆、螢幕截圖",
+   "reason": "非核心",
+   "ui_treatment": "USB 口只畫外觀。"
+  },
+  {
+   "item": "遠端介面（USB device、LAN 選配、GPIB 選配）、外部觸發、Voltmeter complete、Web UI、SCPI",
+   "reason": "後面板或選配；非單機練習範圍",
+   "ui_treatment": "不繪後面板；不提供。"
+  },
+  {
+   "item": "保險絲熔斷、輸入保護、負擔電壓、輸入阻抗負載效應、雜訊與精度模型",
+   "reason": "02：首版為理想教學模型",
+   "ui_treatment": "讀值理想化；在範圍說明註明不模擬精度與保護。"
+  },
+  {
+   "item": "高階機型功能：digitizing、ACAL、1 µA 量程、10 A 端子、1 GΩ、熱電偶、trend chart、2 M 讀值記憶",
+   "reason": "D-DMM 機型欄（p.3 表與各機型規格頁）顯示 34460A 沒有這些。",
+   "ui_treatment": "完全不出現（不是停用，而是不存在）。"
+  },
+  {
+   "item": "開機記憶、使用者自訂開機訊息、螢幕色彩、時鐘",
+   "reason": "DS p.26 有提及但操作未找到",
+   "ui_treatment": "不提供；開機用明示暫定預設。"
+  },
+  {
+   "item": "Data logging 模式",
+   "reason": "範圍決策（PD）：34460A 是否具備 UN——只有 p.3 概述「Both models also provide a data logging mode…」提到，沒寫是哪兩個機型；IX 線索（知識庫摘要）說 34460A／61A 只有連續量測模式。02 核心不需要。",
+   "ui_treatment": "不提供；範圍說明寫「34460A 是否有 data logging 待手冊確認」。"
+  }
+ ],
+ "gaps": [
+  {
+   "id": "GAP-DMM-01",
+   "gap": "34460A Operating and Service Guide（M-DMM）正文未取得。料號 34460-90901／資產 9018-03876 來自本次 WebSearch（IX，見 docs/sources.md §3.1），不是正文。所有軟鍵頁、Shift 流程、選單層級均未核對。",
+   "impact": "I05 的所有選單路徑只能以 P1 標籤＋DS 產品照＋PD 實作，不能宣稱完整還原。",
+   "provisional": "只做 02 核心；其餘鍵顯示範圍說明；所有暫定行為在儀器外標「近似／待校機確認」。",
+   "rationale": "官方網域在本環境被封鎖；04 已記錄存取表單問題；搜尋索引只算 IX。",
+   "verify_method": "取得 M-DMM 後補讀 Front Panel、Front Panel Menu Reference、DC/AC Voltage、DC/AC Current、Resistance、Continuity、Math/Null、Probe Hold 章節，記錄版本與適用型號，只回修 I05。"
+  },
+  {
+   "id": "GAP-DMM-02",
+   "gap": "Shift 的操作模式未找到：latch（先按後按）或同時按住、Shift 指示字樣、何時自動解除、對無次標籤鍵（Freq、Temp、+、Range、−、方向鍵）的效果。",
+   "impact": "DCI／ACI 的進入方式（核心）只能暫定。",
+   "provisional": "latch：按 Shift→LCD 暫定指示→下一次按帶藍字次標籤的鍵執行次功能並解除；再按 Shift 取消；對無次標籤鍵直接執行主功能並解除 Shift。",
+   "rationale": "P1 次標籤為藍色、Shift 鍵為藍色，符合常見面板慣例；無正文。；IX 搜尋摘要稱 Shift 為先按放開再按目標鍵，與暫定一致，但不是正文。",
+   "verify_method": "校機實測：按 Shift 後觀察 LCD 指示，再按 DCV 看是否進 DCI；補 M-DMM Front Panel 章節。"
+  },
+  {
+   "id": "GAP-DMM-03",
+   "gap": "Range／+／− 的精確行為未找到：Range 是切 Auto⇄手動還是其他；+／− 是否在 Auto 時直接轉手動；進手動時停在哪一檔；到端點是否循環。",
+   "impact": "核心的自動／手動量程操作路徑為暫定。",
+   "provisional": "Range：Auto⇄手動（進手動鎖定當前檔）；+／−：手動升／降一檔，Auto 時按下先轉手動再移一檔；端點停住不循環。",
+   "rationale": "D-DMM p.21 只證明 auto/manual 與 overload 行為；鍵語義依位置與符號推論。",
+   "verify_method": "校機：DCV 輸入固定值，按 Range、+、− 各數次並記錄 LCD 量程字樣；補 M-DMM Range 相關段落。"
+  },
+  {
+   "id": "GAP-DMM-04",
+   "gap": "各功能畫面的軟鍵標籤未找到（只有 DS 產品照中的 DCV 畫面：Range／Aperture／Auto Zero／Input Z／DCV Ratio）；S1 Range 按下後是否展開子選單也未找到。",
+   "impact": "DCI／ACV／ACI／Ω2W／Cont 畫面的軟鍵列只能暫定。",
+   "provisional": "DCV 照 DS 產品照繪製 S1–S5；其他核心畫面只顯示 S1 \"Range\"（Cont 不顯示），S2–S6 空白；S1 按下＝Range 鍵。",
+   "rationale": "不編造未見的標籤。",
+   "verify_method": "校機拍攝各功能亮屏正面；補 M-DMM Front Panel Menu Reference。"
+  },
+  {
+   "id": "GAP-DMM-05",
+   "gap": "Auto range 的降檔門檻／遲滯未找到（DS 只寫過載時升檔）。",
+   "impact": "Auto 讀值落在哪一檔可能與校機不同，但物理值不受影響。",
+   "provisional": "Auto 一律選能容納讀值的最小量程：|x| ≤ 1.2×量程（1000 VDC、750 VAC、3 A 為 ≤ 1.0×）；不設遲滯、確定性計算（PD）。預期：D1 1.234 VDC→10 V 檔；2 Vrms→10 V 檔；1 kΩ→1 kΩ 檔。",
+   "rationale": "D-DMM p.12 註 2 的 20% 超量程與 p.21 Overload ranging。",
+   "verify_method": "校機以可調電源緩慢升降電壓，記錄換檔點；補 M-DMM。"
+  },
+  {
+   "id": "GAP-DMM-06",
+   "gap": "超量程的 LCD 字樣未找到（DS p.21 只說 \"Overload is reported\"）。",
+   "impact": "I05-5 的超量程呈現無法照原廠字樣。",
+   "provisional": "LCD 以模擬器暫定字樣（例如中性的「超量程」標記）＋儀器外註明「近似字樣」，不假冒原廠錯誤碼。",
+   "rationale": "02：顯示字樣有手冊才按原廠。",
+   "verify_method": "校機：手動 1 V 量程接 1.5 V 拍 LCD；補 M-DMM。"
+  },
+  {
+   "id": "GAP-DMM-07",
+   "gap": "Null 細節未找到：按下時是否即取當下讀值為基準、基準可否手動輸入、切功能後 Null 開關狀態是否保留、換量程時基準處理。DS 只寫 \"Per function null\"。",
+   "impact": "I05-4 的保存策略為暫定。",
+   "provisional": "按 Null＝取當下有效讀值為基準並開啟；每功能各存 {on/off, 基準}；切回該功能時恢復其 Null 狀態；換量程保留基準（以物理值保存）；讀值超量程或無輸入時不能開啟 Null（按下顯示說明）。",
+   "rationale": "DS p.26 \"Per function null\"；02 要求不默默共用不相容單位。",
+   "verify_method": "校機：DCV 開 Null→切 ACV→切回 DCV 觀察 Null 是否仍開；補 M-DMM Math/Null 章節。"
+  },
+  {
+   "id": "GAP-DMM-08",
+   "gap": "導通細節未找到：門檻 10 Ω 為 < 或 ≤；是否可關閉提示音；LCD 在導通時顯示電阻值或文字；開路時顯示字樣。",
+   "impact": "導通顯示為部分暫定（門檻值本身有 DS）。",
+   "provisional": "R ≤ 10 Ω 時可見指示（提示音可在儀器外開關）；LCD 顯示電阻值到 1.2 kΩ，超過顯示暫定「OPEN」字樣；< 或 ≤ 的邊界待證（IX 摘要為 ≤），fixture 避開 10 Ω 與 1.2 kΩ 邊界。",
+   "rationale": "D-DMM p.12、p.21：1 kΩ 量程、門檻固定 10 Ω、audible tone。；邊界與 OPEN 字樣只有 IX 搜尋摘要，屬 PD。",
+   "verify_method": "校機以 5 Ω、15 Ω 電阻與開路測試；補 M-DMM Continuity 章節。"
+  },
+  {
+   "id": "GAP-DMM-09",
+   "gap": "AC、電流、電阻、導通畫面的功能名與單位字樣（如 VAC、ADC、AAC）未找到；DS 只有 DCV 範例（\"DC Voltage\"、VDC、mVDC）。",
+   "impact": "LCD 文字可能與校機不同。",
+   "provisional": "比照 DCV 格式：AC Voltage／VAC、DC Current／ADC、AC Current／AAC、2-Wire Ohms／Ω、Continuity（全部標 PD）。",
+   "rationale": "避免空白，但明示暫定。",
+   "verify_method": "校機亮屏拍各功能畫面。"
+  },
+  {
+   "id": "GAP-DMM-10",
+   "gap": "電容功能的前面板入口未找到：P1 在 Freq 上方沒有任何次標籤；DS 產品照（p.1、p.3）在 Freq 上方有藍色電容符號。",
+   "impact": "電容雖為 34460A 功能，本輪無法確認入口。",
+   "provisional": "本輪 OUT，不配置到任何鍵；範圍說明寫「34460A 具備電容量測，入口待確認」。",
+   "rationale": "照片優先於行銷產品照；兩者矛盾不可默默合併。",
+   "verify_method": "校機近拍 Freq 周邊與按 Shift→Freq 的結果；補 M-DMM Capacitance 章節。"
+  },
+  {
+   "id": "GAP-DMM-11",
+   "gap": "3A 端子左側深色圓形件的功能未找到（D-DMM p.24 後面板照已排除「前面板保險絲座」；推論為 10 A 位置的封蓋）",
+   "impact": "只影響外觀與 J01 的端子清單。",
+   "provisional": "STATIC、不可互動、不列為端子。",
+   "rationale": "D-DMM p.24 34460A 後面板照有「Current Input 3.15A (500V)」保險絲座；p.1 封面 34470A 同位置為 10A 端子。",
+   "verify_method": "校機近拍或觸摸確認；補 M-DMM 保險絲更換章節。"
+  },
+  {
+   "id": "GAP-DMM-12",
+   "gap": "3A 端子下方深色橢圓件的功能未找到。",
+   "impact": "只影響外觀。",
+   "provisional": "STATIC、不可互動；不得做成 Front/Rear。",
+   "rationale": "DS p.1 34470A 同位置是 Front/Rear 切換；34460A 無後面板輸入（p.3）。",
+   "verify_method": "校機近拍確認是否為封蓋。"
+  },
+  {
+   "id": "GAP-DMM-13",
+   "gap": "電源鍵下方小圓點的意義（待機燈／電源燈／顏色）未找到。",
+   "impact": "只影響外觀回饋。",
+   "provisional": "只畫外觀，不賦予燈號語義。",
+   "rationale": "DS 未提。",
+   "verify_method": "校機拍待機與開機兩種狀態。"
+  },
+  {
+   "id": "GAP-DMM-14",
+   "gap": "開機預設功能／量程／觸發狀態與開機記憶未找到；DS p.26 只說 power-off state 在前面板關機時保存。",
+   "impact": "I00-4 開機記憶待確認；模擬器開機畫面為暫定。",
+   "provisional": "開機一律 DCV、Auto、Null off、連續更新（PD），儀器外註明非原廠開機記憶。",
+   "rationale": "02 共用規則：未知開機記憶另列，不與 Preset 混淆。",
+   "verify_method": "校機：改設定後用前面板電源鍵關／開機，觀察是否回復；補 M-DMM Power-on／Utility 章節。"
+  },
+  {
+   "id": "GAP-DMM-15",
+   "gap": "Reset（Shift→Run/Stop）、Run/Stop、Single、Acquire 的功能未找到。",
+   "impact": "無法用原廠鍵做重設。",
+   "provisional": "模擬器重設放在儀器外（I01）；這些鍵顯示範圍說明。",
+   "rationale": "不把未確認語義當原廠 Default／Preset。",
+   "verify_method": "補 M-DMM Triggering 與 Front Panel 章節。"
+  },
+  {
+   "id": "GAP-DMM-16",
+   "gap": "校機韌體版本、LCD 語言、已安裝選配（LAN、GPIB、SEC）與是否含 ACC 測試線未提供；DS p.27 註「DIG now included with latest firmware update」未寫適用機型。",
+   "impact": "不影響核心，但不能以韌體更新為由加入 digitizing。",
+   "provisional": "不加入 digitizing／advanced triggering；UI 語言暫用英文面板字樣。",
+   "rationale": "DS 的 digitizing 規格只出現在 34465A／34470A 頁（p.17、p.20）。",
+   "verify_method": "校機 Utility／About 畫面拍照；拍後面板確認選配。"
+  },
+  {
+   "id": "GAP-DMM-17",
+   "gap": "ACV／ACI 對非正弦、DC 偏移變動後的沉降、3 Hz 以下或頻寬外訊號的行為第一版不模擬。",
+   "impact": "只影響進階教學。",
+   "provisional": "fixture 限純正弦 1 kHz；非相容 fixture 顯示未提供相容輸入。",
+   "rationale": "02：ACV／ACI 第一版用明確純正弦測試情境。",
+   "verify_method": "日後依 DS p.21–22（crest factor、DC blocking capacitor）另做規格。"
+  },
+  {
+   "id": "GAP-DMM-18",
+   "gap": "單機階段的端子選用：fixture 如何表示「接在 Input 還是 3A」未由原廠決定。",
+   "impact": "電流 fixture 在電壓功能、電壓 fixture 在電流功能時的顯示需要規則。",
+   "provisional": "fixture 自帶量測類型（電壓／電流／電阻），只在相容功能顯示；錯接情境延到 J01。",
+   "rationale": "02 D1：不同類型值只能用相容模式測。",
+   "verify_method": "J01 定義端子接線後以電路計算取代。"
+  },
+  {
+   "id": "GAP-DMM-19",
+   "gap": "面板印字「200 Vpk」的精確意義未在 DS 找到；「500 Vpk」有 D-DMM p.22「± 500 V peak maximum」（LO lead）佐證，但面板印字的完整意義仍待手冊。",
+   "impact": "只影響說明文字。",
+   "provisional": "照印，不做保護門檻。",
+   "rationale": "DS p.21 只有 sense 對 LO < 12 V（DC Ratio 條件）。",
+   "verify_method": "補 M-DMM Safety／Input terminals 章節。"
+  },
+  {
+   "id": "GAP-DMM-20",
+   "gap": "預設積分時間／位數與讀值更新率未找到（DS 產品照 DCV 畫面為 \"Aperture 10 PLC\"）。",
+   "impact": "LCD 位數與更新節奏為暫定。",
+   "provisional": "固定 6½ 位顯示（對應 DS p.23 的 10 PLC）；更新節奏採確定性時間軸，不加隨機雜訊。",
+   "rationale": "DS p.23：10 PLC → 6½ 位、6 rdg/s（60 Hz）。",
+   "verify_method": "校機觀察預設 NPLC 與更新速度。"
+  },
+  {
+   "id": "GAP-DMM-21",
+   "gap": "LCD 上方觸發狀態字樣（DS 產品照 \"Auto Trigger\"）是否為預設未確認。",
+   "impact": "僅影響狀態列文字。",
+   "provisional": "可顯示 \"Auto Trigger\" 並標為依 DS 產品照（PD），不提供觸發設定。",
+   "rationale": "DS p.3 產品照可見。",
+   "verify_method": "校機亮屏確認。"
+  },
+  {
+   "id": "GAP-DMM-22",
+   "gap": "IX 線索（主控的官方手冊搜尋與驗證者搜尋，詳見 docs/sources.md §3.1）：官方 9018-03876 PDF 與 Truevolt WebHelp 都被環境封鎖；搜尋摘要稱導通「≤10 Ω 嗶聲、10 Ω–1.2 kΩ 顯示電阻、>1.2 kΩ 顯示 OPEN」、Shift 為「先按放開再按目標鍵」。也有第三方副本（batronix、docs.rs-online、manualslib），依規則不下載；日後若使用，要先核對與官方 9018-03876 同版次才能當 OT。",
+   "impact": "無法升級任何 PD／UN。",
+   "provisional": "維持 PD／UN。",
+   "rationale": "主控已確認所有 Keysight 網域被封鎖。",
+   "verify_method": "改在可存取網路的環境下載並記錄 Edition。"
+  },
+  {
+   "id": "GAP-DMM-23",
+   "gap": "Data logging 是否為 34460A 功能：D-DMM p.3 概述「Both models also provide a data logging mode」未指明機型；機型欄沒有此列",
+   "impact": "只影響未納入清單的措辭",
+   "provisional": "本輪不提供；範圍說明標「待手冊確認」",
+   "rationale": "02 核心不需要；證據不足時不能寫成「不具備」也不能寫成「具備」",
+   "verify_method": "取得 M-DMM 後查 Acquire／Data Logging 章節的適用機型"
+  }
+ ],
+ "discrepancies": [
+  {
+   "topic": "Freq 鍵上方次標籤（電容符號）",
+   "a": "P1 中層（放大確認）：Freq 上方沒有任何字樣或符號；Cont 上方為藍色二極體符號。",
+   "b": "D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照：Freq 上方有藍色電容符號 ⊣⊢，Cont 上方為二極體符號。",
+   "resolution": "面板照 P1；電容入口列 GAP-DMM-10，本輪不配置 Shift→Freq＝電容。可能是面板改版或產品照版本不同（未證實）。"
+  },
+  {
+   "topic": "面板顏色",
+   "a": "P1：淺灰白色面板、淺色按鍵、藍灰色軟鍵、藍色 Shift。",
+   "b": "D-DMM 所有產品照（p.1、p.3、p.11）：黑色面板、深色按鍵。",
+   "resolution": "外觀以 P1 為準；DS 照片只用於比例與畫面範例。"
+  },
+  {
+   "topic": "Datasheet 概述文字 vs 機型欄（trend chart、data logging、digitizing、1 µA、ACAL）",
+   "a": "D-DMM p.3 (PDF 3) 概述：\"graphical capabilities such as trend and histogram charts ... Both models also provide a data logging mode ... and a digitizing mode\"、\"1 μA range\"、\"Auto calibration\"，未指明機型。",
+   "b": "同頁機型表：34460A Statistical graphics 只有 \"Histogram, bar meter\"、DCI 由 100 μA 起；ACAL 只寫在 34465A／34470A 規格頁（p.15、p.18）；Digitizing 只在 p.17、p.20；p.26 trend chart 限 34461A/65A/70A。",
+   "resolution": "trend chart、digitizing、1 µA、ACAL：依 p.3 機型欄與各機型規格頁，34460A 沒有。data logging：機型欄沒提，34460A 是否具備 UN，本輪以範圍決策不提供（不是 DS 證實不存在）。"
+  },
+  {
+   "topic": "DIG 韌體註記的適用機型",
+   "a": "D-DMM p.27 (PDF 27)：\"Note: High speed digitizing and advanced triggering (DIG) now included with latest firmware update.\"（未列機型）",
+   "b": "D-DMM p.17 (PDF 17)、p.20 (PDF 20)：Digitizing 規格只在 34465A、34470A 頁；34460A 規格頁 p.11–12 無。",
+   "resolution": "不加入 34460A；列 GAP-DMM-16。"
+  },
+  {
+   "topic": "Truevolt 家族電流範圍敘述",
+   "a": "D-DMM p.8 (PDF 8)：\"Truevolt DMMs offer expanded current ranges from 100 µA to 10 A.\"",
+   "b": "D-DMM p.3 (PDF 3) 34460A 欄：DCI／ACI \"100 μA to 3 A\"；p.21：10 A 只限 34461/65/70A；P1 只有 3A 端子。",
+   "resolution": "34460A 上限 3 A，不提供 10 A。"
+  },
+  {
+   "topic": "超量程例外的比例",
+   "a": "D-DMM p.12 (PDF 12) 註 2（34460A）：\"20% overrange on all ranges, except 1,000 V DCV, 750 ACV, 3 A Current, and diode test.\"（未寫例外是幾 %）",
+   "b": "D-DMM p.17 (PDF 17)／p.20 (PDF 20)（34465A／34470A）：同類例外明寫 \"have 0%\"。",
+   "resolution": "34460A 例外量程暫定 0% 超量程（PD），並在 specs 註明。"
+  },
+  {
+   "topic": "頻率規格表的列名",
+   "a": "D-DMM p.12 (PDF 12) Frequency 表：\"3 Hz to 10 Hz\"、\"10 Hz to 100 Hz\"、\"100 Hz to 1 kHz\"、下一列印 \"1 Hz to 300 kHz\"（Additional Gate Time Errors 表同）。",
+   "b": "D-DMM p.3 (PDF 3)：Frequency, period \"3 Hz to 300 kHz\"。",
+   "resolution": "該列疑為 \"1 kHz to 300 kHz\" 的印刷錯誤；頻率功能本輪 OUT，採 p.3 的 3 Hz–300 kHz。"
+  },
+  {
+   "topic": "導通門檻是否有證據",
+   "a": "02（規劃文件）：導通門檻需有正文，缺證據時列為近似教學參數。",
+   "b": "D-DMM p.21 (PDF 21)：\"Continuity threshold Fixed at 10 Ω\"；p.12 導通量程 1 kΩ。",
+   "resolution": "門檻採 DS 值 10 Ω（證據 DS），不是教學近似；邊界比較、蜂鳴設定與顯示字樣仍 PD（GAP-DMM-08）。"
+  },
+  {
+   "topic": "3A 左側深色圓形件",
+   "a": "主控提示：旁有保險絲符號，可能與保險絲有關（照片推論）。",
+   "b": "D-DMM p.1 (PDF 1) 封面照：34470A 在同一位置是 \"10A\" 紅色端子；P1 的保險絲符號位於 LO→I 的連線上，並非緊貼圓形件。",
+   "resolution": "保險絲座推論被 p.24 排除；暫以「10 A 位置封蓋」推論（PD）畫成不可互動外觀件，不當端子。"
+  },
+  {
+   "topic": "3 A 保險絲位置",
+   "a": "D-DMM p.21 (PDF 21)：3 A 輸入有 \"Externally accessible 3.15 A, 500 V fuse\"。",
+   "b": "D-DMM p.24 行銷照「34460A DMM rear panel with GPIB option installed」：後面板左下有圓形座，印「Current Input 3.15A (500V)」（主控放大原圖確認）",
+   "resolution": "3.15 A 電流保險絲座在後面板左下（DS 行銷照；校機後面板未拍，套用到校機時標 PD）。本輪不畫後面板，不模擬換保險絲或熔斷。"
+  },
+  {
+   "topic": "Input 端子標題符號（機型差異）",
+   "a": "P1 與 D-DMM p.1 (PDF 1) 34460A：\"Input V Ω ⊣▶⊢\"（只有二極體符號）。",
+   "b": "D-DMM p.1 (PDF 1) 34470A：\"Input VΩ ⊣⊢ ⊣▶⊢\"（多一個電容符號），且有 10A 端子、Front/Rear、▲ 上方 \"ACAL\"。",
+   "resolution": "非矛盾而是型號差異；只照 34460A（P1）繪製，不借用 34470A 標示。"
+  },
+  {
+   "topic": "軟鍵 S6 標籤隨畫面不同",
+   "a": "D-DMM p.3 (PDF 3) 產品照（Number view）：S6 空白。",
+   "b": "D-DMM p.1 (PDF 1) 產品照（Histogram view）：S6 \"Clear Readings\"。",
+   "resolution": "軟鍵為情境式；第一版固定 Number view，S6 保持空白。"
+  }
+ ],
+ "pages_read": "D-DMM 文字（逐頁全文）：PDF 1–12、21–28；部分：PDF 13（34461A 標題）、PDF 14（34461A 註腳 8–10）、PDF 15（34465A 標題與 ACAL 字樣）、PDF 17（34465A Digitizing 表與註腳）、PDF 18（34470A 標題與 ACAL）、PDF 20（34470A Digitizing 表與註腳）。未讀：PDF 16、19 內文。D-DMM 渲染圖（Read 看圖）：p.1（封面，含 34460A／34470A 產品照並放大端子區與按鍵區）、p.3（含 34460A 產品照放大：軟鍵標籤、次標籤）、p.4、p.11、p.12、p.21、p.23、p.24、p.25、p.26、p.27；另抽出 p.1、p.3 內嵌產品圖原解析度檢視。照片：P1 全圖；主控裁切 dmm_left、dmm_right、dmm_freqtemp、dmm_input、dmm_symbols；自行放大 P1 的功能鍵上排、Input 標題、Freq 上方、Cont 上方、保險絲符號區、橢圓件、USB／電源區、方向鍵／Range 區、型號列、整個 34460A 區域。規劃文件：00、01、02（共用規則、34460A 節、第一階段測試情境）、03（共用契約、I00、I05）、04（全文）、DOWNLOAD_SOURCES.json。未讀：05、06、07。M-DMM：未取得（0 頁）。本代理未做 WebSearch。"
+}
