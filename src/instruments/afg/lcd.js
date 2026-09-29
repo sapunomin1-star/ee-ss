@@ -82,7 +82,8 @@ export function renderLcd(m) {
     if (m.buf) {
       s += T(128, 223, `${m.buf}_`, { size: 16, fill: '#d00000', anchor: 'middle', weight: 700 });
     } else {
-      const text = m.hl === 'FREQ' ? fmtFixed(c.freq / mult, Math.max(0, 9 - Math.max(1, Math.floor(Math.log10(c.freq / mult) + 1e-9) + 1))) : val;
+      // 頻率編輯框顯示到 1 μHz（手冊 p.61：1.000000000 kHz）
+      const text = m.hl === 'FREQ' ? fmtFixed(c.freq / mult, Math.round(Math.log10(mult)) + 6) : val;
       const k = Math.round(m.cexp - Math.log10(mult));
       const idx = cursorIndex(text, k);
       const cw = 9.4;
