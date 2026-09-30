@@ -25,23 +25,29 @@ function graticule() {
     `<path d="${ticks}" stroke="#737a82" stroke-width=".6" fill="none"/>`;
 }
 
-// 一個通道在一筆紀錄上的波形：時間軸以目前 s/div 與 M Pos 對映（停止時也能縮放、移動凍結紀錄）
+// 一個通道在一筆紀錄上的波形：時間軸以目前 s/div 與 M Pos 對映（停止時也能縮放、移動凍結紀錄）。
+// 紀錄的點比像素密時，每個像素欄只畫該欄的最小、最大值（依出現順序），看起來和把全部點連線（Vectors）一樣；
+// 不跳點抽樣，免得在欠取樣（混疊）的紀錄上又混疊一次，畫面和 Measure 用的紀錄不一致。
 function trace(m, rec, i) {
   const arr = rec.v[i];
   if (!arr || !m.ch[i].on) return '';
   const c = m.ch[i], base = m.base(i), sd = m.sdiv, left = m.mpos - 5 * sd;
   const X = (t) => GX + ((t - left) / sd) * DIV;
-  const Y = (v) => CY - (c.pos + v / base) * DIV; // v 是 BNC 伏特；Probe 設定只改讀值、不改波形大小
-  if (rec.band[i]) { // 時基太慢：包絡帶
-    const x0 = X(rec.t0), x1 = X(rec.t0 + (N - 1) * rec.dt), yt = Y(Math.max(arr[0], arr[1])), yb = Y(Math.min(arr[0], arr[1]));
-    return `<rect class="wave ch${i + 1}" x="${x0.toFixed(1)}" y="${yt.toFixed(1)}" width="${(x1 - x0).toFixed(1)}" height="${Math.max(1, yb - yt).toFixed(1)}" fill="${COL[i]}" opacity=".85"/>`;
-  }
-  const step = Math.max(1, Math.floor(0.5 / ((rec.dt / sd) * DIV))); // 每像素最多約 2 點
+  const Y = (v) => clamp(CY - (c.pos + v / base) * DIV, GY - 20, GY + GH + 20); // v 是 BNC 伏特；Probe 設定只改讀值、不改波形大小
   const pts = [];
-  for (let k = 0; k < N; k += step) {
+  let col = null, lo = 0, hi = 0;
+  const flush = () => {
+    if (col === null) return;
+    for (const k of lo === hi ? [lo] : [Math.min(lo, hi), Math.max(lo, hi)]) pts.push(`${X(rec.t0 + k * rec.dt).toFixed(1)},${Y(arr[k]).toFixed(1)}`);
+  };
+  for (let k = 0; k < N; k++) {
     const x = X(rec.t0 + k * rec.dt);
-    if (x >= GX - 20 && x <= GX + GW + 20) pts.push(`${x.toFixed(1)},${clamp(Y(arr[k]), GY - 20, GY + GH + 20).toFixed(1)}`);
+    if (x < GX - 20 || x > GX + GW + 20) continue;
+    if (Math.floor(x) !== col) { flush(); col = Math.floor(x); lo = hi = k; continue; }
+    if (arr[k] < arr[lo]) lo = k;
+    if (arr[k] > arr[hi]) hi = k;
   }
+  flush();
   return `<polyline class="wave ch${i + 1}" points="${pts.join(' ')}" fill="none" stroke="${COL[i]}" stroke-width="1.2"${rec.broken ? ' stroke-dasharray="3 2"' : ''}/>`;
 }
 
@@ -152,7 +158,8 @@ function autoMeas(m) {
 export function renderLcd(m) {
   const st = m.trigStatus(), scan = st === 'Scan';
   // Scan：一格寬的空白區由左往右移動（p.77），代表新舊資料的交界；週期＝10 div × s/div（簡化呈現，GAP-TDS-08）
-  const mask = scan ? `<mask id="tds-scan"><rect x="0" y="0" width="320" height="240" fill="#fff"/><rect y="${GY}" width="${DIV}" height="${GH}" fill="#000">` +
+  // 遮罩範圍用 LCD 座標：預設的 objectBoundingBox 遇到完全水平的波形（高度 0，例如混疊成直線、Ground）會整條被遮掉
+  const mask = scan ? `<mask id="tds-scan" maskUnits="userSpaceOnUse" x="0" y="0" width="320" height="240"><rect x="0" y="0" width="320" height="240" fill="#fff"/><rect y="${GY}" width="${DIV}" height="${GH}" fill="#000">` +
     `<animate attributeName="x" from="${GX - DIV}" to="${GX + GW}" dur="${10 * m.sdiv}s" repeatCount="indefinite"/></rect></mask>` : '';
   return `<rect width="320" height="240" fill="#000"/>` +
     `<defs><clipPath id="tds-clip"><rect x="${GX}" y="${GY}" width="${GW}" height="${GH}"/></clipPath>${mask}</defs>` +
