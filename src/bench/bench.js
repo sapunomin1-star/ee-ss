@@ -110,7 +110,7 @@ export class Bench {
   }
 
   key() {
-    const board = this.board === 'bb' ? [this.bb?.key?.() ?? JSON.stringify(this.bb?.snapshot?.() ?? null), this.bbWires] : [this.topo, this.R, this.C, this.wires];
+    const board = this.board === 'bb' ? [this.bb?.parts ?? [], this.bbWires] : [this.topo, this.R, this.C, this.wires];
     return JSON.stringify([this.board, board, this.probeX, this.afgParams(), this.gpeParams(), this.loadLeads()]);
   }
 
@@ -167,8 +167,7 @@ export class Bench {
     if (gp.active) {
       gp.ch.forEach((c, k) => {
         const pos = leadNode[`GPE.CH${k + 1}+`], neg = leadNode[`GPE.CH${k + 1}-`];
-        if (!pos || !neg) return;
-        if (pos === neg) warn.push({ level: 'bad', text: `GPE CH${k + 1} 的＋與−接在一起：電源短路，會進入 CC 限流。` });
+        if (!pos || !neg) return; // ＋－接在一起的短路提醒由麵包板模型給（GPE 會進入 CC 限流）
         gpe.push({ id: `GPE${k + 1}`, ch: k + 1, pos, neg, v: c.v, ilim: c.ilim });
       });
     }

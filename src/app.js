@@ -23,7 +23,7 @@ export function startApp(root) {
   const models = createInstruments();
   const ids = Object.keys(models);
   const metas = Object.fromEntries(ids.map((id) => [id, controlMeta(id)]));
-  const bench = new Bench(models.afg, models.dmm);
+  const bench = new Bench(models.afg, models.dmm, models.gpe);
   // 麵包板模式（掛在 bench 上的純屬性，Bench 本身不用它們；電路計算讀 bench.bb.netlist(bench.bbWires)）：
   //   board＝'rc'（固定 RC 板，用 bench.wires）｜'bb'（麵包板）；bb＝麵包板上的元件；bbWires＝導線 id → 孔 id
   bench.board = 'rc';
@@ -33,6 +33,7 @@ export function startApp(root) {
   const bbUi = { tool: 'select', first: null, sel: null, newR: DEFAULT_VALUE.R, newC: DEFAULT_VALUE.C, hover: null };
   models.tds.setBenchSource(() => bench.tdsInput());
   models.dmm.setBenchSource(() => bench.dmmInput());
+  models.gpe.setBenchSource(() => bench.gpeInput());
   let benchKey = bench.key();
   const knobAngle = {};
   const hints = [];
@@ -188,6 +189,7 @@ export function startApp(root) {
   function useBench(inst) { // 探棒或測試線接上電路：該台改用實驗台訊號
     if (inst === 'tds' && models.tds.scenarios.get() !== 'BENCH') return models.tds.scenarios.set('BENCH');
     if (inst === 'dmm' && models.dmm.scenarios.get() !== 'bench') return models.dmm.scenarios.set('bench');
+    if (inst === 'gpe' && models.gpe.scenarios.get() !== 'bench') return models.gpe.scenarios.set('bench');
     return null;
   }
   function benchLead(id) {

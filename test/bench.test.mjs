@@ -253,6 +253,7 @@ test('週期邊界與負時間：t＝nT、前後極小偏移、負的預觸發�
 
 // ---- 麵包板＋GPE（用固定的 netlist 代替麵包板模型；麵包板本身的測試在 breadboard.test.mjs）----
 import { GpeModel } from '../src/instruments/gpe/model.js';
+import { Breadboard, BB_DEMO } from '../src/bench/breadboard.js';
 function fakeBoard(elements, leads) {
   const nodes = [...new Set([...elements.flatMap((e) => [e.a, e.b]), ...Object.values(leads)])];
   return { key: () => JSON.stringify([elements, leads]), netlist: (w) => ({ nodes, groupOf: (h) => h, elements, leads: Object.fromEntries(Object.keys(w).map((id) => [id, leads[id]])), warnings: [] }) };
@@ -288,9 +289,11 @@ test('麵包板＋GPE：10 Ω 負載超過 0.1 A 限流 → CC，端電壓 1 V�
   gpe.press('GPE.KEY.OUTPUT_ON_OFF'); b.solution();
   const rb = gpe.readback()[1];
   assert.equal(rb.cc, true); near(rb.v, 1, 1e-6, 'CC 端電壓'); near(rb.i, 0.1, 1e-9, 'CC 電流');
-  const s = gpeBench([], { 'GPE.CH1+': 'P', 'GPE.CH1-': 'P' });
+  // 真的麵包板：＋、−插在同一欄（a5、b5 相連）＝短路
+  const s = gpeBench([], {});
+  s.b.bb = new Breadboard(); s.b.bbWires = { 'GPE.CH1+': 'a5', 'GPE.CH1-': 'b5' };
   s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
-  assert.ok(s.b.snapshot().warn.some((w) => w.includes('短路')));
+  assert.ok(s.b.snapshot().warn.some((w) => w.includes('短路')), '麵包板模型的短路提醒');
   assert.equal(s.gpe.readback()[1].cc, true); near(s.gpe.readback()[1].v, 0, 1e-9, '短路 0 V');
 });
 
@@ -304,4 +307,35 @@ test('麵包板＋GPE：開 Output 後經 10 kΩ 對 10 µF 充電（τ≈0.1 s�
   tick(0.3); const v2 = dmm.view().value;
   tick(3); const v3 = dmm.view().value;
   assert.ok(v1 < v2 && v2 < v3 && Math.abs(v3 - 5 * (10e6 / (10e6 + 10e3))) < 0.01, `充電：${v1} → ${v2} → ${v3}`);
+});
+
+test('麵包板示範「RC 低通」和固定 RC 板是同一個電路：電表 ACV、各點波形都相同', () => {
+  let t = 50;
+  const mk = (board) => {
+    const afg = { on: true, ch: [{ wave: 'SINE', freq: 1000, sym: 50, emfVpp: 2, emfOffset: 0, output: true }, { ...off }] };
+    const dmm = new DmmModel(), b = new Bench(afg, dmm);
+    b.now = () => t;
+    if (board === 'bb') { b.board = 'bb'; b.bb = new Breadboard(); b.bbWires = {}; b.bb.load(BB_DEMO.rc, b.bbWires); } else Object.entries(DEMO).forEach(([l, n]) => b.connect(l, n));
+    dmm.setBenchSource(() => b.dmmInput()); dmm.setFixture('bench'); dmm.press('DMM.KEY.ACV');
+    return { b, dmm };
+  };
+  const rc = mk('rc'), bb = mk('bb');
+  rc.b.solution(); bb.b.solution(); t += 1;
+  near(bb.dmm.view().value, rc.dmm.view().value, 1e-12, '電表 ACV');
+  for (const i of [0, 1]) {
+    const x = rc.b.tdsInput().sig[i].table, y = bb.b.tdsInput().sig[i].table;
+    for (let k = 0; k < x.length; k += 131) near(y[k], x[k], 1e-12, `示波器 CH${i + 1} 取樣 ${k}`);
+  }
+  assert.deepEqual(bb.b.snapshot().warn, []);
+});
+
+test('麵包板示範「GPE 分壓」：GPE 5 V 開輸出，電表 DCV 讀 R2 約 2.5 V、GPE 讀回 CV 2.5 mA', () => {
+  const { b, dmm, gpe, tick } = gpeBench([], {});
+  b.bb = new Breadboard(); b.bbWires = {}; b.bb.load(BB_DEMO.gpe, b.bbWires);
+  gpe.press('GPE.KEY.OUTPUT_ON_OFF'); b.solution(); tick(1);
+  const Rp = (1000 * 10e6) / (1000 + 10e6);
+  near(dmm.view().value, (5 * Rp) / (1000 + Rp), 1e-4, 'R2 兩端');
+  const rb = gpe.readback()[1];
+  near(rb.i, 5 / (1000 + Rp), 1e-6, 'GPE 電流'); assert.equal(rb.cc, false);
+  near(gpe.readback()[2].i, 0, 0, '沒接的 CH2＝開路');
 });

@@ -8,9 +8,10 @@ import { run as bench } from './bench.mjs';
 import { run as benchRecovery } from './bench-recovery.mjs';
 import { run as benchAudit } from './bench-audit.mjs';
 import { run as breadboard } from './breadboard.mjs';
+import { run as breadboardMeasure } from './breadboard-measure.mjs';
 
 let fail = 0, pass = 0;
-for (const r of [afg, tds, gpe, dmm, i06, bench, benchRecovery, benchAudit, breadboard]) {
+for (const r of [afg, tds, gpe, dmm, i06, bench, benchRecovery, benchAudit, breadboard, breadboardMeasure]) {
   const T = await r();
   T.print();
   fail += T.fail; pass += T.pass;

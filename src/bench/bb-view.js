@@ -178,7 +178,9 @@ export function bbSide(bench, ui, hints) {
     selHtml = `<dl class="kv"><dt>元件</dt><dd>${esc(p.id)}（${KIND_NAME[p.kind]}）</dd><dt>${p.kind === 'W' ? '兩端' : '兩腳'}</dt><dd>${p.a}、${p.b}（節點 ${esc(net.groupOf(p.a))}、${esc(net.groupOf(p.b))}）</dd></dl>` +
       `${val}<div class="btns"><button data-bb="delete">刪除 ${esc(p.id)}</button></div>`;
   }
-  const warn = net.warnings.length ? net.warnings.map((w) => `<li class="w-${w.level}">${esc(w.text)}</li>`).join('') : '<li class="w-ok">擺放沒有問題。</li>';
+  // 擺放問題（麵包板模型）＋電氣問題（電路計算：輸出短路到地、沒有回路、AFG 輸出 OFF…）
+  const all = bench.solution().warn;
+  const warn = all.length ? all.map((w) => `<li class="w-${w.level}">${esc(w.text)}</li>`).join('') : '<li class="w-ok">擺放與接線沒有問題。</li>';
   const on = Object.keys(LEADS).filter((id) => bench.bbWires[id]);
   const rows = on.map((id) => `<li><b>${esc(LEADS[id].name)}</b>：${bench.bbWires[id]}（節點 ${esc(net.leads[id])}）</li>`).join('');
   return `
@@ -188,8 +190,7 @@ export function bbSide(bench, ui, hints) {
       <label class="fld">新電阻 <select name="bbR">${opt(R_OPTIONS, ui.newR, fmtR)}</select></label>
       <label class="fld">新電容 <select name="bbC">${opt(C_OPTIONS, ui.newC, fmtC)}</select></label></section>
     <section><h3>選取的元件</h3>${selHtml}</section>
-    <section><h3>狀況</h3><ul class="warn">${warn}</ul>
-      <p class="muted">麵包板的電路計算還沒接上：這個模式下示波器、電表的讀值還不會反映麵包板上的電路。</p></section>
+    <section><h3>狀況</h3><ul class="warn">${warn}</ul></section>
     <section><h3>導線</h3><ul class="wires">${rows || '<li class="muted">還沒有接導線。</li>'}</ul>
       ${on.length && on.length < Object.keys(LEADS).length ? `<p class="muted">其餘 ${Object.keys(LEADS).length - on.length} 條未接。</p>` : ''}</section>
     <section><h3>示範與清空</h3>
