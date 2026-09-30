@@ -346,7 +346,7 @@ export class DmmModel {
 
   status() {
     const fx = this.fx;
-    const scen = ['測試情境', fx.kind ? `${fx.label}（${TERM[fx.kind]}）` : '未接（在下方選 D1 情境）'];
+    const scen = ['測試情境', fx.bench ? '實驗台接線（HI−LO）' : fx.kind ? `${fx.label}（${TERM[fx.kind]}）` : '未接（在下方選 D1 情境）'];
     if (!this.on) return [['電源', '關：LCD 暗、按鍵無作用（按 ⏻ 開機）'], scen];
     const f = this.f, st = this.st, r = f.ranges[this.rangeIdx()], rd = this.reading(), v = this.view();
     const read = rd.state === 'value'

@@ -4,7 +4,7 @@
 //   示波器接地夾＝大地（接在哪一點，那一點就被接到大地）；探棒尖端量「該點對大地」的電壓。
 //   電表浮接，量 HI−LO；探棒與電表的輸入阻抗（10 MΩ 級）忽略不計。
 // 解法：只有一顆電容 → 戴維寧等效 Vth(t)、Rth，一階方程 dVc/dt＝(Vth−Vc)/(Rth·C) 在每段取樣間以
-//   分段線性輸入精確積分；週期穩態用 shooting：Vc(T)＝a·Vc(0)＋b → Vc(0)＝b/(1−a)。
+//   分段線性輸入精確積分（方波各區間保持常值）；週期穩態用 shooting：Vc(T)＝a·Vc(0)＋b → Vc(0)＝b/(1−a)。
 export const M = 4000;           // 每週期取樣點
 export const R_OUT = 50;         // AFG 輸出內阻
 const GMIN = 1e-12;              // 每個節點對地的極小電導，讓浮接電路也可解
@@ -121,17 +121,23 @@ export function solve(bench, afg) {
     for (let k = 0; k < M; k++) mean += vth[k] / M;
     if (tau > 1e6 * T) vc.fill(mean); // 時間常數遠大於週期：電容電壓＝輸入平均值
     else {
-      const E1 = Math.exp(-h / tau);
+      const step = h / tau, decay = -Math.expm1(-step);
+      // 線性輸入的係數 1−(1−exp(−step))/step；小 step 用級數避免相減失去精度。
+      const ramp = step < 1e-3
+        ? step * (0.5 + step * (-1 / 6 + step * (1 / 24 - step / 120)))
+        : 1 - decay / step;
+      const dv = Float64Array.from({ length: M }, (_, k) => sources.reduce((acc, s, j) =>
+        acc + (s.p.wave === 'SQUARE' ? 0 : kth[j] * (e[j][k + 1] - e[j][k])), 0));
       const run = (x0) => {
         vc[0] = x0;
         for (let k = 0; k < M; k++) {
-          const u0 = vth[k], u1 = vth[k + 1], sl = (u1 - u0) / h;
-          vc[k + 1] = u1 - sl * tau + (vc[k] - u0 + sl * tau) * E1;
+          // 方波在跳變前保持原值，電容電壓到邊緣仍連續；不要提前一格充放電。
+          vc[k + 1] = vc[k] + decay * (vth[k] - vc[k]) + ramp * dv[k];
         }
         return vc[M];
       };
-      const b = run(0), a = Math.exp(-T / tau);
-      run(1 - a > 1e-12 ? b / (1 - a) : mean);
+      const b = run(0), cycleDecay = -Math.expm1(-T / tau);
+      run(cycleDecay > 1e-12 ? b / cycleDecay : mean);
     }
   }
   // ---- 6. 各接點電壓波形（對大地）----

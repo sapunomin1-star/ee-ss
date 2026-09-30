@@ -262,6 +262,9 @@ export function startApp(root) {
     }
     const b = e.target.closest('[data-bench]');
     if (b?.dataset.bench === 'demo') {
+      // 示範是完整接線答案；先移除額外導線，避免殘留 CH2 黑夾把電容短路。
+      bench.wires = {};
+      bench.sel = null;
       Object.entries(DEMO).forEach(([id, n]) => bench.connect(id, n));
       useBench('tds'); useBench('dmm');
       hint({ kind: 'info', text: '示範接線：AFG CH1 紅夾→A、黑夾→G；示波器 CH1 量 A、CH2 量 B（接地夾都在 G）；電表 HI→B、LO→G。記得打開 AFG 的 OUTPUT。' });

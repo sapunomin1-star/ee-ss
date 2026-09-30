@@ -51,19 +51,25 @@ function vIdxFor(target, probe) {
   return best;
 }
 
-// 第一個完整週期（GAP-TDS-15：參考位準＝(max+min)/2，加 5% 遲滯，取前兩次上升交越；k＝內插後的點位）
+// 第一個完整週期（GAP-TDS-15：參考位準＝(max+min)/2，加 5% 遲滯，優先取前兩次上升交越；k＝內插後的點位）。
+// 上升交越若落在紀錄邊界，改取紀錄內兩次下降交越，仍只使用實際採到的完整週期。
 function firstCycle(x) {
   let mx = -Infinity, mn = Infinity;
   for (const y of x) { if (y > mx) mx = y; if (y < mn) mn = y; }
   const pp = mx - mn;
   if (!(pp > 0)) return null;
-  const ref = (mx + mn) / 2, h = pp * 0.05, cr = [];
-  let armed = false;
-  for (let j = 1; j < x.length && cr.length < 2; j++) {
-    if (x[j - 1] < ref - h) armed = true;
-    if (armed && x[j - 1] < ref && x[j] >= ref) { cr.push({ j, k: j - 1 + (ref - x[j - 1]) / (x[j] - x[j - 1]) }); armed = false; }
-  }
-  return cr.length === 2 ? cr : null;
+  const ref = (mx + mn) / 2, h = pp * 0.05;
+  const crossings = (slope) => {
+    const cr = [];
+    let armed = false;
+    for (let j = 1; j < x.length && cr.length < 2; j++) {
+      const y0 = (x[j - 1] - ref) * slope, y1 = (x[j] - ref) * slope;
+      if (y0 < -h) armed = true;
+      if (armed && y0 < 0 && y1 >= 0) { cr.push({ j, k: j - 1 - y0 / (y1 - y0) }); armed = false; }
+    }
+    return cr.length === 2 ? cr : null;
+  };
+  return crossings(1) ?? crossings(-1);
 }
 
 // ---- 訊號路徑物件（正弦解析式／週期波形表）----
@@ -343,6 +349,7 @@ export class TdsModel {
   power() {
     if (this.on) { this.on = false; return { kind: 'approx', text: '模擬電源關閉：畫面熄滅（實機電源鍵在機殼頂部，照片看不到）。' }; }
     this.on = true;
+    if (this.scen === 'BENCH') this.fx = this.benchFx();
     this.rec = null; this.frames = null; this.msg = '';
     this.run = 'run'; this.complete = false;
     this.tick();
@@ -614,7 +621,7 @@ export class TdsModel {
   setBenchSource(fn) { this.benchSource = fn; }
   benchFx() { return this.benchSource?.() ?? { sig: [null, null], probe: [10, 10] }; }
   inputChanged() {
-    if (this.scen !== 'BENCH' || !this.on) return;
+    if (this.scen !== 'BENCH') return;
     this.fx = this.benchFx();
     this.tick();
   }

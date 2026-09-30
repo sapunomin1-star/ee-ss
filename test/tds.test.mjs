@@ -2,6 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TdsModel } from '../src/instruments/tds/model.js';
+import { Bench, DEMO } from '../src/bench/bench.js';
+import { stats as waveStats } from '../src/bench/circuit.js';
 
 const K = {
   AUTOSET: 'TDS.KEY.AUTOSET', DEFAULT: 'TDS.KEY.DEFAULT_SETUP', RUN: 'TDS.KEY.RUN_STOP', SINGLE: 'TDS.KEY.SINGLE',
@@ -15,6 +17,16 @@ const K = {
 const run = (m, seq) => { let h = null; for (const t of seq.split(/\s+/).filter(Boolean)) h = m.press(K[t]) ?? h; return h; };
 const turn = (m, id, n) => { let h = null; for (let i = 0; i < Math.abs(n); i++) h = m.turn(K[id], Math.sign(n)) ?? h; return h; };
 const fresh = (scen = 'S1') => { const m = new TdsModel(); m.scenarios.set(scen); return m; };
+function freshBench(wave = 'SQUARE', freq = 1000, topo = 'RC') {
+  const afg = { on: true, ch: [true, false].map((output) => ({ wave, freq, sym: 50, emfVpp: 2, emfOffset: 0, output })) };
+  const bench = new Bench(afg);
+  bench.topo = topo;
+  Object.entries(DEMO).forEach(([lead, node]) => bench.connect(lead, node));
+  const m = new TdsModel();
+  m.setBenchSource(() => bench.tdsInput());
+  m.setScenario('BENCH');
+  return { m, bench, afg };
+}
 const near = (a, b, tol = 1e-9, msg = '') => assert.ok(Math.abs(a - b) <= tol, `${msg} ${a} ≉ ${b}`);
 const stats = (m, i = 0) => m.snapshot().rec.stats[i];
 const settings = (m) => JSON.stringify({ ch: m.ch, trig: m.trig, sIdx: m.sIdx, mpos: m.mpos, cursor: m.cursor, meas: m.meas });
@@ -54,6 +66,25 @@ test('AutoSet 對 S1：500 mV/div、250 µs/div、Trig\'d、Level 50%＝+0.5 V�
   // Cyc RMS＝√(0.5² + 0.707²)＝0.866 V（DC 耦合）
   assert.deepEqual(s.autoMeas.map((a) => a.text), ['866mV', '1.000kHz', '1.000ms', '2.00V']);
   assert.equal(m.visual('TDS.LED.AUTORANGE').lit, undefined); // AutoRange LED 不亮
+});
+
+test('BENCH AutoSet 恰好兩週期：RC／CR 正弦與方波的 Freq、Period、Cyc RMS 可從紀錄量測', () => {
+  for (const topo of ['RC', 'CR']) for (const wave of ['SINE', 'SQUARE']) for (const freq of [200, 2000]) {
+    const { m, bench } = freshBench(wave, freq, topo);
+    run(m, 'AUTOSET');
+    near(10 * m.sdiv * freq, 2, 1e-9, `${topo} ${wave} ${freq} Hz 保持最小兩週期時基`);
+    for (const [i, node] of ['A', 'B'].entries()) {
+      const label = `${topo} ${wave} ${freq} Hz CH${i + 1}`;
+      near(m.measure(i, 'FREQ').value, freq, freq * 1e-6, `${label} Freq`);
+      near(m.measure(i, 'PERIOD').value, 1 / freq, 1e-9, `${label} Period`);
+      const expected = waveStats(bench.solution().v[node]);
+      const rms = Math.hypot(expected.mean, expected.acRms);
+      near(m.measure(i, 'CYCRMS').value, rms, rms * 0.02, `${label} Cyc RMS`);
+    }
+    turn(m, 'HS', 2); // 縮到不足一週期：不得用邊界外資料捏造量測
+    assert.ok(10 * m.sdiv * freq < 1);
+    for (const type of ['FREQ', 'PERIOD', 'CYCRMS']) assert.equal(m.measure(0, type).value, null, type);
+  }
 });
 
 test('同一份採集：LCD 波形的格數 × V/div＝Measure 的 Pk-Pk', () => {
@@ -432,4 +463,48 @@ test('電源：關機畫面熄滅、按鍵無效；開機回復關機前設定�
   assert.equal(m.isOn(), true);
   near(m.vdiv(0), 0.2);
   assert.ok(m.rec.n > n);
+});
+
+test('BENCH 關機時同步拔線與探棒倍率但不採集；開機從當前接線重新採集', () => {
+  const { m, bench, afg } = freshBench();
+  run(m, 'AUTOSET POWER');
+  const rec = m.rec, n = m.acqN;
+  bench.disconnect('TDS.CH1.TIP');
+  bench.probeX[0] = 1;
+  m.inputChanged();
+  assert.equal(m.fx.sig[0], null);
+  assert.equal(m.fx.probe[0], 1);
+  assert.equal(m.rec, rec);
+  assert.equal(m.acqN, n);
+  run(m, 'POWER');
+  assert.ok(m.acqN > n);
+  assert.equal(m.trigFreq(), null);
+  assert.equal(m.measure(0, 'PKPK').value, 0);
+
+  run(m, 'POWER');
+  const offN = m.acqN;
+  bench.connect('TDS.CH1.TIP', 'A');
+  afg.ch[0].freq = 2000;
+  // 即使未收到個別變更通知，開機也要重新取得來源。
+  run(m, 'POWER AUTOSET');
+  assert.ok(m.acqN > offN);
+  near(m.measure(0, 'FREQ').value, 2000, 1e-6);
+  assert.equal(m.ch[0].probe, 10); // 示波器設定保留，與實際 1× 錯配
+  near(m.measure(0, 'PKPK').value, waveStats(bench.solution().v.A).pp * 10, 0.02);
+});
+
+test('BENCH Stop 期間來源保持更新但紀錄凍結，Single 才採入新頻率', () => {
+  const { m, afg } = freshBench();
+  run(m, 'AUTOSET RUN');
+  const rec = m.rec, n = m.acqN;
+  afg.ch[0].freq = 2000;
+  m.inputChanged();
+  assert.equal(m.rec, rec);
+  assert.equal(m.acqN, n);
+  near(m.trigFreq(), 2000);
+  near(m.measure(0, 'FREQ').value, 1000, 1e-6);
+  run(m, 'SINGLE');
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  assert.equal(m.acqN, n + 1);
+  near(m.measure(0, 'FREQ').value, 2000, 1e-6);
 });

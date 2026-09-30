@@ -96,11 +96,13 @@ export function benchSvg(bench, models) {
     <rect x="734" y="16" width="250" height="238" rx="10" fill="#d4d6d8" stroke="#6f767d"/>
     <text x="970" y="36" font-size="14" font-weight="700" class="blk" style="text-anchor:end">TDS2001C 探棒</text>
     ${mini(tds, 774, 48, 200, 150, [320, 240], 'tds', 'TDS2001C')}
+    <text x="970" y="211" font-size="11.5" class="blk" style="text-anchor:end">${tds.scenarios.get() === 'BENCH' ? '來源：實驗台接線' : '來源：單機情境（非接線）'}</text>
     <text x="970" y="226" font-size="11.5" class="blk" style="text-anchor:end">探棒倍率 CH1 ${bench.probeX[0]}×、CH2 ${bench.probeX[1]}×（側欄切換）</text>
     <path d="M740,70 L740,70" stroke="#444"/>
     <rect x="16" y="372" width="250" height="252" rx="12" fill="#34383d" stroke="#1d2024"/>
     <text x="30" y="394" font-size="14" font-weight="700" fill="#fff" style="text-anchor:start">34460A 測試線</text>
     ${mini(dmm, 26, 406, 230, 152, [480, 318], 'dmm', '34460A')}
+    <text x="30" y="579" font-size="11.5" fill="#dfe3e6" style="text-anchor:start">${dmm.scenarios.get() === 'bench' ? '來源：實驗台接線' : '來源：單機情境（非接線）'}</text>
     <text x="30" y="600" font-size="11.5" fill="#dfe3e6" style="text-anchor:start">紅＝HI（V Ω）、黑＝LO</text>
     <rect x="400" y="316" width="240" height="284" rx="10" fill="#f3ead6" stroke="#b39b6a"/>
     <text x="520" y="340" font-size="13" font-weight="700" class="blk">RC 電路板</text>
@@ -145,13 +147,13 @@ export function benchSide(bench, models, hints) {
     <section><h3>狀況</h3><ul class="warn">${warn}</ul></section>
     <section><h3>接線狀態</h3><ul class="wires">${rows}</ul>
       <div class="btns"><button data-bench="demo">示範接線（看答案）</button><button data-bench="clear">全部拔掉</button></div></section>
-    <section><h3>理論值（自我檢查）</h3><dl class="kv">${theory(bench, models.afg).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
-      <p class="muted">模擬有算 AFG 的 50 Ω 內阻：A 點電壓會比開路電壓小一點。AFG 顯示的振幅是 Load 參照值——Load 設 50 Ω 時，實際開路電壓是顯示值的 2 倍；接 RC 這種高阻抗電路請把 AFG 的 Load 設成 High Z，顯示值才等於實際電壓。</p></section>
+    <section><h3>理論值（標準接線、正弦）</h3><dl class="kv">${theory(bench, models.afg).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+      <p class="muted">以上以 CH1 驅動的標準接線、A 點為輸入參考；方波不能直接套用這個振幅比與相位。模擬有算 AFG 的 50 Ω 內阻，實際端子電壓會隨負載改變。Load 設 50 Ω 時開路電壓是顯示值的 2 倍；High Z 時顯示的是開路電壓，接上電路後仍可能降低。</p></section>
     <section><h3>練習步驟</h3><ol class="practice">
       <li>AFG：Preset → CH1/CH2 按兩下（回到 CH1 並開 CH 選單）→ F1 Load → F2 High Z → AMPL 2、F5 VPP → FREQ/Rate 1、F4 kHz → OUTPUT。</li>
       <li>接線：AFG CH1 紅夾→A、黑夾→G；示波器 CH1 尖端→A、接地夾→G；CH2 尖端→B、接地夾→G；電表 HI→B、LO→G。</li>
       <li>示波器：Auto Set（兩個通道都有訊號會一起顯示）→ Measure 看 Pk-Pk、Freq；Cursor（Time）量兩波形的時間差，相位差＝Δt×f×360°。</li>
-      <li>電表：按 ACV，讀 B 點（電容）的交流有效值；它應該約等於示波器 CH2 的 Pk-Pk ÷ 2√2。</li>
+      <li>電表：按 ACV，讀 B 點的交流有效值；純正弦時約等於示波器 CH2 的 Pk-Pk ÷ 2√2。方波／充放電波形不能用這個換算。</li>
       <li>把 AFG 頻率改到接近 fc，再比較振幅比與相位差；試試把示波器接地夾夾在 B，看會發生什麼事。</li>
     </ol></section>
     <section><h3>最近提示</h3><ul class="log">${hints || '<li class="empty">（還沒有）</li>'}</ul></section>`;

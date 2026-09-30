@@ -51,6 +51,29 @@ test('方波充放電：上升緣後一個 τ 到 63.2%', () => {
   near((vb[k] - lo) / (hi - lo), 1 - Math.exp(-1), 0.01, 'Vc(τ) 比例');
 });
 
+test('低頻方波：跳變當下電容電壓連續，邊緣後才指數充放電', () => {
+  const R = 1000, C = 0.1e-6, f = 1, tau = (R + 50) * C, h = 1 / (f * M);
+  const sol = solve({ topo: 'RC', R, C, wires: std }, [{ ...sine(2, f), wave: 'SQUARE' }, off]);
+  // 半週期遠大於 τ，邊緣前已充飽到 ±1 V；邊緣後遵守解析階躍響應。
+  near(sol.v.B[0], -1, 1e-7, '上升緣當下');
+  near(sol.v.B[1], 1 - 2 * Math.exp(-h / tau), 1e-7, '上升緣後一格');
+  near(sol.v.B[M / 2], 1, 1e-7, '下降緣當下');
+  near(sol.v.B[M / 2 + 1], -1 + 2 * Math.exp(-h / tau), 1e-7, '下降緣後一格');
+});
+
+test('大時間常數配高頻：週期穩態平均值保持輸入 Offset', () => {
+  const R = 100000, C = 10e-6;
+  for (const [wave, freq] of [['SINE', 999000], ['SQUARE', 500000], ['RAMP', 999000]]) {
+    for (const emfOffset of [0, 1]) {
+      const source = { ...sine(2, freq, emfOffset), wave, sym: 30 };
+      const sol = solve({ topo: 'RC', R, C, wires: std }, [source, off]);
+      // 積分一階方程一個週期：<dVc/dt>＝0，所以 <Vc>＝輸入平均值。
+      near(stats(sol.v.B).mean, emfOffset, 2e-6, `${wave} ${freq} Hz，Offset ${emfOffset} V`);
+      assert.ok(stats(sol.v.B).pp > 0, `${wave} 仍保留週期漣波`);
+    }
+  }
+});
+
 test('直流偏移：電容上的平均＝偏移量，電阻上的平均＝0', () => {
   const sol = solve({ topo: 'RC', R: 1000, C: 0.1e-6, wires: std }, [sine(2, 1000, 1), off]);
   near(stats(sol.v.B).mean, 1, 1e-3, '電容平均');

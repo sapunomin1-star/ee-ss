@@ -24,9 +24,9 @@ npm run e2e        # 真滑鼠／鍵盤操作測試（用本機 Google Chrome）
 
 ## 目前狀態
 
-**I00 來源與基線核定：第 1 次獨立審查 REVIEW FAIL（R1–R7），已完成同卡修正；之後的修正複核（非正式審查）另指出 AFG 幅度判定順序 C1，也已修正，待第 2 次獨立審查。** 還沒有應用程式，也還沒有任何 REVIEW PASS。審查原文與修正對照見 `docs/reviews/I00-review-1.md`、`docs/reviews/I00-fix-1.md`；修正複核原文見 `docs/reviews/I00-correction-recheck.md`，C1 修正對照見 `docs/reviews/I00-fix-C1.md`。
-卡片順序：I00 → I01 共用框架 → I02 AFG → I03 示波器 → I04 電源 → I05 電表 → I06 單機整合。每張卡都要全新 context 的獨立 reviewer 判 PASS 才進下一張。
-接線與電路計算（J 階段）已依使用者指定先做 AFG → RC → 示波器＋電表（「實驗台」分頁）；其他電路之後再擴充。
+**目前已有四台單機與 RC 接線實驗台。** 2026-09-30 經外部審查者針對 RC 電路、採集恢復及電表接線補驗並修正，`npm run check` 88 項模型測試、`npm run e2e` 176 項真 UI 測試通過。可練習固定串聯 RC 的低通／高通、改 R/C、探棒接線與 DCV／ACV／斷電電阻量測。限制與這輪修正見 `docs/progress.md`；這不代表全部原廠功能或校機一致性已驗證。
+
+I00 歷史：R1–R7 與 C1 已修正，原先正式文件審查的待辦紀錄仍保留。使用者之後授權本地連續實作，進度已推進到 RC 實驗台，不能再以 I00 舊紀錄推斷「還沒有應用程式」。審查原文與修正對照保留在 `docs/reviews/`。
 
 ## 文件
 
