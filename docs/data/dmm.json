@@ -1317,7 +1317,7 @@
    "id": "GAP-DMM-05",
    "gap": "Auto range 的降檔門檻／遲滯未找到（DS 只寫過載時升檔）。",
    "impact": "Auto 讀值落在哪一檔可能與校機不同，但物理值不受影響。",
-   "provisional": "Auto 一律選能容納讀值的最小量程：|x| ≤ 1.2×量程（1000 VDC、750 VAC、3 A 為 ≤ 1.0×）；不設遲滯、確定性計算（PD）。預期：D1 1.234 VDC→10 V 檔；2 Vrms→10 V 檔；1 kΩ→1 kΩ 檔。",
+   "provisional": "Auto 一律選能容納讀值的最小量程：|x| ≤ 1.2×量程（1000 VDC、750 VAC、3 A 為 ≤ 1.0×）；不設遲滯、確定性計算（PD）。預期：D1 1.234 VDC→10 V 檔；2 Vrms→10 V 檔；1 kΩ→1 kΩ 檔。2026-09-30：ACV／ACI 另要求交流峰值 ≤ 約 3×量程（依 p.21 峰值因數「滿刻度 3:1」與「偵測到峰值過載會升檔」），手動量程峰值過載＝超量程；DC 功能的峰值規則無原廠依據，不判斷。",
    "rationale": "D-DMM p.12 註 2 的 20% 超量程與 p.21 Overload ranging。",
    "verify_method": "校機以可調電源緩慢升降電壓，記錄換檔點；補 M-DMM。"
   },
@@ -1413,7 +1413,7 @@
    "id": "GAP-DMM-17",
    "gap": "ACV／ACI 對非正弦、DC 偏移變動後的沉降、3 Hz 以下或頻寬外訊號的行為第一版不模擬。",
    "impact": "只影響進階教學。",
-   "provisional": "fixture 限純正弦 1 kHz；非相容 fixture 顯示未提供相容輸入。",
+   "provisional": "fixture 限純正弦 1 kHz；非相容 fixture 顯示未提供相容輸入。實驗台（2026-09-30）：ACV 顯示理想真有效值（區間精確積分），訊號超出 3 Hz–300 kHz 或峰值因數 > 10 時只在儀器外標示「真機讀值不準」，不推測真機讀值。",
    "rationale": "02：ACV／ACI 第一版用明確純正弦測試情境。",
    "verify_method": "日後依 DS p.21–22（crest factor、DC blocking capacitor）另做規格。"
   },
@@ -1437,7 +1437,7 @@
    "id": "GAP-DMM-20",
    "gap": "預設積分時間／位數與讀值更新率未找到（DS 產品照 DCV 畫面為 \"Aperture 10 PLC\"）。",
    "impact": "LCD 位數與更新節奏為暫定。",
-   "provisional": "固定 6½ 位顯示（對應 DS p.23 的 10 PLC）；更新節奏採確定性時間軸，不加隨機雜訊。",
+   "provisional": "固定 6½ 位顯示（對應 DS p.23 的 10 PLC）；更新節奏採確定性時間軸，不加隨機雜訊。實驗台 DCV（2026-09-30）：每筆讀值＝10 PLC 積分窗（台灣 60 Hz 市電，1/6 秒）的平均，約每 1/6 秒一筆（p.23：10 PLC 6 rdg/s）；慢速波形的讀值會跟著起伏。",
    "rationale": "DS p.23：10 PLC → 6½ 位、6 rdg/s（60 Hz）。",
    "verify_method": "校機觀察預設 NPLC 與更新速度。"
   },

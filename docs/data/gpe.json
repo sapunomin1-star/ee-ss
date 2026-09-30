@@ -1255,7 +1255,7 @@
    "id": "GAP-GPE-05",
    "gap": "開機記憶：開機 Output 狀態可被設定（p.27–28，預設 OFF），校機目前設定未知；斷電後 V/I 設定是否保留、模式鍵狀態（若為機械自鎖則保持）未寫。",
    "impact": "重設／開機行為（I04-7）。",
-   "provisional": "定案：模擬器「電源開／重設」＝CH1–CH4 V-set 0.00 V、CH1／CH2 I-set 0.100 A、兩模式鍵彈起（Independent）、LCD 顯示 ①②、Output OFF、Lock 解除；儀器外標示「非原廠開機記憶」。原廠預設開機 Output OFF（p.28）與此一致。",
+   "provisional": "定案：模擬器「電源開／重設」＝CH1–CH4 V-set 0.00 V、CH1／CH2 I-set 0.100 A、兩模式鍵彈起（Independent）、LCD 顯示 ①②、Output OFF、Lock 解除；儀器外標示「非原廠開機記憶」。2026-09-30 修正：模式鍵是按下／彈起的機械自鎖鍵（GAP-GPE-07），關開機保持原位置，只有模擬器的「重設」會把兩鍵彈起。原廠預設開機 Output OFF（p.28）與此一致。",
    "rationale": "p.28 \"By default the output is set to OFF at startup.\"；02 要求開機記憶與重設分開。",
    "verify_method": "校機：記錄開機後 LCD、Output 狀態；改設定後關機再開看是否保留。"
   },

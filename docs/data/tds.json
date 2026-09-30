@@ -858,7 +858,7 @@
    "softkeys": "OPT1 Coupling：每按一次依 DC→AC→Ground 循環；OPT2 BW Limit：20MHz／Off；OPT3 Volts/Div：Coarse／Fine；OPT4 Probe：進入子選單（格內顯示如『10X Voltage』）；OPT5 Invert：On／Off",
    "source": "M-TDS-13 p.10 (PDF 34) 顯示區圖中的 CH1 選單 5 格；p.12–13 (PDF 36–37)『push the 1 (channel 1 menu) button and then push the top option button to cycle through the Vertical (channel) Coupling options』；p.104–105 (PDF 128–129) 選項表",
    "evidence": "OT",
-   "status": "Coupling CORE；Probe CORE；Volts/Div 的 Coarse CORE、Fine OUT；BW Limit APPROX（只有狀態與 BW 圖示）；Invert OUT",
+   "status": "Coupling CORE；Probe CORE；Volts/Div 的 Coarse CORE、Fine OUT；BW Limit APPROX（一階 20 MHz 低通，響應形狀 PD）；Invert OUT",
    "notes": "OPT1–OPT5 由 p.10 圖逐格對應。『There is a separate vertical menu for each channel. Each option is set individually for each channel.』"
   },
   {
@@ -1539,7 +1539,7 @@
   {
    "id": "TDS-F21",
    "feature": "AutoSet 自動量測的有限例外：Mean、Cyc RMS",
-   "rule": "AutoSet 偵測到 multi-cycle sine 時顯示 Cycle RMS、Frequency、Period、Pk-Pk；multi-cycle square 顯示 Pk-Pk、Mean、Period、Frequency；無法判定時顯示 Mean、Pk-Pk（p.80–81）。Mean 與 Cyc RMS 由目前採集資料計算（APPROX：演算法為模擬器定義，Cyc RMS 取第一個完整週期），Measure 選單也可選這兩項；其餘 11 種量測仍 OUT。",
+   "rule": "AutoSet 偵測到 multi-cycle sine 時顯示 Cycle RMS、Frequency、Period、Pk-Pk；multi-cycle square 顯示 Pk-Pk、Mean、Period、Frequency；無法判定時顯示 Mean、Pk-Pk（p.80–81）。Mean 與 Cyc RMS 由目前採集資料計算（APPROX：演算法為模擬器定義，Cyc RMS 取第一個完整週期），Measure 選單也可選這兩項；其餘 11 種量測仍 OUT。波形辨識演算法（PD）：扣掉基頻後 THD < 2%＝正弦；≥ 70% 的點落在距極值 20% 峰對峰以內＝方波／脈波（選單 Multi-cycle square 選取中，Single-cycle square、Rising edge、Falling edge 為 OUT，Undo Autoset 在 OPT5）；其他＝無法判定。",
    "source": "M-TDS-13 p.80 (PDF 104)、p.81 (PDF 105)",
    "evidence": "OT+PD",
    "acceptance": "I03-7：S1 按 AutoSet 後出現 Cyc RMS、Freq、Period、Pk-Pk，數值由採集算出（S1 的 Cyc RMS 應接近 AC 部分 0.707 V 與 DC 0.5 V 的合成值，依耦合而定）。"
@@ -1567,7 +1567,7 @@
    "ui_treatment": "依 GAP-TDS-17：循環中略過並在儀器外列出，不假裝有效"
   },
   {
-   "item": "Peak Detect、Average、Averages；精準取樣率、aliasing、雜訊、8-bit 量化、類比頻寬",
+   "item": "Peak Detect、Average、Averages；500 MS/s 上限與 sin(x)/x 內插、雜訊、8-bit 量化、50 MHz 類比頻寬（Sample 模式的混疊已於 2026-09-30 依使用者要求納入，見 GAP-TDS-24）",
    "reason": "02 明列所有 acquisition mode 與精準取樣／雜訊模型不納入",
    "ui_treatment": "Acquire 選單只能選 Sample；型號條上的 50 MHz／500 MS/s 只是標示，儀器外註明模擬器不承諾"
   },
@@ -1617,9 +1617,9 @@
    "ui_treatment": "CH 選單中這些選項保持預設值（Voltage、Off、Coarse），按下顯示範圍說明"
   },
   {
-   "item": "BW Limit 的濾波效果",
-   "reason": "fixture 為 1 kHz，20 MHz 濾波影響可忽略",
-   "ui_treatment": "APPROX：可切換狀態並顯示 BW 圖示，波形不變，儀器外標示近似"
+   "item": "BW Limit 的精確響應形狀",
+   "reason": "手冊只寫會濾掉高頻雜訊，沒有響應曲線；2026-09-30 起以一階 20 MHz 低通近似",
+   "ui_treatment": "APPROX：一階 20 MHz 低通（正弦用解析增益與相位；實驗台訊號在表格間隔夠細時才濾波），儀器外標示近似"
   },
   {
    "item": "AutoSet 的 Single-cycle、Rising/Falling edge、FFT、Video 選項",
@@ -1730,7 +1730,7 @@
    "id": "GAP-TDS-12",
    "gap": "AC 耦合的濾波模型。手冊只有『attenuates signals below 10 Hz』、下限頻率 ≤10 Hz（10X 被動探棒 ≤1 Hz）、串接電容（p.104、p.107、p.109）",
    "impact": "AC 耦合下的波形與 DC 位移",
-   "provisional": "一階高通 fc＝10 Hz；fixture 實際探棒為 10× 時 fc＝1 Hz。切換後直接呈現穩態，不模擬暫態。S1、S2 都是 1 kHz，實際效果等於扣掉 DC 平均",
+   "provisional": "一階高通 fc＝10 Hz；fixture 實際探棒為 10× 時 fc＝1 Hz。切換後直接呈現穩態，不模擬暫態。S1、S2 都是 1 kHz，實際效果等於扣掉 DC 平均。實驗台表格訊號同樣用一階高通的週期穩態解（y＝x－LPF(x)，低頻方波會看到平台傾斜）；觸發耦合 AC 用 10 Hz 一階高通（不隨探棒倍率），只影響觸發",
    "rationale": "取規格上限，對核心 fixture 的影響可以忽略",
    "verify_method": "到校以 1–100 Hz 方波觀察 AC 耦合下的下垂"
   },
@@ -1802,7 +1802,7 @@
    "id": "GAP-TDS-21",
    "gap": "停止時改耦合或探棒倍率，波形會不會變斷線（手冊只舉『改觸發設定』為例，p.84）",
    "impact": "I03-6 停止畫面的樣式",
-   "provisional": "改 V/div、垂直位置、s/div、水平位置、Probe 倍率（只換算讀值）：重畫凍結紀錄，保持實線。改觸發設定或通道耦合：改為斷線樣式，資料不重算（PD）",
+   "provisional": "改 V/div、垂直位置、s/div、水平位置、Probe 倍率（只換算讀值）：重畫凍結紀錄，保持實線。改觸發設定、通道耦合或 BW Limit：改為斷線樣式，資料不重算（PD）",
    "rationale": "依『控制是否能套用到已顯示的波形』這條原則",
    "verify_method": "到校停止後逐項改設定並觀察"
   },
@@ -1826,7 +1826,7 @@
    "id": "GAP-TDS-24",
    "gap": "模擬器採集模型與量測容差（02／03 要求明訂解析度）",
    "impact": "I03 所有數值測試",
-   "provisional": "每筆紀錄 2500 點涵蓋 10 div（p.75、p.110）；取樣間隔＝s/div/250，最快 2 ns（500 MS/s）；更快的時基以內插補滿 2500 點（p.76）；不加雜訊與量化；容差以 1 個取樣間隔、1/25 div 為基礎",
+   "provisional": "每筆紀錄 2500 點涵蓋 10 div（p.75、p.110）；取樣間隔＝s/div/250，最快 2 ns（500 MS/s）；更快的時基以內插補滿 2500 點（p.76）；不加雜訊與量化；容差以 1 個取樣間隔、1/25 div 為基礎。2026-09-30：每筆採集相對觸發點有隨機次取樣相位（固定種子），欠取樣的訊號自然混疊，連續採集又欠取樣時以 4 幀輪播呈現不穩定畫面；採集時超出 10 格動態範圍的部分削頂並記旗標，停止後縮放也回不來（p.108）",
    "rationale": "採用手冊的記錄結構，但不宣稱真機精度",
    "verify_method": "I03 實作者記錄演算法；以 S1、S2 反推驗證"
   }

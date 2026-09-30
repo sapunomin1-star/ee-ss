@@ -39,7 +39,7 @@ export async function run() {
     await freq(200);
     await ui.tab('tds'); await key('TDS.KEY.AUTOSET');
     let s = await ui.snap('tds');
-    T.ok(autoFreq(s) === '200.0Hz' && s.autoMeas.every((m) => !m.text.includes('?')), '200 Hz 方波 AutoSet 後立即得到 Freq／Period／Cyc RMS');
+    T.ok(autoFreq(s) === '200.0Hz' && s.autoMeas.every((m) => !m.text.includes('?')), '200 Hz 方波 AutoSet 後立即得到方波的自動量測（Pk-Pk／Mean／Period／Freq）');
     await ui.shot('review-rc-square-200hz');
 
     await key('TDS.KEY.RUN_STOP');
