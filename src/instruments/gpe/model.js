@@ -23,7 +23,7 @@ export const SET_VIEW_MS = 3000; // Set View 無操作自動返回（GAP-GPE-02�
 const CIRCLED = { 1: '①', 2: '②', 3: '③', 4: '④' };
 
 // 單機測試情境（common §0.4 的 L1、L1-CH3/4）：各路輸出端接的理想電阻（Ω），沒列的＝開路
-export const LOADS = { open: {}, 'ch1-100': { 1: 100 }, 'ch1-10': { 1: 10 }, 'ch2-100': { 2: 100 }, 'ch2-10': { 2: 10 }, ch34: { 3: 100, 4: 1000 } };
+export const LOADS = { open: {}, 'ch1-100': { 1: 100 }, 'ch1-10': { 1: 10 }, 'ch2-100': { 2: 100 }, 'ch2-10': { 2: 10 }, ch34: { 3: 100, 4: 1000 }, bench: {} };
 const SCENARIOS = [
   { id: 'open', label: '開路（四路都沒接負載）', desc: 'Output ON 時讀回電流 0.000 A、CV（不是 I-set）。' },
   { id: 'ch1-100', label: 'L1：CH1 接 100 Ω', desc: '設 5.00 V／0.100 A → CV 5.00 V／0.050 A。' },
@@ -31,6 +31,7 @@ const SCENARIOS = [
   { id: 'ch2-100', label: 'L1：CH2 接 100 Ω', desc: '同 L1，負載改掛 CH2。' },
   { id: 'ch2-10', label: 'L1：CH2 接 10 Ω', desc: '同 L1，負載改掛 CH2。' },
   { id: 'ch34', label: 'L1-CH3/4：CH3 接 100 Ω、CH4 接 1 kΩ', desc: 'CH3 5.00 V → 0.050 A；CH4 ≤15 V → ≤0.015 A；都在額定內，只展示 CV。' },
+  { id: 'bench', label: '實驗台接線', desc: '輸出端接在「實驗台」麵包板的電路上：讀回是電路實際的電壓、電流與 CV／CC（目前只支援 Independent；CH3／CH4 以額定 1 A 當限流，近似）。' },
 ];
 
 // 理想電源一路（GPE-F09、p.22）：vs 電壓設定、is 限流（null＝沒有可調限流）、r 負載（Infinity＝開路）
@@ -222,9 +223,16 @@ export class GpeModel {
     return { vs: V(ch), is: ch <= 2 ? I(ch) : null };
   }
 
+  // 實驗台：外殼注入讀回來源（回傳 {1..4: {v, i, cc}}｜null）
+  setBenchSource(fn) { this.benchSource = fn; }
+
   // Output ON 時四路讀回（理想模型）；OFF 或關機回傳 null
   readback() {
     if (!this.on || !this.output) return null;
+    if (this.load === 'bench') { // 實驗台：電路算出的端電壓與電流；沒接成迴路的通道＝開路
+      const b = this.benchSource?.();
+      return Object.fromEntries([1, 2, 3, 4].map((c) => [c, b?.[c] ?? { v: this.eff(c).vs, i: 0, cc: false }]));
+    }
     const R = LOADS[this.load];
     const r = (c) => R[c] ?? Infinity;
     const out = {};

@@ -160,9 +160,8 @@ test('電容暫態：關 OUTPUT 後電容保有電荷，經儀器輸入電阻以
   const tau2 = b.solution().tau;
   t += 100 * tau2; afg.ch[0].emfOffset = 1; b.solution(); const t0 = t;
   t = t0 + tau2;
-  const want = b.solution().kv.B - b.solution().kv.G; // 暫態係數（電容兩端差＝1）
-  near(want, 1, 1e-12, '電容兩端的暫態係數');
-  const target = diffStats(b.solution(), 'B', 'G').mean;
+  near(b.vcAt(t), b.solution().capSS(t)[0] + b.dev(t), 1e-12, '電容電壓＝該時刻的週期穩態值＋暫態偏移');
+  const target = b.solution().stats(b.node('B'), b.node('G')).mean;
   near(b.dmmInput().v.dc, target * (1 - Math.exp(-1)), 1e-3, 'DC 偏移改 1 V 後 τ 時刻約到 63%');
 });
 
@@ -185,7 +184,7 @@ test('電表 DCV 是 10 PLC 積分窗的平均：0.1 Hz 正弦的讀值跟著波
   const vals = [0, 2.5, 5, 7.5].map((dt) => { t = 1000.05 + dt; return read(); });
   assert.ok(vals[1] > 0.9 && vals[3] < -0.9 && Math.abs(vals[0]) < 0.1 && Math.abs(vals[2]) < 0.1, `讀值隨正弦起伏：${vals.map((x) => x.toFixed(3))}`);
   const s = b.solution(), T = APERTURE_S;
-  near(read(), diffMeanOver(s, 'B', 'G', Math.floor(t / T) * T - T, Math.floor(t / T) * T), 1e-12, '讀值＝最近一次積分窗平均');
+  near(read(), s.meanOver(b.node('B'), b.node('G'), Math.floor(t / T) * T - T, Math.floor(t / T) * T), 1e-12, '讀值＝最近一次積分窗平均');
   const before = read();
   afg.ch[0].freq = 1000; b.solution(); t += 0.01;
   near(read(), before, 1e-9, '改頻率後 10 ms：畫面仍是上一筆（積分窗在改之前）');
@@ -250,4 +249,59 @@ test('週期邊界與負時間：t＝nT、前後極小偏移、負的預觸發�
   Object.entries(DEMO).forEach(([l, n]) => b.connect(l, n));
   const abs = b.tdsInput().sig[1].abs;
   for (const x of [-1, -0.001, 0, 0.001, t, 5]) assert.ok(Number.isFinite(abs(x)), `abs(${x})`);
+});
+
+// ---- 麵包板＋GPE（用固定的 netlist 代替麵包板模型；麵包板本身的測試在 breadboard.test.mjs）----
+import { GpeModel } from '../src/instruments/gpe/model.js';
+function fakeBoard(elements, leads) {
+  const nodes = [...new Set([...elements.flatMap((e) => [e.a, e.b]), ...Object.values(leads)])];
+  return { key: () => JSON.stringify([elements, leads]), netlist: (w) => ({ nodes, groupOf: (h) => h, elements, leads: Object.fromEntries(Object.keys(w).map((id) => [id, leads[id]])), warnings: [] }) };
+}
+function gpeBench(elements, leads, { v = 5, i = 0.1 } = {}) {
+  let t = 10;
+  const afg = { on: true, ch: [{ ...off }, { ...off }] };
+  const dmm = new DmmModel(), gpe = new GpeModel();
+  gpe.now = () => t * 1000; gpe.reset(); t += 2;
+  gpe.vset[1] = v * 100; gpe.iset[1] = i * 1000;
+  const b = new Bench(afg, dmm, gpe);
+  b.now = () => t;
+  b.board = 'bb'; b.bb = fakeBoard(elements, leads); b.bbWires = Object.fromEntries(Object.keys(leads).map((id) => [id, id]));
+  dmm.setBenchSource(() => b.dmmInput()); dmm.setFixture('bench');
+  gpe.setBenchSource(() => b.gpeInput()); gpe.setLoad('bench');
+  return { b, dmm, gpe, tick: (dt) => { t += dt; } };
+}
+
+test('麵包板＋GPE：CH1 5 V 接兩顆 1 kΩ 分壓，電表讀中點 2.5 V，GPE 讀回 5.00 V／0.003 A CV', () => {
+  const { b, dmm, gpe, tick } = gpeBench([{ id: 'R1', kind: 'R', a: 'P', b: 'M', value: 1000 }, { id: 'R2', kind: 'R', a: 'M', b: 'N', value: 1000 }],
+    { 'GPE.CH1+': 'P', 'GPE.CH1-': 'N', 'DMM.HI': 'M', 'DMM.LO': 'N' });
+  gpe.press('GPE.KEY.OUTPUT_ON_OFF');
+  b.solution(); tick(1);
+  const Rp = (1000 * 10e6) / (1000 + 10e6); // R2 ∥ 電表 DCV 10 MΩ
+  near(dmm.view().value, (5 * Rp) / (1000 + Rp), 1e-4, '中點約 2.5 V（電表 10 MΩ 負載只差 1e-4）');
+  const rb = gpe.readback()[1];
+  near(rb.v, 5, 1e-3, 'GPE 端電壓'); near(rb.i, 0.0025, 1e-5, 'GPE 電流'); assert.equal(rb.cc, false);
+  assert.deepEqual(gpe.rowView(1).mode, 'CV');
+});
+
+test('麵包板＋GPE：10 Ω 負載超過 0.1 A 限流 → CC，端電壓 1 V；短路 → CC、0 V 並提示', () => {
+  const { b, gpe } = gpeBench([{ id: 'R1', kind: 'R', a: 'P', b: 'N', value: 10 }], { 'GPE.CH1+': 'P', 'GPE.CH1-': 'N' });
+  gpe.press('GPE.KEY.OUTPUT_ON_OFF'); b.solution();
+  const rb = gpe.readback()[1];
+  assert.equal(rb.cc, true); near(rb.v, 1, 1e-6, 'CC 端電壓'); near(rb.i, 0.1, 1e-9, 'CC 電流');
+  const s = gpeBench([], { 'GPE.CH1+': 'P', 'GPE.CH1-': 'P' });
+  s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
+  assert.ok(s.b.snapshot().warn.some((w) => w.includes('短路')));
+  assert.equal(s.gpe.readback()[1].cc, true); near(s.gpe.readback()[1].v, 0, 1e-9, '短路 0 V');
+});
+
+test('麵包板＋GPE：開 Output 後經 10 kΩ 對 10 µF 充電（τ≈0.1 s），電表看得到慢慢上升；兩顆電容的網路也能算', () => {
+  const { b, dmm, gpe, tick } = gpeBench([{ id: 'R1', kind: 'R', a: 'P', b: 'M', value: 10e3 }, { id: 'C1', kind: 'C', a: 'M', b: 'N', value: 10e-6 },
+    { id: 'R2', kind: 'R', a: 'M', b: 'X', value: 10e3 }, { id: 'C2', kind: 'C', a: 'X', b: 'N', value: 1e-6 }], { 'GPE.CH1+': 'P', 'GPE.CH1-': 'N', 'DMM.HI': 'M', 'DMM.LO': 'N' });
+  b.solution(); tick(1);
+  gpe.press('GPE.KEY.OUTPUT_ON_OFF'); b.solution();
+  assert.equal(b.solution().lam.length, 2, '兩個模態');
+  tick(0.05); const v1 = dmm.view().value;
+  tick(0.3); const v2 = dmm.view().value;
+  tick(3); const v3 = dmm.view().value;
+  assert.ok(v1 < v2 && v2 < v3 && Math.abs(v3 - 5 * (10e6 / (10e6 + 10e3))) < 0.01, `充電：${v1} → ${v2} → ${v3}`);
 });

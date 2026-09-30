@@ -66,7 +66,9 @@ export async function run() {
     await ui.tab('afg'); await afg('KEY.OUTPUT');
     await ui.tab('dmm'); await sleep(900);
     const d2 = await ui.snap('dmm'), lcd = await ui.lcdText();
-    T.ok(onText.includes('+0.99') && lcd.includes(d2.view.text) && Math.abs(d2.view.value) < 1e-3,
+    // 開輸出時讀值≈1 V（1 kHz 正弦疊 1 V 直流，10 PLC 積分窗會有 ±2 mV 起伏，不能用字串比）
+    const onValue = Number((onText.match(/[+-]\d[\d .]*/)?.[0] ?? 'NaN').replace(/\s/g, ''));
+    T.ok(Math.abs(onValue - 1) < 0.01 && lcd.includes(d2.view.text) && Math.abs(d2.view.value) < 1e-3,
       `關 OUTPUT 900 ms 後 LCD 已更新（${lcd.match(/[+-][\d. ]+/)?.[0]}，模型 ${d2.view.text}）`);
     T.ok(ui.errors.length === 0, `沒有瀏覽器程式錯誤${ui.errors.length ? `：${ui.errors.join('; ')}` : ''}`);
   } finally { await ui.close(); }

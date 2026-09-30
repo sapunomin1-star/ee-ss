@@ -244,7 +244,7 @@ test('理想模型邊界不出 NaN；測試情境介面', () => {
   assert.deepEqual(solve(5, 0.1, 100), { v: 5, i: 0.05, cc: false });
   assert.deepEqual(solve(5, 0.1, 10), { v: 1, i: 0.1, cc: true });
   const m = fresh();
-  assert.deepEqual(m.scenarios.list.map((s) => s.id), ['open', 'ch1-100', 'ch1-10', 'ch2-100', 'ch2-10', 'ch34']);
+  assert.deepEqual(m.scenarios.list.map((s) => s.id), ['open', 'ch1-100', 'ch1-10', 'ch2-100', 'ch2-10', 'ch34', 'bench']);
   assert.equal(m.scenarios.set('nope').kind, 'reject'); assert.equal(m.scenarios.get(), 'open');
   m.reset(); m.scenarios.set('ch34'); m.reset(); assert.equal(m.scenarios.get(), 'ch34');
 });
