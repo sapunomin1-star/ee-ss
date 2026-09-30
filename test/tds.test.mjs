@@ -820,3 +820,22 @@ test('Normal：直流階躍只穿越一次 → 擷取暫態並保留；週期訊
   change(() => {}, 1);
   assert.ok(m.acqN > n + 1);
 });
+
+test('Single／Normal：改變的那一瞬間就跳過觸發線（開輸出的階躍 0 → 0.952 V）也要擷取，觸發點＝改變時刻', () => {
+  for (const mode of ['SINGLE', 'NORMAL']) {
+    // DC 偏移 1 V：電容未充電時 A 點瞬間跳到 1 V×1 kΩ/(1 kΩ＋50 Ω)≈0.952 V，之後隨電容充電升到約 1 V
+    const { m, afg, change, clock } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 1000, C: 10e-6, output: false });
+    Object.assign(m.ch[0], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
+    m.sIdx = SDIV.indexOf(5e-3); m.mpos = 0;
+    m.trig = { ...m.trig, src: 0, slope: 'R', mode: 'NORMAL', level: 0.05 }; // CH1、位準＝尖端 0.5 V
+    if (mode === 'SINGLE') { run(m, 'SINGLE'); assert.equal(m.trigStatus(), 'Ready'); } else m.tick();
+    const n = m.acqN;
+    change(() => { afg.ch[0].output = true; }, 1);
+    const t0 = clock.t;
+    if (mode === 'SINGLE') assert.equal(m.trigStatus(), 'Acq. Complete', 'Single 完成');
+    assert.ok(m.acqN > n, `${mode} 有新擷取`);
+    near(m.rec.abs0, t0, 1e-12, `${mode} 觸發點就是開輸出的時刻`);
+    near(recAt(m, 0, -1e-3), 0, 1e-9, `${mode} 改變前 0 V`);
+    near(recAt(m, 0, 1e-4), 1 - (1 - 1000 / 1050) * Math.exp(-1e-4 / (1050 * 10e-6)), 0.01, `${mode} 改變後從 0.952 V 往 1 V`);
+  }
+});

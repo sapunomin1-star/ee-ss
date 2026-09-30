@@ -401,16 +401,21 @@ export class TdsModel {
     const P = s.period > 0 && fx.sig[src].table && this.path(src).f > 0 ? s.period : 0;
     const step = Math.min(this.sdiv / 25, P ? P / 400 : Infinity), horizon = Math.max(10 * this.sdiv, 4 * P, 5 * (fx.tau || 0));
     const n = Math.min(400000, Math.ceil(horizon / step));
+    const hit = (t) => {
+      this.rec = this.acquire(0, t, { force: true });
+      this.frames = null;
+      if (this.run === 'single') { this.run = 'stop'; this.complete = true; this.armedAt = null; }
+      return true;
+    };
     let ta = fx.changedAt, ya = y(ta);
+    // 改變那一瞬間電壓就跳過觸發線（例：開輸出時 0 → 0.952 V 的階躍）：觸發點＝改變時刻。改變前取前一段電路的值
+    if (crossed(y(ta - 1e-9), ya)) return hit(ta);
     for (let j = 1; j <= n; j++) {
       let tb = fx.changedAt + j * step;
       const yb = y(tb);
       if (crossed(ya, yb)) {
         for (let r = 0; r < 50; r++) { const tm = (ta + tb) / 2, ym = y(tm); if (crossed(ya, ym)) tb = tm; else { ta = tm; ya = ym; } }
-        this.rec = this.acquire(0, tb, { force: true });
-        this.frames = null;
-        if (this.run === 'single') { this.run = 'stop'; this.complete = true; this.armedAt = null; }
-        return true;
+        return hit(tb);
       }
       ta = tb; ya = yb;
     }
