@@ -55,7 +55,8 @@ export async function run() {
     await ui.tab('bench'); await unplug('TDS.CH1.TIP');
     await ui.tab('tds'); await key('TDS.PWR.ON_OFF');
     s = await ui.snap('tds');
-    T.ok(s.trig.freq === null && s.rec?.stats.every((r) => !r || Math.abs(r.max - r.min) < 1e-9), '示波器關機中拔線及關訊號，開機不再採集舊波形');
+    // 關輸出後電容還在經探棒 10 MΩ 慢慢放電（τ≈0.3 s）：CH2 看到的是緩慢下降的直流（一筆紀錄內差幾 mV），不是原本 ±1 V 的方波
+    T.ok(s.trig.freq === null && s.rec?.stats.every((r) => !r || Math.abs(r.max - r.min) < 0.05), `示波器關機中拔線及關訊號，開機不再採集舊波形（紀錄內起伏 ${s.rec?.stats.map((r) => (r ? (r.max - r.min).toExponential(1) : '-')).join('／')} V）`);
     await ui.tab('bench'); await wire('TDS.CH1.TIP', 'A');
     await ui.tab('afg'); await afgKeys('KEY.OUTPUT');
     await ui.tab('tds'); await key('TDS.KEY.AUTOSET');

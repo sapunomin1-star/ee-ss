@@ -165,11 +165,9 @@ export class DmmModel {
     return { DCV: 10e6, ACV: 1e6 }[this.fn] ?? null;
   }
 
-  // 讀值會隨時間變（實驗台 DCV 的積分窗與電容充放電；ACV 是穩態有效值，不變）：外殼要定時重畫
-  isLive() {
-    if (!this.on || !this.fx.bench || this.fn !== 'DCV') return false;
-    return !!this.benchSource?.()?.v?.live;
-  }
+  // 接在實驗台上時讀值會隨時間變（DCV 積分窗、電容充放電、關輸出後的新讀值…）：外殼定時重畫。
+  // 不只在「還在變」時重畫，否則最後一筆新讀值可能沒畫上去，畫面停在舊值。
+  isLive() { return this.on && !!this.fx.bench; }
 
   // 實驗台 ACV 的適用條件（D-DMM p.11 頻率 3 Hz–300 kHz、p.21 峰值因數最大 10:1）：超出時真機讀值不準，
   // 模擬器仍顯示理想有效值，只在儀器外標示

@@ -6,8 +6,12 @@
 //   電表 DCV 10 MΩ、ACV 1 MΩ）；輸入電容（探棒約 10–20 pF、電表 ACV < 100 pF）尚未計入。
 // 解法：只有一顆電容 → 戴維寧等效 Vth(t)、Rth，一階方程 dVc/dt＝(Vth−Vc)/(Rth·C) 在每段取樣間以
 //   分段線性輸入精確積分（方波各區間保持常值）；週期穩態用 shooting：Vc(T)＝a·Vc(0)＋b → Vc(0)＝b/(1−a)。
-//   每個取樣區間內的接點電壓是 a＋b·s＋c·e^(−s/τ)（co 係數）：窄脈衝（τ 比取樣間隔短）的有效值與逐點取值
-//   都照這個解析式算，不靠取樣點。電容電壓偏離穩態 δ 時，各接點再加 kv·δ（暫態由 Bench 依時間衰減）。
+//   每個取樣區間內的接點電壓用解析式表示（co 係數）：窄脈衝（τ 比取樣間隔短）的有效值與逐點取值都照它算，
+//   不靠取樣點。兩種寫法數學上相同，依 h/τ 選數值穩定的一種：
+//     指數型（h/τ ≥ 0.5）v(s)＝x＋y·s＋c·e^(−s/τ)；
+//     近線性型（h/τ < 0.5）v(s)＝x＋y·s＋c·r(s/τ)，r(σ)＝e^(−σ)−1＋σ。長時間常數時指數型的 x、c 很大又互相抵消，
+//     平方積分會失準（例：100 kΩ／10 µF、1 kHz 的有效值少 5%，100 kHz 變成 0），所以改寫成值＋斜率＋小彎曲量。
+//   電容電壓偏離穩態 δ 時，各接點再加 kv·δ（暫態由 Bench 依時間衰減）。
 export const M = 4000;           // 每週期取樣點
 export const R_OUT = 50;         // AFG 輸出內阻
 const GMIN = 1e-12;              // 每個節點對地的極小電導，讓浮接電路也可解
@@ -33,6 +37,33 @@ export function emf(ch, t) {
   else if (ch.wave === 'SQUARE') s = ph < 0.5 ? 1 : -1;
   else { const k = Math.min(Math.max(ch.sym / 100, 1e-9), 1 - 1e-9); s = ph < k ? -1 + (2 * ph) / k : 1 - (2 * (ph - k)) / (1 - k); }
   return ch.emfOffset + (ch.emfVpp / 2) * s;
+}
+
+const LIN_X = 0.5; // h/τ 小於此值用近線性型
+// r(σ)＝e^(−σ)−1＋σ（小 σ 用級數，避免相減失去精度）
+function rq(σ) { return σ < 1e-2 ? σ * σ * (0.5 - σ * (1 / 6 - σ * (1 / 24 - σ * (1 / 120 - σ / 720)))) : Math.expm1(-σ) + σ; }
+// ∫0^σ r(u) du＝σ²/2−σ＋1−e^(−σ)（小 σ 用級數 σ³/6−σ⁴/24＋…）
+function rint(σ) {
+  if (σ >= 0.1) return (σ * σ) / 2 - σ - Math.expm1(-σ);
+  let t = (σ * σ * σ) / 6, sum = 0;
+  for (let n = 3; n < 30 && t !== 0; n++) { sum += t; t *= -σ / (n + 1); }
+  return sum;
+}
+// 8 點 Gauss–Legendre（近線性型的平方積分：被積函數平滑，8 點已到數值精度）
+const GL8 = [[0.1834346424956498, 0.362683783378362], [0.525532409916329, 0.3137066458778873],
+  [0.7966664774136267, 0.2223810344533745], [0.9602898564975363, 0.1012285362903763]].flatMap(([u, w]) => [[-u, w], [u, w]]);
+// 區間內的值、從 0 積到 s、以及 ∫0^h v² ds（lin＝近線性型）
+function segVal(lin, X, Y, C, s, tau) { return X + Y * s + (C ? C * (lin ? rq(s / tau) : Math.exp(-s / tau)) : 0); }
+function segInt(lin, X, Y, C, s, tau) { return X * s + (Y * s * s) / 2 + (C ? C * tau * (lin ? rint(s / tau) : -Math.expm1(-s / tau)) : 0); }
+function segSq(lin, X, Y, C, h, tau) {
+  if (!C) return X * X * h + X * Y * h * h + (Y * Y * h * h * h) / 3;
+  if (lin) {
+    let S = 0;
+    for (const [u, w] of GL8) { const s = ((u + 1) / 2) * h, v = X + Y * s + C * rq(s / tau); S += w * v * v; }
+    return (S * h) / 2;
+  }
+  const E = Math.exp(-h / tau), m1 = -Math.expm1(-h / tau), m2 = -Math.expm1((-2 * h) / tau);
+  return X * X * h + X * Y * h * h + (Y * Y * h * h * h) / 3 + 2 * X * C * tau * m1 + 2 * Y * C * tau * (tau * m1 - h * E) + C * C * (tau / 2) * m2;
 }
 
 // 小型高斯消去（n ≤ 3）
@@ -151,84 +182,88 @@ export function solve(bench, afg) {
       run(cycleDecay > 1e-12 ? b / cycleDecay : mean);
     }
   }
-  // ---- 6. 各接點電壓（對大地）：區間 k 內 v(s)＝a＋b·s＋c·e^(−s/τ)，s＝t−k·h；取樣表＝a＋c ----
+  // ---- 6. 各接點電壓（對大地）：區間 k 內的解析式（s＝t−k·h），取樣表＝區間起點的值 ----
   const out = {}, co = {};
   const live = capLive && Rth > 0;
+  const lin = !live || slow || h / tau < LIN_X;
   for (const x of NODES) {
-    const g = find(x), a = new Float64Array(M), b = new Float64Array(M), c = new Float64Array(M), arr = new Float64Array(M);
+    const g = find(x), X = new Float64Array(M), Y = new Float64Array(M), Cc = new Float64Array(M), arr = new Float64Array(M);
     if (g !== E) {
       const gi = idx[g], zr = live ? z[gi] / Rth : 0;
       for (let k = 0; k < M; k++) {
         let a0 = 0, b0 = 0;
         sources.forEach((s, j) => { a0 += e[j][k] * u[j][gi]; b0 += slope[j][k] * u[j][gi]; });
-        const gk = dv[k] / h; // 區間內 Vth 的斜率
-        if (!live) { a[k] = a0; b[k] = b0; } else if (slow) { a[k] = a0 + zr * (vth[k] - mean); b[k] = b0 + zr * gk; } else {
-          a[k] = a0 + zr * gk * tau;
-          b[k] = b0;
-          c[k] = -zr * (vc[k] - vth[k] + gk * tau);
+        const gk = dv[k] / h, dk = vth[k] - vc[k]; // 區間內 Vth 的斜率；Vth−Vc
+        if (!live) { X[k] = a0; Y[k] = b0; } else if (slow) { X[k] = a0 + zr * (vth[k] - mean); Y[k] = b0 + zr * gk; } else if (lin) {
+          X[k] = a0 + zr * dk; // 區間起點的值
+          Y[k] = b0 + zr * (gk - dk / tau); // 區間起點的斜率
+          Cc[k] = zr * (dk - gk * tau); // 乘上 r(s/τ) 的彎曲量
+        } else {
+          X[k] = a0 + zr * gk * tau;
+          Y[k] = b0;
+          Cc[k] = zr * (dk - gk * tau);
         }
-        arr[k] = a[k] + c[k];
+        arr[k] = lin ? X[k] : X[k] + Cc[k];
       }
     }
     out[x] = arr;
-    co[x] = { a, b, c };
+    co[x] = { x: X, y: Y, c: Cc };
   }
-  // 電容電壓（週期穩態）在絕對時間 t 的精確值：換線／改設定時接續暫態用
+  // 電容電壓（週期穩態）在絕對時間 t 的精確值：換線／改設定時接續暫態用（寫成不會大數相消的形式）
   const vcAt = (t) => {
     if (!capLive) return 0;
     if (slow) return mean;
-    const ph = t - Math.floor(t / T) * T, k = Math.min(M - 1, Math.floor(ph / h)), s = ph - k * h, gk = dv[k] / h;
-    return vth[k] + gk * s - gk * tau + (vc[k] - vth[k] + gk * tau) * Math.exp(-s / tau);
+    const [k, s] = locate({ h, period: T }, t), gk = dv[k] / h, σ = s / tau;
+    return vc[k] + (vth[k] - vc[k]) * -Math.expm1(-σ) + gk * tau * rq(σ);
   };
-  return { ...common, period: T, h, dc: false, v: out, co, vcAt };
+  return { ...common, period: T, h, dc: false, lin, v: out, co, vcAt };
+}
+
+// 絕對時間 t 落在哪個區間：[k, s]（t 剛好在週期邊界時浮點誤差可能讓相位略小於 0，夾回區間內）
+function locate(sol, t) {
+  const { h, period: T } = sol, ph = t - Math.floor(t / T) * T, k = Math.max(0, Math.min(M - 1, Math.floor(ph / h)));
+  return [k, Math.max(0, ph - k * h)];
 }
 
 // 某接點在絕對時間 t 的週期穩態電壓（取樣點之間照解析式，不是線性內插）
 export function nodeAt(sol, node, t) {
   if (sol.dc) return 0;
-  const { h, tau, period: T } = sol, q = sol.co[node];
-  const ph = t - Math.floor(t / T) * T, k = Math.min(M - 1, Math.floor(ph / h)), s = ph - k * h;
-  return q.a[k] + q.b[k] * s + (q.c[k] ? q.c[k] * Math.exp(-s / tau) : 0);
+  const q = sol.co[node], [k, s] = locate(sol, t);
+  return segVal(sol.lin, q.x[k], q.y[k], q.c[k], s, sol.tau);
 }
 
-// HI−LO 電壓差的區間係數與一個週期內的累積積分（每個解答只算一次）
+// HI−LO 電壓差的區間係數、一個週期內的累積積分與統計（每個解答、每組 HI／LO 只算一次）
 function diff(sol, hi, lo) {
   const key = `${hi}${lo}`;
   sol.memo ??= {};
   if (sol.memo[key]) return sol.memo[key];
-  const { h, tau } = sol, P = sol.co[hi], Q = sol.co[lo], m1 = tau > 0 ? -Math.expm1(-h / tau) : 0;
-  const a = Float64Array.from(P.a, (x, k) => x - Q.a[k]), b = Float64Array.from(P.b, (x, k) => x - Q.b[k]), c = Float64Array.from(P.c, (x, k) => x - Q.c[k]);
+  const { h, tau, lin } = sol, P = sol.co[hi], Q = sol.co[lo];
+  const X = Float64Array.from(P.x, (v, k) => v - Q.x[k]), Y = Float64Array.from(P.y, (v, k) => v - Q.y[k]), C = Float64Array.from(P.c, (v, k) => v - Q.c[k]);
   const pre = new Float64Array(M + 1);
-  for (let k = 0; k < M; k++) pre[k + 1] = pre[k] + a[k] * h + (b[k] * h * h) / 2 + (c[k] ? c[k] * tau * m1 : 0);
-  return (sol.memo[key] = { a, b, c, pre });
-}
-
-// HI−LO 的週期精確統計：平均、交流有效值（區間內解析積分，窄脈衝也準）、峰值（取樣點上，脈衝尖峰正好落在跳變點）
-export function diffStats(sol, hi, lo) {
-  if (sol.dc) return { mean: 0, acRms: 0, peak: 0, peakAc: 0 };
-  const { h, tau } = sol, d = diff(sol, hi, lo), T = M * h, mean = d.pre[M] / T;
-  const E = tau > 0 ? Math.exp(-h / tau) : 0, m1 = tau > 0 ? -Math.expm1(-h / tau) : 0, m2 = tau > 0 ? -Math.expm1(-2 * h / tau) : 0;
+  for (let k = 0; k < M; k++) pre[k + 1] = pre[k] + segInt(lin, X[k], Y[k], C[k], h, tau);
+  const T = M * h, mean = pre[M] / T;
   let S = 0, peak = 0, peakAc = 0;
   for (let k = 0; k < M; k++) {
-    const a = d.a[k] - mean, b = d.b[k], c = d.c[k];
-    // ∫0^h (a＋b·s＋c·e^(−s/τ))² ds
-    S += a * a * h + a * b * h * h + (b * b * h * h * h) / 3;
-    if (c) S += 2 * a * c * tau * m1 + 2 * b * c * tau * (tau * m1 - h * E) + c * c * (tau / 2) * m2;
-    const v = d.a[k] + c;
+    S += segSq(lin, X[k] - mean, Y[k], C[k], h, tau); // ∫(v−平均)²：先扣平均再平方，避免大直流吃掉交流
+    const v = lin ? X[k] : X[k] + C[k]; // 區間起點（脈衝尖峰正好落在跳變點）
     if (Math.abs(v) > peak) peak = Math.abs(v);
     if (Math.abs(v - mean) > peakAc) peakAc = Math.abs(v - mean);
   }
-  return { mean, acRms: Math.sqrt(Math.max(0, S / T)), peak, peakAc };
+  return (sol.memo[key] = { X, Y, C, pre, stats: { mean, acRms: Math.sqrt(Math.max(0, S / T)), peak, peakAc } });
+}
+
+// HI−LO 的週期精確統計：平均、交流有效值（區間內解析積分，窄脈衝、長時間常數都準）、峰值
+export function diffStats(sol, hi, lo) {
+  if (sol.dc) return { mean: 0, acRms: 0, peak: 0, peakAc: 0 };
+  return diff(sol, hi, lo).stats;
 }
 
 // HI−LO 在時間窗 [t1, t2] 的平均（週期延拓，分段精確積分）：電表 DCV 的積分窗
 export function diffMeanOver(sol, hi, lo, t1, t2) {
-  if (sol.dc || !(t2 > t1)) return sol.dc ? 0 : diffStats(sol, hi, lo).mean;
-  const { h, tau, period: T } = sol, d = diff(sol, hi, lo);
-  const part = (t) => { // 從該週期起點積到 t
-    const ph = t - Math.floor(t / T) * T, k = Math.min(M - 1, Math.floor(ph / h)), s = ph - k * h;
-    return d.pre[k] + d.a[k] * s + (d.b[k] * s * s) / 2 + (d.c[k] ? d.c[k] * tau * -Math.expm1(-s / tau) : 0);
-  };
+  if (sol.dc) return 0;
+  if (!(t2 > t1)) return diffStats(sol, hi, lo).mean;
+  const { tau, lin, period: T } = sol, d = diff(sol, hi, lo);
+  const part = (t) => { const [k, s] = locate(sol, t); return d.pre[k] + segInt(lin, d.X[k], d.Y[k], d.C[k], s, tau); }; // 從該週期起點積到 t
   const n = Math.floor(t2 / T) - Math.floor(t1 / T);
   return (n * d.pre[M] + part(t2) - part(t1)) / (t2 - t1);
 }

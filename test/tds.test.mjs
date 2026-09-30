@@ -1,7 +1,7 @@
 // TDS2001C 模型：照 docs/data/tds.json 的驗收（TDS-F01～F21）按鍵、轉旋鈕。這是模型層測試；真 UI 操作見 scripts/e2e/tds.mjs。
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { TdsModel } from '../src/instruments/tds/model.js';
+import { TdsModel, SDIV, VDIV } from '../src/instruments/tds/model.js';
 import { Bench, DEMO } from '../src/bench/bench.js';
 import { stats as waveStats } from '../src/bench/circuit.js';
 
@@ -716,4 +716,62 @@ test('取樣充足時畫面穩定：次取樣相位含在紀錄時間軸裡，�
   assert.equal(m.measure(0, 'FREQ').text, a);
   const { ys } = polyline(m); // 每像素欄最多兩點（最小、最大）
   assert.ok(ys.length <= 2 * 252 && ys.length >= 250, `${ys.length} 點`);
+});
+
+// ---- 2026-09-30 修正後複核：低頻方波邊緣的 BW、Single 擷取暫態、慢時基看到充電曲線 ----
+function benchWith({ wave = 'SQUARE', freq = 1000, emfVpp = 2, emfOffset = 0, R = 1000, C = 0.1e-6, t0 = 100, output = true } = {}) {
+  const clock = { t: t0 };
+  const afg = { on: true, ch: [{ wave, freq, sym: 50, emfVpp, emfOffset, output }, { wave: 'SINE', freq: 1000, sym: 50, emfVpp: 2, emfOffset: 0, output: false }] };
+  const bench = new Bench(afg);
+  bench.now = () => clock.t;
+  Object.assign(bench, { R, C });
+  Object.entries(DEMO).forEach(([lead, node]) => bench.connect(lead, node));
+  const m = new TdsModel();
+  m.setBenchSource(() => bench.tdsInput());
+  m.setScenario('BENCH');
+  const change = (fn, dt = 0) => { clock.t += dt; fn(); bench.solution(); m.inputChanged(); };
+  return { m, bench, afg, clock, change };
+}
+// 紀錄在 t（相對觸發點）的顯示電壓
+const recAt = (m, i, t) => m.sampleAt(i, t);
+
+test('BW Limit：1 kHz 方波的邊緣在快時基也被 20 MHz 一階低通圓化（10–90% 約 17.5 ns）', () => {
+  const { m, clock } = benchWith();
+  clock.t += 1;
+  run(m, 'AUTOSET');
+  m.sIdx = SDIV.indexOf(25e-9); m.mpos = 0; m.tick();
+  const rise = () => {
+    const r = m.rec.v[0], lo = Math.min(...r), hi = Math.max(...r), f = (q) => r.findIndex((y) => y >= lo + q * (hi - lo));
+    return (f(0.9) - f(0.1)) * m.rec.dt;
+  };
+  assert.ok(rise() < 1e-9, `BW 關：理想邊緣（${rise()}）`);
+  run(m, 'CH1 O2'); m.tick();
+  near(rise(), 2.197 / (2 * Math.PI * 20e6), 1.5e-9, 'BW 開：10–90% 上升時間≈2.2τ');
+});
+
+test('Single：先關輸出並按 Single 等待，再開輸出 → 擷取到電容從 0 V 充電的曲線（τ≈10.5 ms）', () => {
+  // 正弦幅度極小、DC 偏移 1 V：等於在 A 點加一個 1 V 的階躍
+  const { m, afg, change } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 1000, C: 10e-6, output: false }); // 電容沒充電
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 }); // CH2（B 點，10×）：顯示 200 mV/div
+  m.sIdx = SDIV.indexOf(5e-3); m.mpos = 0;
+  m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.05 }; // 位準＝探棒尖端 0.5 V
+  run(m, 'SINGLE');
+  assert.equal(m.trigStatus(), 'Ready');
+  change(() => { afg.ch[0].output = true; }, 1); // 階躍
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  const tau = 1050 * 10e-6 * (1 - 1050 / 3.34e6); // 含儀器負載，約 10.5 ms
+  near(recAt(m, 1, 0), 0.5, 0.02, '觸發點＝位準 0.5 V');
+  near(recAt(m, 1, tau), 1 - 0.5 * Math.exp(-1), 0.03, '觸發後 τ：1−0.5e^−1');
+  near(recAt(m, 1, -Math.log(2) * tau - 3e-3), 0, 0.01, '改變之前：0 V（輸出關）');
+});
+
+test('慢時基（Scan）看得到大 RC 的充電曲線：紀錄前段低、後段高，不是整條平移', () => {
+  const { m, afg, change } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 100e3, C: 10e-6, output: false }); // 電容沒充電
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
+  m.sIdx = SDIV.indexOf(0.25); m.mpos = 0; // 250 ms/div、Auto → Scan
+  change(() => { afg.ch[0].output = true; }, 1);
+  change(() => {}, 1.5); // 1.5 秒後看
+  const r = m.rec.v[1].map((y) => y * 10);
+  assert.ok(m.isScan());
+  assert.ok(r[0] < 0.05 && r[2499] > 0.7 && r[1800] > r[1200] && r[1200] > r[600], `前段 ${r[0].toFixed(3)}、後段 ${r[2499].toFixed(3)}`);
 });

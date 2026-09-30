@@ -73,6 +73,9 @@ function firstCycle(x) {
   return crossings(1) ?? crossings(-1);
 }
 
+// 表格平均（AC 耦合時單次擷取要扣掉的直流）
+const tableMean = (v) => { if (!v?.length) return 0; let s = 0; for (const x of v) s += x; return s / v.length; };
+
 // ---- 訊號路徑物件（正弦解析式／週期波形表）----
 function sinePath(a, m, f, d) {
   return {
@@ -103,7 +106,16 @@ function tablePath(v, period, ex = null) {
       const y0 = v[j], y1 = v[(j + 1) % M];
       if (!before(y0) || before(y1)) continue;
       let lo = (j / M) * period, hi = ((j + 1) / M) * period;
-      if (!ex || !before(ex(lo)) || before(ex(hi))) return ((j + (L - y0) / (y1 - y0)) / M) * period;
+      const lin = ((j + (L - y0) / (y1 - y0)) / M) * period;
+      if (!ex || !before(ex(lo))) return lin;
+      // 精確解的穿越可能比表格晚一點（例：BW 低通讓跳變後的邊緣延遲幾 ns，落到下一格）：往後找到第一個已穿越的點再二分
+      const h = period / M;
+      if (before(ex(hi))) {
+        let t = hi;
+        for (let n = 1; n <= 24 && before(ex(t)); n++) t = hi + (n * h) / 8;
+        if (before(ex(t))) return lin;
+        lo = t - h / 8; hi = t;
+      }
       for (let n = 0; n < 40; n++) { const c = (lo + hi) / 2; if (before(ex(c))) lo = c; else hi = c; }
       return hi;
     }
@@ -158,8 +170,35 @@ function bwLimit(p) {
     const r = p.f / BW_FC;
     return sinePath(p.a / Math.hypot(1, r), p.m, p.f, p.d + Math.atan(r) / (2 * Math.PI * p.f));
   }
-  if (p.period / p.v.length > 1 / (4 * Math.PI * BW_FC)) return p;
+  if (p.period / p.v.length > 1 / (4 * Math.PI * BW_FC)) return p.ex ? tablePath(p.v, p.period, bwExact(p, BW_FC)) : p;
   return tablePath(lowpassTable(p.v, p.period, BW_FC), p.period);
+}
+
+// 表格太粗（低頻訊號）時的 BW：對實驗台給的精確解做一階低通卷積 y(t)＝∫(1/τ)e^(−u/τ)·x(t−u)du。
+//   跳變只發生在表格格點上：先從表格找出跳變格點（相鄰兩點差超過峰對峰的 20%）；離最近跳變超過 12τ 的點，
+//   平滑訊號經一階低通≈延遲 τ（誤差 τ²·x″ 級），直接取 x(t−τ)；12τ 內有跳變就在跳變處與每 2τ 切段、各段 4 點 Gauss–Legendre。
+const GL4 = [[-0.8611363115940526, 0.3478548451374538], [-0.3399810435848563, 0.6521451548625461],
+  [0.3399810435848563, 0.6521451548625461], [0.8611363115940526, 0.3478548451374538]];
+function bwExact(p, fc) {
+  const { v, period, ex } = p, M = v.length, h = period / M, tau = 1 / (2 * Math.PI * fc), span = 12 * tau;
+  const jumps = [];
+  for (let k = 0; k < M; k++) if (Math.abs(v[k] - v[(k + M - 1) % M]) > 0.2 * 2 * p.a) jumps.push(k * h);
+  if (!jumps.length) return (t) => ex(t - tau);
+  return (t) => {
+    const ph = t - Math.floor(t / period) * period;
+    const cuts = [];
+    for (const e of jumps) { const u = ph - e - Math.floor((ph - e) / period) * period; if (u > 0 && u < span) cuts.push(u); } // 往回 u 秒是跳變
+    if (!cuts.length) return ex(t - tau);
+    for (let j = 0; j <= 6; j++) cuts.push(2 * j * tau);
+    cuts.sort((a, b) => a - b);
+    let y = 0;
+    for (let i = 0; i + 1 < cuts.length; i++) {
+      const a = cuts[i], b = cuts[i + 1];
+      if (!(b - a > 1e-15)) continue;
+      for (const [x, w] of GL4) { const u = a + ((x + 1) / 2) * (b - a); y += ((w * (b - a)) / 2) * (Math.exp(-u / tau) / tau) * ex(t - u); }
+    }
+    return y + Math.exp(-span / tau) * ex(t - span);
+  };
 }
 
 // AutoSet 的波形辨識（手冊 p.80–81 只列結果，演算法 PD）。正弦情境（解析式）＝正弦。表格：
@@ -306,24 +345,70 @@ export class TdsModel {
   // 前端（p.108：每格 25 階、10 格動態範圍）：樣本限制在採集當下的 [(−5 − pos)·V/div, (5 − pos)·V/div]（BNC 伏特，
   //   1X V/div），超出的削頂並記旗標；紀錄保存採集時的前端設定。停止後轉 V/div、位置只縮放既有資料，削掉的波峰不會回來。
   //   不做 8-bit 量化（範圍外）。
-  acquire(tau) {
+  // abs0（實驗台才有）：紀錄 t＝0 對應的絕對時間。DC 耦合、BW 關時改用實際電壓 abs(t)（含電容暫態與改變前的電路），
+  //   紀錄裡看得到充放電的曲線；force＝單次擷取電路變化：各種耦合都用 abs（AC 只扣掉目前的直流，GND 為 0，BW 不計，PD）。
+  //   scan：abs0 已對好（紀錄結束在「看的時刻」），未觸發也不加隨機相位。
+  acquire(tau, abs0 = null, { force = false, scan = false } = {}) {
     const triggered = tau != null;
     if (!triggered) tau = this.rand();
+    if (abs0 != null && !triggered && !scan) abs0 += tau; // 未觸發：時間起點隨機（與週期路徑用同一個亂數）
     const dt = this.sdiv / PTS_DIV, t0 = this.mpos - 5 * this.sdiv + this.rand() * dt;
     const fe = [null, null], clip = [false, false];
     const v = this.ch.map((c, i) => {
       if (!c.on) return null; // 只採顯示中的通道
       const base = this.base(i), lo = (-5 - c.pos) * base, hi = (5 - c.pos) * base;
-      const p = this.path(i), arr = new Float64Array(N);
+      const p = this.path(i), arr = new Float64Array(N), s = this.fx.sig?.[i];
+      const useAbs = abs0 != null && s?.abs && (force || (c.coupling === 'DC' && !c.bw));
+      const kp = 1 / this.fx.probe[i], dc = c.coupling === 'AC' ? tableMean(s?.table) * kp : 0;
       fe[i] = { base, pos: c.pos, probe: c.probe, coupling: c.coupling, bw: c.bw };
       for (let k = 0; k < N; k++) {
-        const y = p.at(tau + t0 + k * dt);
+        const y = !useAbs ? p.at(tau + t0 + k * dt) : c.coupling === 'GND' ? 0 : s.abs(abs0 + t0 + k * dt) * kp - dc;
         if (y > hi || y < lo) clip[i] = true;
         arr[k] = clamp(y, lo, hi);
       }
       return arr;
     });
     return { n: ++this.acqN, t0, dt, v, fe, clip, triggered, broken: false };
+  }
+
+  // 實驗台：觸發點（週期穩態的相位 tau）對到「看的時刻」之後的第一個同相位時刻
+  absAnchor(tau) {
+    const tv = this.fx.tView;
+    if (tv == null) return null;
+    if (tau == null) return tv;
+    const f = this.trigPath().f;
+    if (!(f > 0)) return tv;
+    const P = 1 / f;
+    return tv + ((((tau - tv) % P) + P) % P);
+  }
+
+  // 單次擷取電路變化（暫態）：Single 等待中電路改變時，從改變的時刻往後，用實際電壓（含暫態、改變前的電路）找第一個觸發，
+  //   以它為 t＝0 擷取並停止。找不到就照一般規則（週期穩態）等觸發。觸發判斷只看觸發源的實際電壓與位準／斜率（PD：
+  //   AC 耦合只扣掉目前的直流、不模擬濾波暫態；觸發耦合 AC 同樣處理）。
+  captureChange() {
+    const fx = this.fx, src = this.trig.src, s = fx.sig?.[src], c = this.ch[src];
+    if (!s?.abs || c.coupling === 'GND' || fx.changedAt == null || this.triedChange === fx.changedAt) return false;
+    this.triedChange = fx.changedAt;
+    const kp = 1 / fx.probe[src], dc = c.coupling === 'AC' || this.trig.coup === 'AC' ? tableMean(s.table) * kp : 0;
+    const y = (t) => s.abs(t) * kp - dc, L = this.trig.level, up = this.trig.slope === 'R';
+    const crossed = (a, b) => (up ? a < L && b >= L : a > L && b <= L);
+    const P = s.period > 0 && fx.sig[src].table && this.path(src).f > 0 ? s.period : 0;
+    const step = Math.min(this.sdiv / 25, P ? P / 400 : Infinity), horizon = Math.max(10 * this.sdiv, 4 * P, 5 * (fx.tau || 0));
+    const n = Math.min(400000, Math.ceil(horizon / step));
+    let ta = fx.changedAt, ya = y(ta);
+    for (let j = 1; j <= n; j++) {
+      let tb = fx.changedAt + j * step;
+      const yb = y(tb);
+      if (crossed(ya, yb)) {
+        for (let r = 0; r < 50; r++) { const tm = (ta + tb) / 2, ym = y(tm); if (crossed(ya, ym)) tb = tm; else { ta = tm; ya = ym; } }
+        this.rec = this.acquire(0, tb, { force: true });
+        this.frames = null;
+        this.run = 'stop'; this.complete = true; this.armedAt = null;
+        return true;
+      }
+      ta = tb; ya = yb;
+    }
+    return false;
   }
 
   // 欠取樣：顯示中的通道有訊號頻率 > 取樣率/2（取樣率＝250 點／div）
@@ -339,18 +424,20 @@ export class TdsModel {
   tick(force = false) {
     if (!this.on || this.run === 'stop') return;
     this.frames = null;
-    if (this.isScan()) { this.rec = this.acquire(null); return; } // Scan：不等觸發（簡化，GAP-TDS-08）
+    const tv = this.fx.tView; // 實驗台「看的時刻」；單機情境沒有
+    if (this.isScan()) { this.rec = this.acquire(null, tv == null ? null : tv - 5 * this.sdiv - this.mpos, { scan: true }); return; } // Scan：紀錄結束在「看的時刻」（簡化，GAP-TDS-08）
     const tt = this.trigTime();
     if (tt != null || force) {
+      const a0 = this.absAnchor(tt);
       if (tt != null && this.run === 'run' && this.undersampled()) { // 連續採集又欠取樣：每筆混疊的樣子不同 → 幾幀輪播（真機畫面不穩定）
-        this.frames = [0, 1, 2, 3].map(() => this.acquire(tt));
+        this.frames = [0, 1, 2, 3].map(() => this.acquire(tt, a0));
         this.rec = this.frames[3];
-      } else this.rec = this.acquire(tt);
-      if (this.run === 'single') { this.run = 'stop'; this.complete = true; }
+      } else this.rec = this.acquire(tt, a0);
+      if (this.run === 'single') { this.run = 'stop'; this.complete = true; this.armedAt = null; }
       return;
     }
     if (this.run === 'run' && this.trig.mode === 'AUTO') { // Auto 無觸發：自由執行
-      this.frames = [0, 1, 2, 3].map(() => this.acquire(null));
+      this.frames = [0, 1, 2, 3].map(() => this.acquire(null, tv ?? null));
       this.rec = this.frames[3];
     }
     // Normal 或 Single 等待中：保留舊採集（TDS-F10、GAP-TDS-07）
@@ -476,6 +563,7 @@ export class TdsModel {
         return null;
       case 'TDS.KEY.SINGLE':
         this.run = 'single'; this.complete = false; this.frames = null;
+        this.armedAt = this.scen === 'BENCH' ? this.benchFx().now ?? null : null; // 之後電路一變就擷取那一刻起的暫態
         return this.crosses() ? null : { kind: 'approx', text: 'Single 等待有效觸發（Ready）；Auto 模式下也不會自己完成（暫定 GAP-TDS-07），可按 Force Trig 強制取一幀。' };
       case 'TDS.KEY.SET_TO_ZERO': this.mpos = 0; return null;
       case 'TDS.KEY.SET_TO_50': this.setTo50(); this.markBroken(); return null;
@@ -737,6 +825,7 @@ export class TdsModel {
   inputChanged() {
     if (this.scen !== 'BENCH') return;
     this.fx = this.benchFx();
+    if (this.on && this.run === 'single' && this.armedAt != null && this.fx.changedAt >= this.armedAt && this.captureChange()) return;
     this.tick();
   }
 

@@ -192,3 +192,35 @@ test('電表 DCV 是 10 PLC 積分窗的平均：0.1 Hz 正弦的讀值跟著波
   t += 0.5;
   assert.ok(Math.abs(read()) < 5e-3, `下一筆以後：1 kHz 的積分窗平均接近 0（${read()}）`);
 });
+
+// ---- 2026-09-30 修正後複核：長時間常數的積分、已完成讀值不被改 ----
+test('長時間常數：RMS 與平均用不會大數相消的寫法，全部 R／C 在 1 kHz、100 kHz 都等於相量解析值', () => {
+  const loads = [{ a: 'A', b: 'E', r: 10e6 }, { a: 'B', b: 'E', r: 10e6 }, { a: 'B', b: 'G', r: 1e6 }];
+  const RL = 1 / (1 / 1e6 + 1 / 10e6), par = (a, b) => div(cx(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re), add(a, b));
+  for (const R of [100, 1000, 100e3]) for (const C of [1e-9, 0.1e-6, 10e-6]) for (const f of [1000, 1e5]) {
+    const w = 2 * Math.PI * f, Zc = cx(0, -1 / (w * C));
+    const sol = solve({ topo: 'RC', R, C, wires: DEMO, loads }, [sine(20, f), off]); // Load 50 Ω 顯示 10 Vpp＝EMF 20 Vpp
+    const zB = par(cx(RL), Zc), zBR = add(zB, cx(R)), zA = par(cx(10e6), zBR);
+    const vA = 10 * mag(div(zA, add(zA, cx(50)))), want = (vA * mag(div(zB, zBR))) / Math.SQRT2;
+    const got = diffStats(sol, 'B', 'G').acRms;
+    assert.ok(Math.abs(got / want - 1) < 1e-6, `R ${R} C ${C} f ${f}：${got} vs ${want}`);
+    assert.ok(Math.abs(diffStats(sol, 'B', 'G').mean) < 1e-9, '沒有偏移時平均＝0');
+  }
+});
+
+test('同一個積分窗內連改兩次設定：已完成的 DCV 讀值不變（照當時的電路算）', () => {
+  let t = 500;
+  const afg = { on: true, ch: [{ wave: 'SINE', freq: 1000, sym: 50, emfVpp: 2, emfOffset: 1, output: true }, { ...off }] };
+  const dmm = new DmmModel(), b = new Bench(afg, dmm);
+  b.now = () => t;
+  Object.entries(DEMO).forEach(([l, n]) => b.connect(l, n));
+  dmm.setBenchSource(() => b.dmmInput()); dmm.setFixture('bench'); b.solution();
+  t += 5;
+  const done = dmm.view().value, tr = Math.floor(t / APERTURE_S) * APERTURE_S;
+  t = tr + 0.02; afg.ch[0].emfOffset = 3; b.solution();
+  t = tr + 0.04; afg.ch[0].emfOffset = 5; b.solution();
+  t = tr + 0.05;
+  near(dmm.view().value, done, 1e-12, '已完成的讀值');
+  t = tr + APERTURE_S + 0.01; // 下一筆：窗內前 20 ms 是 1 V、再 20 ms 是 3 V、其餘是 5 V（電容 τ≈0.1 ms，幾乎立刻跟上）
+  near(dmm.view().value, (1 * 0.02 + 3 * 0.02 + 5 * (APERTURE_S - 0.04)) / APERTURE_S, 0.01, '跨兩次改變的窗照各段平均');
+});

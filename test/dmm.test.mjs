@@ -267,3 +267,13 @@ test('輸入電阻（實驗台負載）：DCV 10 MΩ、ACV 1 MΩ、Ω 與關機�
   run(m, 'OHM'); assert.equal(m.inputZ(), null);
   run(m, 'DCV POWER'); assert.equal(m.inputZ(), null);
 });
+
+test('接在實驗台上就定時重畫（任何功能）；單機情境或關機不重畫', () => {
+  const m = fresh('bench');
+  m.setBenchSource(() => ({ v: null, ohm: null, why: '' }));
+  assert.equal(m.isLive(), true);
+  run(m, 'ACV'); assert.equal(m.isLive(), true);
+  run(m, 'OHM'); assert.equal(m.isLive(), true);
+  run(m, 'POWER'); assert.equal(m.isLive(), false);
+  assert.equal(fresh('dcv').isLive(), false);
+});

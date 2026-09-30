@@ -55,6 +55,19 @@ export async function run() {
     T.ok(held > 0.9 && after > 0.9 * held && after < held, `關 OUTPUT 後電容仍有電：${held.toFixed(3)} V → 0.7 s 後 ${after.toFixed(3)} V`);
     const b = await ui.snap('bench');
     T.ok(b.tau > 20 && b.tau < 50, `放電時間常數＝C×(電表 10 MΩ ∥ 探棒…)，約 ${b.tau.toFixed(1)} s`);
+
+    // 修正後複核的重現：暫態很快結束（100 Ω／1 nF）時關 OUTPUT，電表 LCD 要更新到新讀值，不能停在舊值
+    await ui.tab('bench');
+    await p.locator('select[name="R"]').selectOption('100');
+    await p.locator('select[name="C"]').selectOption('1e-9');
+    await ui.tab('afg'); await afg('KEY.OUTPUT');
+    await ui.tab('dmm'); await sleep(600);
+    const onText = await ui.lcdText();
+    await ui.tab('afg'); await afg('KEY.OUTPUT');
+    await ui.tab('dmm'); await sleep(900);
+    const d2 = await ui.snap('dmm'), lcd = await ui.lcdText();
+    T.ok(onText.includes('+0.99') && lcd.includes(d2.view.text) && Math.abs(d2.view.value) < 1e-3,
+      `關 OUTPUT 900 ms 後 LCD 已更新（${lcd.match(/[+-][\d. ]+/)?.[0]}，模型 ${d2.view.text}）`);
     T.ok(ui.errors.length === 0, `沒有瀏覽器程式錯誤${ui.errors.length ? `：${ui.errors.join('; ')}` : ''}`);
   } finally { await ui.close(); }
   return T;
