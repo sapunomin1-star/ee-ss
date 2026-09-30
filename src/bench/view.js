@@ -20,7 +20,7 @@ const END = {
 };
 const LEFT_SIDE = (id) => !id.startsWith('TDS');
 
-function mini(model, x, y, w, h, screen, goto, title) {
+export function mini(model, x, y, w, h, screen, goto, title) {
   const body = model.isOn() ? model.lcd() : `<rect width="${screen[0]}" height="${screen[1]}" fill="#050505"/>`;
   return `<g class="mini" data-goto="${goto}" tabindex="0" role="button" aria-label="切到 ${esc(title)} 面板"><title>點一下切到 ${esc(title)} 面板操作</title>` +
     `<rect x="${x - 3}" y="${y - 3}" width="${w + 6}" height="${h + 6}" rx="3" fill="#111"/>` +
