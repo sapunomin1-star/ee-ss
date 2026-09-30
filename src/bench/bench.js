@@ -5,7 +5,7 @@
 //   各電容電壓在變化那一刻連續（改變前一刻的電壓；新插上的電容從 0 V 開始），之後各模態以自己的時間常數衰減到新的週期穩態。
 //   電表積分窗、示波器單次擷取往前看的部分，都照「當時那一段」的電路算：已完成的讀值不會被後來的操作改掉。
 import { stats, LEADS, NODES, M } from './circuit.js';
-import { solveNet, ohmsNet } from './net.js';
+import { solveNet, ohmsNet, R_GPE } from './net.js';
 
 export const R_OPTIONS = [100, 470, 1000, 2200, 4700, 10000, 47000, 100000];
 export const C_OPTIONS = [0.001e-6, 0.01e-6, 0.047e-6, 0.1e-6, 0.47e-6, 1e-6, 10e-6];
@@ -55,6 +55,14 @@ function capsAt(g, t) {
   return out;
 }
 
+// GPE 第 k 路在某一段、時刻 t 的端電壓與輸出電流（週期平均＋暫態；CV 電流＝(設定−端電壓)/R_GPE）
+function chanAt(g, k, t) {
+  const c = g.built.gpe[k], o = g.sol.dcOut[k], m = g.modes[k];
+  if (c.pos === c.neg) return { v: 0, i: m === 'CC' ? c.ilim : m === 'RB' ? 0 : Infinity };
+  const v = o.v + devNode(g, c.pos, t) - devNode(g, c.neg, t);
+  return { v, i: m === 'CC' ? c.ilim : m === 'RB' ? 0 : (c.v - v) / R_GPE };
+}
+
 export class Bench {
   // dmm：查電表目前的輸入電阻（依功能不同）；gpe：直流電源的設定（麵包板用）；沒有就不計
   constructor(afg, dmm = null, gpe = null) {
@@ -78,7 +86,7 @@ export class Bench {
     this.segs = []; // 電路狀態歷史，最後一段是目前的
   }
 
-  get cur() { return this.segs[this.segs.length - 1]; }
+  get cur() { return this.segAt(this.now()); }
   // 絕對時間 t 時的電路狀態（那一段）
   segAt(t) {
     for (let i = this.segs.length - 1; i >= 0; i--) if (this.segs[i].from <= t) return this.segs[i];
@@ -89,12 +97,13 @@ export class Bench {
     return this.afg.ch.map((c) => ({ wave: c.wave, freq: c.freq, sym: c.sym, emfVpp: c.emfVpp, emfOffset: c.emfOffset, output: c.output && this.afg.on }));
   }
 
-  // GPE 四路輸出的設定（開機、Output ON 才輸出）。實驗台目前只支援 Independent；Series／Parallel 時不輸出並提示
+  // GPE 四路輸出的設定（開機、Output ON 才輸出）。各路的有效電壓／限流照 GPE 模型的 eff()：
+  //   Series＝CH2 電壓跟 CH1、限流各自；Parallel＝CH2 也用 CH1 的電壓與限流（兩路並接時合計 2×I1）。
+  //   兩路之間的內部接法手冊沒寫清楚：實驗台不假設內部相連，由學生照手冊在麵包板上接（近似）
   gpeParams() {
     const g = this.gpe;
     if (!g?.on || !g.output) return { active: false, mode: g?.mode ?? 'INDEP', ch: [] };
-    if (g.mode !== 'INDEP') return { active: false, mode: g.mode, ch: [] };
-    return { active: true, mode: g.mode, ch: [1, 2, 3, 4].map((c) => ({ v: g.vset[c] / 100, ilim: c <= 2 ? g.iset[c] / 1000 : GPE_FIXED_LIMIT })) };
+    return { active: true, mode: g.mode, ch: [1, 2, 3, 4].map((c) => { const e = g.eff(c); return { v: e.vs, ilim: e.is ?? GPE_FIXED_LIMIT }; }) };
   }
 
   // 目前板子的導線位置（固定 RC 板＝接點 A／B／G；麵包板＝孔）
@@ -137,7 +146,16 @@ export class Bench {
     for (const [, n] of grounds) union(n, 'E');
     const node = (x) => (x == null ? null : find(x));
     const leadNode = Object.fromEntries(Object.entries(raw).filter(([, n]) => n).map(([id, n]) => [id, node(n)]));
+    const pre = elements;
     elements = elements.map((e) => ({ ...e, a: node(e.a), b: node(e.b) }));
+    // 接地的導線（接地夾、黑夾、GPE GND）把元件兩端都接到大地 → 被短路（麵包板模型只看得到插法本身的短路）
+    if (this.board === 'bb') {
+      pre.forEach((e, i) => {
+        if (e.a === e.b || elements[i].a !== elements[i].b) return;
+        const by = grounds.filter(([, n]) => find(n) === elements[i].a).map(([id]) => LEADS[id].name).join('、');
+        warn.push({ level: 'bad', text: `${e.id} 兩端都經接地的導線接到大地（${by}），被短路了；示波器的接地夾都是大地，不能夾在元件兩端。` });
+      });
+    }
     const netNodes = [...new Set(nodes.map(find))].filter((x) => x !== 'E');
 
     // 固定 RC 板的接線提醒（與原本相同）
@@ -161,79 +179,141 @@ export class Bench {
     if (afg.length > 1 && Math.abs(afg[0].p.freq - afg[1].p.freq) > 1e-9 * afg[0].p.freq) warn.push({ level: 'info', text: '兩個 AFG 通道頻率不同：本模擬以 CH1 的週期計算，畫面只是近似。' });
     // GPE：兩條導線都接上的通道才形成迴路
     const gp = this.gpeParams(), gpe = [];
-    if (this.gpe && !gp.active && gp.mode !== 'INDEP' && Object.keys(W).some((id) => id.startsWith('GPE.CH') && W[id])) {
-      warn.push({ level: 'info', text: `GPE 在 ${gp.mode === 'SER' ? 'Series' : 'Parallel'} 模式：實驗台目前只支援 Independent，輸出當作關閉。` });
+    if (gp.active && gp.mode !== 'INDEP' && Object.keys(W).some((id) => id.startsWith('GPE.CH') && W[id])) {
+      warn.push({ level: 'info', text: gp.mode === 'SER'
+        ? 'GPE Series：CH2 的電壓跟 CH1、限流各自（近似）；兩路之間不自動相連，串聯要自己在麵包板上把 CH1− 接到 CH2＋。'
+        : 'GPE Parallel：CH2 也輸出 CH1 的電壓與限流（近似）；兩路之間不自動相連，並聯要自己把兩路的＋、−各自接在一起。' });
     }
     if (gp.active) {
       gp.ch.forEach((c, k) => {
         const pos = leadNode[`GPE.CH${k + 1}+`], neg = leadNode[`GPE.CH${k + 1}-`];
-        if (!pos || !neg) return; // ＋－接在一起的短路提醒由麵包板模型給（GPE 會進入 CC 限流）
+        if (!pos || !neg) return;
+        if (pos === neg && raw[`GPE.CH${k + 1}+`] !== raw[`GPE.CH${k + 1}-`] && find(raw[`GPE.CH${k + 1}+`]) === 'E') {
+          warn.push({ level: 'bad', text: `GPE CH${k + 1} 的＋與−都經接地的導線接到大地，電源被短路（會進入 CC 限流）。` });
+        }
         gpe.push({ id: `GPE${k + 1}`, ch: k + 1, pos, neg, v: c.v, ilim: c.ilim });
       });
     }
     // 儀器輸入電阻
     const loads = this.loadLeads().map((L) => ({ a: leadNode[L.a], b: L.b ? leadNode[L.b] : 'E', r: L.r })).filter((L) => L.a && L.b && L.a !== L.b);
-    return { net: { nodes: netNodes, elements, loads, afg }, gpe, leadNode, warn, find: node };
+    // 通電範圍：和有輸出的電源（AFG、GPE）以元件、儀器輸入電阻或電源本身相連的接點（量電阻時要避開）
+    const cp = new Map(), cf = (x) => { if (!cp.has(x)) cp.set(x, x); let y = x; while (cp.get(y) !== y) y = cp.get(y); cp.set(x, y); return y; };
+    const cu = (a, b) => { if (a != null && b != null) cp.set(cf(a), cf(b)); };
+    elements.forEach((e) => cu(e.a, e.b)); loads.forEach((L) => cu(L.a, L.b));
+    afg.forEach((s) => cu(s.node, 'E')); gpe.forEach((s) => cu(s.pos, s.neg));
+    const live = new Set([...afg.map((s) => cf(s.node)), ...gpe.map((s) => cf(s.pos))]);
+    const powered = (x) => x != null && live.has(cf(x));
+    return { net: { nodes: netNodes, elements, loads, afg }, gpe, leadNode, warn, find: node, powered };
   }
 
-  // 解算，GPE 依直流工作點決定 CV／CC（超過限流→CC；CC 時端電壓超過設定→回 CV），最多幾輪
-  solveBuilt(b) {
-    const modes = b.gpe.map(() => 'CV');
-    let sol;
-    for (let it = 0; it < 8; it++) {
-      sol = solveNet({ ...b.net, dc: b.gpe.map((c, k) => ({ id: c.id, pos: c.pos, neg: c.neg, v: c.v, i: c.ilim, mode: modes[k] })) });
+  // 一段電路狀態：從 t0 起，GPE 各路用 modes（CV／CC／RB）。模式依「t0 當下」的狀態決定（含電容電壓），
+  //   不是只看最後的穩態：例如開輸出時電容還沒充電，電流超過限流就先 CC（線性充電），之後再回 CV。
+  makeSeg(built, caps, t0, hint) {
+    const modes = hint ? [...hint] : built.gpe.map(() => 'CV');
+    let seg;
+    for (let it = 0; it < 10; it++) {
+      const sol = solveNet({ ...built.net, dc: built.gpe.map((c, k) => ({ id: c.id, pos: c.pos, neg: c.neg, v: c.v, i: c.ilim, mode: modes[k] })) });
+      seg = { sol, built, modes: [...modes], t0, from: t0, to: Infinity, amp: sol.modalFromCaps(sol.caps.map((id) => caps[id] ?? 0), t0) }; // 新插上的電容從 0 V 開始
       let changed = false;
-      sol.dcOut.forEach((o, k) => {
-        const c = b.gpe[k];
-        if (modes[k] === 'CV' && o.i > c.ilim * (1 + 1e-9)) { modes[k] = 'CC'; changed = true; } else if (modes[k] === 'CC' && o.v > c.v * (1 + 1e-9)) { modes[k] = 'CV'; changed = true; }
+      built.gpe.forEach((c, k) => {
+        const { v, i } = chanAt(seg, k, t0 + 1e-12);
+        const m = modes[k];
+        const to = m === 'CV' ? (i > c.ilim * (1 + 1e-9) ? 'CC' : i < -1e-6 ? 'RB' : m) : m === 'CC' ? (v > c.v * (1 + 1e-9) ? 'CV' : m) : v < c.v * (1 - 1e-9) ? 'CV' : m;
+        if (to !== m) { modes[k] = to; changed = true; }
       });
       if (!changed) break;
     }
-    return { sol, modes };
+    const sol = seg.sol;
+    sol.warn = [...built.warn];
+    built.gpe.forEach((c, k) => {
+      if (seg.modes[k] === 'RB') sol.warn.push({ level: 'bad', text: `GPE CH${c.ch} 被其他電源灌入：端電壓高於設定的 ${c.v.toFixed(2)} V。電源不能吸收電流，會失去穩壓（真機可能損壞）；不同電壓的兩路不要直接並接。` });
+    });
+    if (this.board !== 'bb') sol.v = Object.fromEntries(NODES.map((x) => [x, sol.table(built.find(x))])); // 固定 RC 板：A／B／G 取樣表（相容）
+    sol.tau = sol.tauMax;
+    return seg;
+  }
+
+  // 這一段之後第一次模式切換（CC 的端電壓升到設定值→CV；CV 電流超過限流→CC、變成負的→RB；RB 端電壓降回設定→CV）
+  nextEvent(seg) {
+    const b = seg.built;
+    if (!b.gpe.length || !seg.sol.lam.length || !seg.amp.some((a) => Math.abs(a) > 1e-12)) return null;
+    const span = 40 / Math.min(...seg.sol.lam), N = 240;
+    const f = (k, t) => {
+      const c = b.gpe[k], { v, i } = chanAt(seg, k, t), m = seg.modes[k];
+      if (m === 'CV') return Math.max(i - c.ilim * (1 + 1e-9), -1e-6 - i); // > 0：該切換了
+      if (m === 'CC') return v - c.v * (1 + 1e-9);
+      return c.v * (1 - 1e-9) - v;
+    };
+    let best = null;
+    b.gpe.forEach((c, k) => {
+      let ta = seg.t0, fa = f(k, ta + 1e-12);
+      if (fa > 0) return;
+      for (let j = 1; j <= N; j++) {
+        const tb = seg.t0 + 1e-9 * Math.pow(span / 1e-9, j / N), fb = f(k, tb);
+        if (fb > 0) {
+          let lo = ta, hi = tb;
+          for (let r = 0; r < 60; r++) { const mid = (lo + hi) / 2; if (f(k, mid) > 0) hi = mid; else lo = mid; }
+          if (!best || hi < best.t) best = { t: hi, k };
+          return;
+        }
+        ta = tb; fa = fb;
+      }
+    });
+    if (!best) return null;
+    const modes = [...seg.modes], m = modes[best.k], { i } = chanAt(seg, best.k, best.t);
+    modes[best.k] = m === 'CV' ? (i < 0 ? 'RB' : 'CC') : 'CV';
+    return { t: best.t, modes };
   }
 
   solution() {
     const k = this.key();
     if (k !== this.cacheKey) {
-      const t = this.now(), prev = this.cur;
+      const t = this.now(), prev = this.segs.length ? this.segAt(t) : null;
       const before = prev ? capsAt(prev, t) : {}; // 變化前一刻各電容的電壓
       this.cacheKey = k;
-      const built = this.build(), { sol, modes } = this.solveBuilt(built);
-      sol.warn = built.warn;
-      if (this.board !== 'bb') { // 固定 RC 板：A／B／G 的取樣表與相容欄位（測試、畫面沿用）
-        sol.v = Object.fromEntries(NODES.map((x) => [x, sol.table(built.find(x))]));
-      }
-      sol.tau = sol.tauMax;
-      const amp = sol.modalFromCaps(sol.caps.map((id) => before[id] ?? 0), t); // 新插上的電容從 0 V 開始
+      this.changeT = t;
+      // 之前排好但還沒到的模式切換作廢
+      this.segs = this.segs.filter((g) => g.from <= t || g.from === -Infinity);
       if (prev) prev.to = t;
-      this.segs.push({ sol, built, modes, from: prev ? t : -Infinity, to: Infinity, t0: t, amp });
+      const built = this.build();
+      let seg = this.makeSeg(built, before, t, null);
+      if (!prev) seg.from = -Infinity;
+      this.segs.push(seg);
+      for (let ev = 0; ev < 8; ev++) { // 依序排出之後的模式切換（例：CC 充電 → CV）
+        const nx = this.nextEvent(seg);
+        if (!nx) break;
+        seg.to = nx.t;
+        seg = this.makeSeg(built, capsAt(seg, nx.t), nx.t, nx.modes);
+        this.segs.push(seg);
+      }
       this.segs = this.segs.filter((g) => g.to > t - HIST_S);
     }
-    return this.cur.sol;
+    return this.segAt(this.now()).sol;
   }
 
   // 接點名稱（固定 RC 板的 A／B／G、麵包板的節點）→ 解算用的節點（接地的＝'E'）
-  node(x) { this.solution(); return this.cur.built.find(x); }
+  node(x) { this.solution(); return this.segAt(this.now()).built.find(x); }
 
   // 第一顆電容偏離週期穩態的電壓（固定 RC 板只有一顆；相容舊介面）
   dev(t = this.now()) {
     this.solution();
-    const g = this.cur, id = g.sol.caps[0];
+    const g = this.segAt(t), id = g.sol.caps[0];
     if (id == null) return 0;
     const d = decay(g, t);
-    return (g.sol.capD[0] || []).reduce((s, w, m) => s + w * (g.amp[m] || 0) * d[m], 0);
+    return (g.sol.capD[0] || []).reduce((s2, w, m) => s2 + w * (g.amp[m] || 0) * d[m], 0);
   }
 
   // 第一顆電容的電壓（相容舊介面）
-  vcAt(t) { this.solution(); const g = this.cur, id = g.sol.caps[0]; return id == null ? 0 : capsAt(g, t)[id]; }
+  vcAt(t) { this.solution(); const g = this.segAt(t), id = g.sol.caps[0]; return id == null ? 0 : capsAt(g, t)[id]; }
 
   // 最近一次電路改變的時刻（第一段＝第一次計算的時刻）
-  changedAt() { this.solution(); return this.cur.t0; }
+  changedAt() { this.solution(); return this.changeT; }
 
-  // 還在充放電（任一接點偏離穩態超過 1 µV）：外殼要定時更新畫面
+  // 還在充放電（任一接點偏離穩態超過 1 µV），或之後還有排好的模式切換：外殼要定時更新畫面
   transientActive(t = this.now()) {
     this.solution();
-    const g = this.cur;
+    if (this.segs.some((g) => g.from > t)) return true;
+    const g = this.segAt(t);
     if (!g.amp.some((a) => Math.abs(a) > 1e-9)) return false;
     return g.sol.names.some((x) => Math.abs(devNode(g, x, t)) > 1e-6);
   }
@@ -252,7 +332,8 @@ export class Bench {
   //   table／at：週期穩態＋「看的時刻」tView 的暫態偏移（連續採集用；at 在取樣點之間照解析式，窄脈衝不失真）；
   //   abs(t)：絕對時間 t 的實際電壓（含暫態與歷史）：單次擷取、暫態中的採集用。
   tdsInput() {
-    const sol = this.solution(), g = this.cur, now = this.now(), tView = Math.max(now, g.t0 + SCOPE_SETTLE);
+    this.solution();
+    const now = this.now(), tView = Math.max(now, this.changeT + SCOPE_SETTLE), g = this.segAt(tView), sol = g.sol;
     const sig = [0, 1].map((i) => {
       const lead = `TDS.CH${i + 1}.TIP`, node = g.built.leadNode[lead];
       if (!node) return null;
@@ -262,7 +343,7 @@ export class Bench {
       const tb = sol.table(node);
       return { table: Float64Array.from(tb, (x) => x + off), period: sol.period, at: (t) => sol.nodeAt(node, t) + off, abs };
     });
-    return { sig, probe: [...this.probeX], now, tView, changedAt: g.t0, tau: sol.tauMax };
+    return { sig, probe: [...this.probeX], now, tView, changedAt: this.changeT, tau: sol.tauMax };
   }
 
   // 電表：HI−LO 的電壓。dc＝整週期平均（含目前暫態）、meanOver(t1,t2)＝時間窗平均（DCV 積分用）、
@@ -271,7 +352,8 @@ export class Bench {
   dmmInput() {
     const W = this.leadMap();
     if (!W['DMM.HI'] || !W['DMM.LO']) return { v: null, ohm: null, why: '電表的 HI、LO 測試線要兩條都接上電路。' };
-    const sol = this.solution(), g = this.cur, t = this.now(), hi = g.built.leadNode['DMM.HI'], lo = g.built.leadNode['DMM.LO'];
+    this.solution();
+    const t = this.now(), g = this.segAt(t), sol = g.sol, hi = g.built.leadNode['DMM.HI'], lo = g.built.leadNode['DMM.LO'];
     const w = sol.stats(hi, lo), off = devNode(g, hi, t) - devNode(g, lo, t);
     // 積分窗 [t1, t2]：每一小段照「當時」的電路與測試線位置算（當時測試線沒接好就當 0 V）
     const meanOver = (t1, t2) => {
@@ -288,9 +370,10 @@ export class Bench {
       dc: w.mean + off, ac: w.acRms, peak: w.peak + Math.abs(off), peakAc: w.peakAc,
       freq: sol.periodic ? 1 / sol.period : 0, now: t, meanOver,
     };
-    const powered = g.built.net.afg.length > 0 || g.built.gpe.length > 0;
+    // 只有和通電中的電源連在一起的迴路不能量；完全獨立、沒通電的迴路照常量
+    const powered = g.built.powered(hi) || g.built.powered(lo);
     let ohm = null, whyR = '';
-    if (powered) whyR = '電路通電中不能量電阻：先關 AFG 的 OUTPUT（或拔掉紅夾）、GPE 的 Output。';
+    if (powered) whyR = '電表接的這個迴路通電中，不能量電阻：先關 AFG 的 OUTPUT（或拔掉紅夾）、GPE 的 Output。';
     else ohm = ohmsNet(g.built.net, hi, lo);
     return { v, ohm, why: '', whyR, whyI: '實驗台目前只支援電壓（DCV、ACV）與電阻量測；量電流要把電表串進電路，還沒有提供。' };
   }
@@ -300,12 +383,12 @@ export class Bench {
     const gp = this.gpeParams();
     if (!gp.active) return null;
     this.solution();
-    const out = {};
+    const t = this.now(), g = this.segAt(t), out = {};
     gp.ch.forEach((c, k) => {
-      const j = this.cur.built.gpe.findIndex((x) => x.ch === k + 1);
+      const j = g.built.gpe.findIndex((x) => x.ch === k + 1);
       if (j < 0) { out[k + 1] = { v: c.v, i: 0, cc: false }; return; }
-      const o = this.cur.sol.dcOut[j];
-      out[k + 1] = { v: Math.max(0, o.v), i: Math.max(0, Math.min(o.i, c.ilim)), cc: this.cur.modes[j] === 'CC' };
+      const { v, i } = chanAt(g, j, t); // 含暫態：例如限流充電時顯示 CC 與上升中的端電壓
+      out[k + 1] = { v: Math.max(0, v), i: Math.max(0, Math.min(i, c.ilim)), cc: g.modes[j] === 'CC', rb: g.modes[j] === 'RB' };
     });
     return out;
   }
@@ -313,7 +396,8 @@ export class Bench {
   leadsOn(node) { return Object.entries(this.wires).filter(([, n]) => n === node).map(([id]) => LEADS[id].name); }
 
   snapshot() {
-    const sol = this.solution(), g = this.cur, t = this.now(), d = this.dev(t);
+    this.solution();
+    const t = this.now(), g = this.segAt(t), sol = g.sol, d = this.dev(t);
     const names = this.board === 'bb' ? g.built.net.nodes : NODES;
     const res = (x) => (this.board === 'bb' ? x : g.built.find(x));
     const pp = Object.fromEntries(names.map((n) => [n, res(n) === 'E' ? 0 : stats(sol.table(res(n))).pp]));

@@ -839,3 +839,27 @@ test('Single／Normal：改變的那一瞬間就跳過觸發線（開輸出的�
     near(recAt(m, 0, 1e-4), 1 - (1 - 1000 / 1050) * Math.exp(-1e-4 / (1050 * 10e-6)), 0.01, `${mode} 改變後從 0.952 V 往 1 V`);
   }
 });
+
+test('GPE 限流充電時 Single 的觸發時間跟著 CC 線性充電（0.5 V 在 0.5 ms，不是 CV 指數的 0.69 ms）', async () => {
+  const { Breadboard } = await import('../src/bench/breadboard.js');
+  const { GpeModel } = await import('../src/instruments/gpe/model.js');
+  const clock = { t: 10 }, gpe = new GpeModel();
+  gpe.now = () => clock.t * 1000; gpe.reset(); clock.t += 2;
+  const afg = { on: true, ch: [0, 1].map(() => ({ wave: 'SINE', freq: 1000, sym: 50, emfVpp: 2, emfOffset: 0, output: false })) };
+  const bench = new Bench(afg, null, gpe);
+  bench.now = () => clock.t; bench.board = 'bb'; bench.bb = new Breadboard(); bench.bbWires = {};
+  bench.bb.add('R', 'a5', 'a10', 100, bench.bbWires); bench.bb.add('C', 'b10', 'b20', 10e-6, bench.bbWires);
+  for (const [l, h] of Object.entries({ 'GPE.CH1+': 'c5', 'GPE.CH1-': 'c20', 'TDS.CH2.TIP': 'd10', 'TDS.CH2.GND': 'd20' })) bench.bb.plug(bench.bbWires, l, h);
+  gpe.vset[1] = 500; gpe.iset[1] = 10;
+  const m = new TdsModel(); m.setBenchSource(() => bench.tdsInput()); m.setScenario('BENCH');
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.1), pos: -3 }); m.ch[0].on = false;
+  m.sIdx = SDIV.indexOf(1e-3); m.mpos = 0;
+  m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.05 }; // 尖端 0.5 V
+  bench.solution(); clock.t += 1; m.inputChanged();
+  run(m, 'SINGLE');
+  const t0 = clock.t;
+  gpe.press('GPE.KEY.OUTPUT_ON_OFF'); bench.solution(); m.inputChanged();
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  near(m.rec.abs0 - t0, 0.5e-3, 1e-6, 'CC 10 mA 對 10 µF：0.5 V 在 0.5 ms');
+  near(m.sampleAt(1, 1e-3), 1.5, 0.01, '觸發後 1 ms：1.5 V（仍是線性）');
+});

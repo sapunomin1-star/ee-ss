@@ -86,3 +86,17 @@ test('暫態：給電容目標電壓求模態偏移，再合成回來等於目�
   assert.equal(s.lam.length, 2);
   assert.ok(s.lam.every((l) => l > 0));
 });
+
+test('兩個時間常數差很多的尖峰：RMS 每個銳利模態都分級切段（對照邊緣後對數取樣的積分）', () => {
+  const s = solveNet({ nodes: ['A', 'B', 'D'], elements: [{ id: 'C1', kind: 'C', a: 'A', b: 'B', value: 1e-8 }, { id: 'R1', kind: 'R', a: 'B', b: 'E', value: 100 },
+    { id: 'C2', kind: 'C', a: 'A', b: 'D', value: 1e-6 }, { id: 'R2', kind: 'R', a: 'D', b: 'E', value: 100 }], afg: [{ node: 'A', p: { wave: 'SQUARE', freq: 1e-3, sym: 50, emfVpp: 2, emfOffset: 0 } }] });
+  // 參考：兩個邊緣後各 2 萬點對數取樣＋均勻 2 萬點，梯形積分（與 stats 的切段方式無關）
+  const T = s.period, f = (t) => s.nodeAt('B', t) - s.nodeAt('D', t), pts = new Set();
+  for (const e of [0, T / 2]) for (let j = 0; j <= 20000; j++) pts.add(e + 1e-14 * T * Math.pow(0.5 / 1e-14, j / 20000));
+  for (let j = 0; j <= 20000; j++) pts.add((j / 20000) * T);
+  const ts = [...pts].filter((t) => t >= 0 && t <= T).sort((a, b) => a - b);
+  let I = 0; for (let i = 1; i < ts.length; i++) I += ((f(ts[i - 1]) + f(ts[i])) / 2) * (ts[i] - ts[i - 1]);
+  const mean = I / T; let I2 = 0;
+  for (let i = 1; i < ts.length; i++) { const a = f(ts[i - 1]) - mean, b = f(ts[i]) - mean; I2 += ((a * a + b * b) / 2) * (ts[i] - ts[i - 1]); }
+  near(s.stats('B', 'D').acRms, Math.sqrt(I2 / T), Math.sqrt(I2 / T) * 1e-3, '兩個 λh（1.7e3、1.9e5）');
+});

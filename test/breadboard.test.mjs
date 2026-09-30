@@ -98,7 +98,7 @@ test('警告：元件兩腳在同一個節點（同欄、同軌、經跳線）�
   bb.add('R', 'a4', 'c4');
   let bad = levels(bb.netlist({}), 'bad');
   assert.equal(bad.length, 1);
-  assert.ok(bad[0].text.includes('R1') && bad[0].text.includes('4U') && bad[0].text.includes('不同欄'), bad[0].text);
+  assert.ok(bad[0].text.includes('R1') && bad[0].text.includes('4U') && bad[0].text.includes('不同組'), bad[0].text);
   bb.clear();
   bb.add('C', 'T+2', 'T+6');
   bad = levels(bb.netlist({}), 'bad');
@@ -196,4 +196,12 @@ test('示範「GPE 分壓」：GPE CH1＋ → R1 → R2 → CH1−（經電源�
   assert.deepEqual(n.nodes, ['B+', 'B-', '22L']);
   assert.equal(n.warnings.length, 0, n.warnings.map((x) => x.text).join('；'));
   assert.deepEqual(bb.parts.filter((p) => p.kind === 'W').map((p) => p.id), ['W1', 'W2']);
+});
+
+test('跨中間溝槽（e9–f9）是兩組，不算短路；同一欄同一組（a9–c9）才是短路', () => {
+  const bb = new Breadboard();
+  bb.add('R', 'e9', 'f9', 1000);
+  assert.deepEqual(bb.netlist({}).warnings.filter((w) => w.level === 'bad'), []);
+  bb.add('C', 'a9', 'c9', 1e-7);
+  assert.ok(bb.netlist({}).warnings.some((w) => w.level === 'bad' && w.text.includes('C1') && w.text.includes('不同組')));
 });

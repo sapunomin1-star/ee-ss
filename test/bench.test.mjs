@@ -339,3 +339,85 @@ test('麵包板示範「GPE 分壓」：GPE 5 V 開輸出，電表 DCV 讀 R2 �
   near(rb.i, 5 / (1000 + Rp), 1e-6, 'GPE 電流'); assert.equal(rb.cc, false);
   near(gpe.readback()[2].i, 0, 0, '沒接的 CH2＝開路');
 });
+
+// ---- 2026-09-30 麵包板複核（7c5ccf4）：電荷守恆、限流充電、電源灌入、獨立迴路量電阻、接地短路、Series ----
+function bbSetup(parts, wires) {
+  let t = 10;
+  const afg = { on: true, ch: [{ ...off }, { ...off }] }, dmm = new DmmModel(), gpe = new GpeModel();
+  gpe.now = () => t * 1000; gpe.reset(); t += 2;
+  const b = new Bench(afg, dmm, gpe);
+  b.now = () => t;
+  b.board = 'bb'; b.bb = new Breadboard(); b.bbWires = {};
+  for (const [k, x, y, v] of parts) b.bb.add(k, x, y, v, b.bbWires);
+  for (const [l, h] of Object.entries(wires)) b.bb.plug(b.bbWires, l, h);
+  dmm.setBenchSource(() => b.dmmInput()); dmm.setFixture('bench');
+  gpe.setBenchSource(() => b.gpeInput()); gpe.setLoad('bench');
+  return { b, dmm, gpe, afg, adv: (dt) => { t += dt; }, now: () => t };
+}
+
+test('電容並聯瞬間電荷守恆：5 V 的 1 µF 並上沒充電的 10 µF → 約 0.455 V', () => {
+  const s = bbSetup([['R', 'a5', 'a10', 100], ['C', 'b10', 'b20', 1e-6]], { 'GPE.CH1+': 'c5', 'GPE.CH1-': 'c20' });
+  s.gpe.vset[1] = 500; s.gpe.iset[1] = 1000; s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution(); s.adv(1);
+  s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution(); s.adv(1e-3);
+  const v1 = s.b.vcAt(s.now());
+  s.b.bb.add('C', 'e10', 'e20', 10e-6, s.b.bbWires); s.b.solution(); s.adv(1e-6);
+  const caps = capsOf(s.b);
+  near(caps.C1, v1 / 11, 1e-6, 'C1＝(1 µF×V)/(11 µF)');
+  near(caps.C2, caps.C1, 1e-9, '並聯兩顆電壓相同');
+});
+const capsOf = (b) => { const t = b.now(), g = b.segAt(t); return Object.fromEntries(g.sol.caps.map((id, k) => [id, g.sol.capSS(t)[k] + g.sol.lam.reduce((x, l, m) => x + g.sol.capD[k][m] * g.amp[m] * Math.exp(-l * Math.max(0, t - g.t0)), 0)])); };
+
+test('GPE 限流充電：5 V／10 mA 經 100 Ω 對 10 µF，先 CC 線性充電（1 ms 後 1 V），4 ms 後轉 CV 指數趨近', () => {
+  const s = bbSetup([['R', 'a5', 'a10', 100], ['C', 'b10', 'b20', 10e-6]], { 'GPE.CH1+': 'c5', 'GPE.CH1-': 'c20' });
+  s.gpe.vset[1] = 500; s.gpe.iset[1] = 10; s.b.solution(); s.adv(1);
+  s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
+  const t0 = s.now();
+  s.adv(1e-3);
+  near(s.b.vcAt(s.now()), 1, 1e-4, '1 ms：10 mA×1 ms／10 µF＝1 V');
+  let rb = s.gpe.readback()[1];
+  assert.equal(rb.cc, true); near(rb.i, 0.01, 1e-9, 'CC 10 mA'); near(rb.v, 2, 1e-3, '端電壓＝1 V＋10 mA×100 Ω');
+  const sw = s.b.segs.find((g) => g.from > t0 && g.modes[0] === 'CV');
+  assert.ok(sw, '排好一次 CC→CV');
+  near(sw.from - t0, 4e-3, 1e-5, '電容到 5−10 mA×100 Ω＝4 V 時（4 ms）轉 CV');
+  s.adv(3e-3 + 1e-3); // t0＋5 ms
+  rb = s.gpe.readback()[1];
+  assert.equal(rb.cc, false);
+  near(s.b.vcAt(s.now()), 5 - Math.exp(-1e-3 / (100 * 10e-6)), 2e-3, 'CV 後以 τ＝1 ms 趨近 5 V');
+});
+
+test('兩路不同電壓直接並接：低的那路被灌入（RB，0 A）並提醒，節點跟著高的那路', () => {
+  const s = bbSetup([['R', 'a5', 'a10', 1000]], { 'GPE.CH1+': 'c5', 'GPE.CH1-': 'c10', 'GPE.CH2+': 'd5', 'GPE.CH2-': 'd10' });
+  s.gpe.vset[1] = 500; s.gpe.vset[2] = 400; s.gpe.iset[1] = 1000; s.gpe.iset[2] = 1000;
+  s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
+  const r = s.gpe.readback();
+  near(r[1].v, 5, 1e-3, 'CH1 端電壓'); near(r[1].i, 0.005, 1e-6, 'CH1 供 5 mA'); assert.equal(r[1].cc, false);
+  near(r[2].i, 0, 0, 'CH2 不能吸收電流'); near(r[2].v, 5, 1e-3, 'CH2 端電壓被抬到 5 V');
+  assert.ok(s.b.snapshot().warn.some((w) => w.includes('CH2') && w.includes('灌入')));
+});
+
+test('量電阻：另一個獨立迴路通電不影響；電表接的迴路通電才拒絕', () => {
+  const s = bbSetup([['R', 'a5', 'a10', 1000], ['R', 'a20', 'a25', 470]], { 'GPE.CH1+': 'c5', 'GPE.CH1-': 'c10', 'DMM.HI': 'c20', 'DMM.LO': 'c25' });
+  s.dmm.press('DMM.KEY.OHM_2W');
+  s.gpe.vset[1] = 500; s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
+  near(s.dmm.view().value, 470, 1e-6, '獨立迴路的 470 Ω');
+  s.b.bb.plug(s.b.bbWires, 'DMM.HI', 'd5'); s.b.bb.plug(s.b.bbWires, 'DMM.LO', 'd10'); s.b.solution();
+  assert.equal(s.dmm.view().state, 'none');
+  assert.ok(s.b.dmmInput().whyR.includes('通電'));
+});
+
+test('兩個示波器接地夾夾在電容兩端：提醒電容被短路（接地夾都是大地）', () => {
+  const s = bbSetup([['R', 'a5', 'a10', 1000], ['C', 'b10', 'b15', 1e-6]], { 'AFG.CH1+': 'c5', 'AFG.CH1-': 'c15', 'TDS.CH1.GND': 'd10', 'TDS.CH2.GND': 'd15' });
+  s.afg.ch[0].output = true; s.b.solution();
+  assert.ok(s.b.snapshot().warn.some((w) => w.includes('C1') && w.includes('短路') && w.includes('接地夾')));
+});
+
+test('GPE Series：CH2 電壓跟 CH1；自己把 CH1− 接到 CH2＋，CH1＋到 CH2− 之間是兩倍電壓', () => {
+  const s = bbSetup([['R', 'a5', 'a15', 1000], ['W', 'b10', 'b11']], { 'GPE.CH1+': 'c5', 'GPE.CH1-': 'c10', 'GPE.CH2+': 'c11', 'GPE.CH2-': 'c15', 'DMM.HI': 'd5', 'DMM.LO': 'd15' });
+  s.gpe.vset[1] = 500; s.gpe.vset[2] = 100; s.gpe.iset[1] = 1000; s.gpe.iset[2] = 1000;
+  s.gpe.press('GPE.KEY.TRACK_RIGHT'); s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution(); s.adv(1);
+  assert.equal(s.gpe.mode, 'SER');
+  const Rl = (1000 * 10e6) / (1000 + 10e6);
+  near(s.dmm.view().value, 10 * Rl / (Rl + 2 * 0.01), 1e-4, '兩路各 5 V 串聯＝10 V');
+  const r = s.gpe.readback();
+  near(r[1].v, 5, 1e-3, 'CH1'); near(r[2].v, 5, 1e-3, 'CH2 跟 CH1（不是自己的 1 V）');
+});

@@ -176,7 +176,7 @@ export class Breadboard {
       const a = groupOf(p.a), b = groupOf(p.b), name = `${p.id}（${KIND_NAME[p.kind]}）`;
       if (a === b) {
         const ga = holeGroup(p.a), why = ga !== holeGroup(p.b) ? '跳線把兩隻腳所在的組連在一起了'
-          : RAILS.includes(ga) ? '同一條電源軌整條相連' : '同一欄的 5 個孔本來就相連，兩腳要插不同欄';
+          : RAILS.includes(ga) ? '同一條電源軌整條相連' : '同一組 5 孔（同一欄的 a–e，或同一欄的 f–j）本來就相連，兩腳要插在不同組';
         warnings.push({ level: 'bad', text: `${name}兩隻腳在同一個節點 ${a}，被短路了（${why}）。` });
         continue;
       }

@@ -125,7 +125,7 @@ export function solveNet(net) {
   const nAfg = afg.map((s) => inj(s.node, 'E', 1 / R_OUT)); // 乘上 EMF
   const nDc = new Float64Array(n);
   for (const s of net.dc || []) {
-    if (at(s.pos) === at(s.neg)) continue;
+    if (at(s.pos) === at(s.neg) || s.mode === 'RB') continue; // RB：被其他電源灌入、不能吸收電流 → 開路
     if (s.mode === 'CC') { const v = inj(s.pos, s.neg, s.i); for (let i = 0; i < n; i++) nDc[i] += v[i]; } else {
       stamp(G, s.pos, s.neg, 1 / R_GPE);
       const v = inj(s.pos, s.neg, s.v / R_GPE);
@@ -241,11 +241,11 @@ export function solveNet(net) {
     const pre = new Float64Array(M + 1);
     for (let k = 0; k < M; k++) pre[k + 1] = pre[k] + intAt(W, A, B, k, h);
     const mean = pre[M] / T;
-    // 平方積分：最快的「銳利」模態在區間開頭分級切段，每段 8 點 Gauss–Legendre
-    const sharp = lamS.filter((l, si) => W.w[si] && l * h >= 0.5), lmax = sharp.length ? Math.max(...sharp) : 0;
-    const cuts = [0];
-    if (lmax) for (const c of [0.5, 1, 2, 4, 8, 16, 32]) { const s = c / lmax; if (s < h) cuts.push(s); }
-    cuts.push(h);
+    // 平方積分：每個「銳利」模態（λh ≥ 0.5）都在區間開頭分級切段（0.5／λ…32／λ），各段 8 點 Gauss–Legendre；
+    //   只看最快的一個會漏掉較慢的尖峰（兩個時間常數差很多時）
+    const cutSet = new Set([0, h]);
+    lamS.forEach((l, si) => { if (W.w[si] && l * h >= 0.5) for (const c of [0.5, 1, 2, 4, 8, 16, 32]) { const s = c / l; if (s < h) cutSet.add(s); } });
+    const cuts = [...cutSet].sort((a, b) => a - b);
     let S = 0, peak = 0, peakAc = 0;
     for (let k = 0; k < M; k++) {
       for (let c = 0; c + 1 < cuts.length; c++) {
@@ -272,12 +272,13 @@ export function solveNet(net) {
   // ---- 暫態用：電容電壓、模態對電容的影響、節點權重 ----
   const capSS = (t) => caps.map((c) => (c.a >= 0 ? nodeAtFast(names[c.a], t) : 0) - (c.b >= 0 ? nodeAtFast(names[c.b], t) : 0));
   const D = caps.map((c) => lamS.map((_, si) => (c.a >= 0 ? PhiS[si][c.a] : 0) - (c.b >= 0 ? PhiS[si][c.b] : 0)));
-  // 給定各電容的目標電壓（改變前一刻的值），求慢模態的偏移量 a（最小平方）
+  // 給定各電容改變前一刻的電壓，求慢模態的偏移量 a。電路一接上，被導線直接連在一起的電容瞬間重新分配電荷：
+  //   每個節點上的電荷守恆 ⇔ 以電容量加權的最小平方 min Σ C_k·(v_k − 原電壓_k)²（例：5 V 的 1 µF 並上 0 V 的 10 µF → 0.455 V）
   const modalFromCaps = (target, t) => {
     if (!R) return [];
     const ss = capSS(t), rhs = caps.map((_, k) => target[k] - ss[k]);
     const N = zeros(R, R), bb = new Float64Array(R);
-    for (let k = 0; k < caps.length; k++) for (let i = 0; i < R; i++) { bb[i] += D[k][i] * rhs[k]; for (let j = 0; j < R; j++) N[i][j] += D[k][i] * D[k][j]; }
+    for (let k = 0; k < caps.length; k++) { const c = caps[k].C; for (let i = 0; i < R; i++) { bb[i] += c * D[k][i] * rhs[k]; for (let j = 0; j < R; j++) N[i][j] += c * D[k][i] * D[k][j]; } }
     let tr = 0; for (let i = 0; i < R; i++) tr += N[i][i];
     for (let i = 0; i < R; i++) N[i][i] += 1e-24 * (tr || 1);
     return Array.from(cholSolve(cholesky(N), bb));
@@ -287,7 +288,7 @@ export function solveNet(net) {
   // 直流工作點（週期平均）：GPE 讀回與 CV／CC 判斷用。端電壓直接算＋、−之間（浮接時各自對地的值只由漏電導決定）
   const dcOut = (net.dc || []).map((s) => {
     const vt = at(s.pos) === at(s.neg) ? 0 : stats(s.pos, s.neg).mean;
-    return { id: s.id, v: vt, i: s.mode === 'CC' ? s.i : at(s.pos) === at(s.neg) ? Infinity : (s.v - vt) / R_GPE, mode: s.mode };
+    return { id: s.id, v: vt, i: s.mode === 'CC' ? s.i : s.mode === 'RB' ? 0 : at(s.pos) === at(s.neg) ? Infinity : (s.v - vt) / R_GPE, mode: s.mode };
   });
 
   return {
