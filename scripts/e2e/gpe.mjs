@@ -100,9 +100,11 @@ export async function run() {
     await scen('ch34');
     await ui.press(K.CH23); await drag(K.V3, 6);
     await ui.press(K.CH14); await drag(K.V4, 6);
-    T.ok(same(await rows(), [[4, '5.00', '---', ''], [3, '5.00', '---', '']]), '切到 ④③：Output OFF 顯示設定 5.00 V，電流欄「---」');
+    let got = await rows();
+    T.ok(same(got, [[4, '5.00', '---', ''], [3, '5.00', '---', '']]), `切到 ④③：Output OFF 顯示設定 5.00 V，電流欄「---」（實得 ${JSON.stringify(got)}）`);
     await ui.press(K.OUT);
-    T.ok(same(await rows(), [[4, '5.00', '0.005', 'CV'], [3, '5.00', '0.050', 'CV']]), 'ON：CH4 1 kΩ → 0.005 A、CH3 100 Ω → 0.050 A，都 CV');
+    got = await rows();
+    T.ok(same(got, [[4, '5.00', '0.005', 'CV'], [3, '5.00', '0.050', 'CV']]), `ON：CH4 1 kΩ → 0.005 A、CH3 100 Ω → 0.050 A，都 CV（實得 ${JSON.stringify(got)}）`);
     await ui.shot('gpe-ch34');
     await ui.press(K.RIGHT);
     T.ok(!(await snap()).output && same((await rows()).map((r) => r[0]), [1, 2]), '換 Series：四路全 OFF，兩列回到 ①②');

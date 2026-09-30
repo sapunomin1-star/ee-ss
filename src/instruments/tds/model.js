@@ -351,24 +351,29 @@ export class TdsModel {
   acquire(tau, abs0 = null, { force = false, scan = false } = {}) {
     const triggered = tau != null;
     if (!triggered) tau = this.rand();
-    if (abs0 != null && !triggered && !scan) abs0 += tau; // 未觸發：時間起點隨機（與週期路徑用同一個亂數）
+    // 未觸發：週期訊號的起點落在「看的時刻」之後一個週期內的隨機相位（與週期路徑同一個亂數），不會跑到未來或過去很遠
+    const anchor = (p) => {
+      if (abs0 == null || triggered || scan || !(p.f > 0)) return abs0;
+      const P = 1 / p.f;
+      return abs0 + ((((tau - abs0) % P) + P) % P);
+    };
     const dt = this.sdiv / PTS_DIV, t0 = this.mpos - 5 * this.sdiv + this.rand() * dt;
     const fe = [null, null], clip = [false, false];
     const v = this.ch.map((c, i) => {
       if (!c.on) return null; // 只採顯示中的通道
       const base = this.base(i), lo = (-5 - c.pos) * base, hi = (5 - c.pos) * base;
       const p = this.path(i), arr = new Float64Array(N), s = this.fx.sig?.[i];
-      const useAbs = abs0 != null && s?.abs && (force || (c.coupling === 'DC' && !c.bw));
+      const useAbs = abs0 != null && s?.abs && (force || (c.coupling === 'DC' && !c.bw)), a0 = useAbs ? anchor(p) : 0;
       const kp = 1 / this.fx.probe[i], dc = c.coupling === 'AC' ? tableMean(s?.table) * kp : 0;
       fe[i] = { base, pos: c.pos, probe: c.probe, coupling: c.coupling, bw: c.bw };
       for (let k = 0; k < N; k++) {
-        const y = !useAbs ? p.at(tau + t0 + k * dt) : c.coupling === 'GND' ? 0 : s.abs(abs0 + t0 + k * dt) * kp - dc;
+        const y = !useAbs ? p.at(tau + t0 + k * dt) : c.coupling === 'GND' ? 0 : s.abs(a0 + t0 + k * dt) * kp - dc;
         if (y > hi || y < lo) clip[i] = true;
         arr[k] = clamp(y, lo, hi);
       }
       return arr;
     });
-    return { n: ++this.acqN, t0, dt, v, fe, clip, triggered, broken: false };
+    return { n: ++this.acqN, t0, dt, v, fe, clip, triggered, broken: false, abs0 };
   }
 
   // 實驗台：觸發點（週期穩態的相位 tau）對到「看的時刻」之後的第一個同相位時刻
@@ -382,9 +387,10 @@ export class TdsModel {
     return tv + ((((tau - tv) % P) + P) % P);
   }
 
-  // 單次擷取電路變化（暫態）：Single 等待中電路改變時，從改變的時刻往後，用實際電壓（含暫態、改變前的電路）找第一個觸發，
-  //   以它為 t＝0 擷取並停止。找不到就照一般規則（週期穩態）等觸發。觸發判斷只看觸發源的實際電壓與位準／斜率（PD：
-  //   AC 耦合只扣掉目前的直流、不模擬濾波暫態；觸發耦合 AC 同樣處理）。
+  // 擷取電路變化（暫態）：Single 等待中、或 Normal 模式下電路改變時，從改變的時刻往後，用實際電壓（含暫態、改變前的電路）
+  //   找第一個觸發，以它為 t＝0 擷取。Single 擷取後停止；Normal 繼續等下一個觸發：之後週期訊號還會觸發就被新採集蓋掉，
+  //   不再觸發（例如直流階躍只穿越一次）就一直保留這筆（手冊：Normal 只在有效觸發時更新）。找不到就照一般規則。
+  //   觸發判斷只看觸發源的實際電壓與位準／斜率（PD：AC 耦合只扣掉目前的直流、不模擬濾波暫態；觸發耦合 AC 同樣處理）。
   captureChange() {
     const fx = this.fx, src = this.trig.src, s = fx.sig?.[src], c = this.ch[src];
     if (!s?.abs || c.coupling === 'GND' || fx.changedAt == null || this.triedChange === fx.changedAt) return false;
@@ -403,7 +409,7 @@ export class TdsModel {
         for (let r = 0; r < 50; r++) { const tm = (ta + tb) / 2, ym = y(tm); if (crossed(ya, ym)) tb = tm; else { ta = tm; ya = ym; } }
         this.rec = this.acquire(0, tb, { force: true });
         this.frames = null;
-        this.run = 'stop'; this.complete = true; this.armedAt = null;
+        if (this.run === 'single') { this.run = 'stop'; this.complete = true; this.armedAt = null; }
         return true;
       }
       ta = tb; ya = yb;
@@ -825,7 +831,8 @@ export class TdsModel {
   inputChanged() {
     if (this.scen !== 'BENCH') return;
     this.fx = this.benchFx();
-    if (this.on && this.run === 'single' && this.armedAt != null && this.fx.changedAt >= this.armedAt && this.captureChange()) return;
+    const armed = this.run === 'single' ? this.armedAt != null && this.fx.changedAt >= this.armedAt : this.run === 'run' && this.trig.mode === 'NORMAL';
+    if (this.on && armed && !this.isScan() && this.captureChange()) return;
     this.tick();
   }
 
@@ -941,7 +948,7 @@ export class TdsModel {
       autoMeas: this.autoMeas && this.autoMeas.types.map((ty) => ({ type: ty, text: this.measure(this.autoMeas.src, ty).text })),
       cursor: { ...this.cursor, info: this.cursorInfo() },
       acqN: this.acqN,
-      rec: r && { n: r.n, triggered: r.triggered, broken: r.broken, t0: r.t0, dt: r.dt, clip: r.clip, fe: r.fe, stats: [stats(0), stats(1)] },
+      rec: r && { n: r.n, triggered: r.triggered, broken: r.broken, t0: r.t0, dt: r.dt, abs0: r.abs0, clip: r.clip, fe: r.fe, stats: [stats(0), stats(1)] },
     };
   }
 }

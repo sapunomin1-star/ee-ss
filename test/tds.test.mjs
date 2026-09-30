@@ -732,8 +732,9 @@ function benchWith({ wave = 'SQUARE', freq = 1000, emfVpp = 2, emfOffset = 0, R 
   const change = (fn, dt = 0) => { clock.t += dt; fn(); bench.solution(); m.inputChanged(); };
   return { m, bench, afg, clock, change };
 }
-// 紀錄在 t（相對觸發點）的顯示電壓
+// 紀錄在 t（相對觸發點）的顯示電壓；B 點（電容）週期穩態的平均
 const recAt = (m, i, t) => m.sampleAt(i, t);
+const diffStatsB = (bench) => waveStats(bench.solution().v.B).mean;
 
 test('BW Limit：1 kHz 方波的邊緣在快時基也被 20 MHz 一階低通圓化（10–90% 約 17.5 ns）', () => {
   const { m, clock } = benchWith();
@@ -774,4 +775,48 @@ test('慢時基（Scan）看得到大 RC 的充電曲線：紀錄前段低、後
   const r = m.rec.v[1].map((y) => y * 10);
   assert.ok(m.isScan());
   assert.ok(r[0] < 0.05 && r[2499] > 0.7 && r[1800] > r[1200] && r[1200] > r[600], `前段 ${r[0].toFixed(3)}、後段 ${r[2499].toFixed(3)}`);
+});
+
+test('Single：電容帶著殘留電壓再開輸出 → 擷取的曲線從殘留電壓連續開始（不是從 0 V）', () => {
+  const { m, bench, afg, change, clock } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 1000, C: 10e-6 });
+  change(() => {}, 1); // 充到約 1 V
+  change(() => { afg.ch[0].output = false; }, 0); // 關輸出：電容經探棒 10 MΩ 慢慢放電（τ≈50 s）
+  clock.t += 5;
+  const residual = bench.vcAt(clock.t);
+  assert.ok(residual > 0.85 && residual < 0.95, `殘留約 0.9 V（${residual}）`);
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.05), pos: -2 }); // CH2：500 mV/div
+  m.sIdx = SDIV.indexOf(5e-3); m.mpos = 0;
+  m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.15 }; // 位準＝尖端 1.5 V
+  afg.ch[0].emfOffset = 2;
+  run(m, 'SINGLE');
+  const t0 = clock.t;
+  change(() => { afg.ch[0].output = true; }, 0); // 開輸出：往 2 V 充電
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  const final = diffStatsB(bench), tau = bench.solution().tau;
+  const tTrig = tau * Math.log((final - residual) / (final - 1.5)); // 從殘留電壓充到 1.5 V 的時間
+  near(recAt(m, 1, -tTrig - 1e-3), residual, 0.01, '改變前 1 ms：殘留電壓');
+  near(recAt(m, 1, -tTrig + 1e-4), residual + (final - residual) * (1 - Math.exp(-1e-4 / tau)), 0.01, '改變後 0.1 ms：從殘留電壓連續上升');
+  near(recAt(m, 1, 0), 1.5, 0.02, '觸發點＝位準');
+  near(recAt(m, 1, tau), final - (final - 1.5) * Math.exp(-1), 0.02, '觸發後 τ');
+  near(m.rec.abs0, t0 + tTrig, 1e-4, '觸發時刻＝改變後 τ·ln((終值−殘留)/(終值−位準))');
+});
+
+test('Normal：直流階躍只穿越一次 → 擷取暫態並保留；週期訊號還會觸發時被新採集蓋掉', () => {
+  const { m, afg, change } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 1000, C: 10e-6, output: false });
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
+  m.sIdx = SDIV.indexOf(5e-3); m.mpos = 0;
+  m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.05 };
+  m.tick();
+  change(() => { afg.ch[0].output = true; }, 1);
+  const n = m.acqN;
+  assert.equal(m.run, 'run');
+  near(recAt(m, 1, 0), 0.5, 0.02, '擷取到穿越 0.5 V 的那一刻');
+  assert.ok(recAt(m, 1, -5e-3) < 0.2, '觸發前還在充電的低處');
+  change(() => {}, 1); // 之後是 1 V 直流，不再觸發：保留
+  assert.equal(m.acqN, n);
+  near(recAt(m, 1, 0), 0.5, 0.02, '沒有新觸發：畫面保留暫態那一筆');
+  // 換成會一直觸發的方波：下一筆就被週期穩態蓋掉
+  change(() => { Object.assign(afg.ch[0], { wave: 'SQUARE', emfVpp: 10, emfOffset: 0, freq: 100 }); }, 1); // B 點約 ±2.2 V，每週期都穿越 0.5 V
+  change(() => {}, 1);
+  assert.ok(m.acqN > n + 1);
 });

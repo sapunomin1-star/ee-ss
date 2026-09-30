@@ -224,3 +224,30 @@ test('同一個積分窗內連改兩次設定：已完成的 DCV 讀值不變（
   t = tr + APERTURE_S + 0.01; // 下一筆：窗內前 20 ms 是 1 V、再 20 ms 是 3 V、其餘是 5 V（電容 τ≈0.1 ms，幾乎立刻跟上）
   near(dmm.view().value, (1 * 0.02 + 3 * 0.02 + 5 * (APERTURE_S - 0.04)) / APERTURE_S, 0.01, '跨兩次改變的窗照各段平均');
 });
+
+test('週期邊界與負時間：t＝nT、前後極小偏移、負的預觸發時間都得到有限且連續的值', () => {
+  const sol = solve({ topo: 'RC', R: 1000, C: 0.1e-6, wires: DEMO }, [sine(2, 1000, 0.5), off]);
+  const T = sol.period;
+  for (const n of [0, 1, 7, 12345, 1e6, -1, -3, -12345]) {
+    const t = n * T;
+    for (const e of [0, 1e-15, -1e-15, T * 1e-9, -T * 1e-9]) {
+      for (const node of ['A', 'B']) assert.ok(Number.isFinite(nodeAt(sol, node, t + e)), `nodeAt ${node} n=${n} ε=${e}`);
+      assert.ok(Number.isFinite(sol.vcAt(t + e)), `vcAt n=${n} ε=${e}`);
+    }
+    // 電容電壓連續：邊界兩側差 < 1 µV；正弦源 A 點也連續
+    near(sol.vcAt(t - T * 1e-9), sol.vcAt(t + T * 1e-9), 1e-6, `vc 在 n=${n} 連續`);
+    near(nodeAt(sol, 'B', t - T * 1e-9), nodeAt(sol, 'B', t + T * 1e-9), 1e-6, `B 在 n=${n} 連續`);
+    // 週期性：t 與 t＋T 同值（含負時間）
+    near(nodeAt(sol, 'B', t + 0.3 * T), nodeAt(sol, 'B', t + 1.3 * T), 1e-9, `週期性 n=${n}`);
+    const m = diffMeanOver(sol, 'B', 'G', t - 0.5 * T, t + 0.5 * T);
+    near(m, 0.5 * (1e7 / (1e7 + 1050)) || 0.5, 1e-3, `跨邊界整週期平均 n=${n}`);
+  }
+  // Bench 的絕對時間取值（示波器預觸發可能落在第一段之前、甚至負時間）
+  let t = 0.0123;
+  const afg = { on: true, ch: [{ wave: 'SINE', freq: 1000, sym: 50, emfVpp: 2, emfOffset: 0.5, output: true }, { ...off }] };
+  const b = new Bench(afg);
+  b.now = () => t;
+  Object.entries(DEMO).forEach(([l, n]) => b.connect(l, n));
+  const abs = b.tdsInput().sig[1].abs;
+  for (const x of [-1, -0.001, 0, 0.001, t, 5]) assert.ok(Number.isFinite(abs(x)), `abs(${x})`);
+});

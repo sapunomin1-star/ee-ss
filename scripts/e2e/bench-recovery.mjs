@@ -50,13 +50,23 @@ export async function run() {
     await ui.tab('tds'); await key('TDS.KEY.RUN_STOP'); await key('TDS.KEY.AUTOSET');
     T.ok(autoFreq(await ui.snap('tds')) === '400.0Hz', '恢復 Run 後讀取新頻率');
 
+    const n0 = (await ui.snap('tds')).acqN;
     await key('TDS.PWR.ON_OFF');
     await ui.tab('afg'); await afgKeys('KEY.OUTPUT');
     await ui.tab('bench'); await unplug('TDS.CH1.TIP');
     await ui.tab('tds'); await key('TDS.PWR.ON_OFF');
     s = await ui.snap('tds');
-    // 關輸出後電容還在經探棒 10 MΩ 慢慢放電（τ≈0.3 s）：CH2 看到的是緩慢下降的直流（一筆紀錄內差幾 mV），不是原本 ±1 V 的方波
-    T.ok(s.trig.freq === null && s.rec?.stats.every((r) => !r || Math.abs(r.max - r.min) < 0.05), `示波器關機中拔線及關訊號，開機不再採集舊波形（紀錄內起伏 ${s.rec?.stats.map((r) => (r ? (r.max - r.min).toExponential(1) : '-')).join('／')} V）`);
+    const tauOff = (await ui.snap('bench')).tau; // 關輸出後電容只經電表 ACV 1 MΩ、CH2 探棒 10 MΩ 放電
+    await sleep(300);
+    const s2 = await ui.snap('tds');
+    // 開機後是新採集；沒有觸發頻率；每筆紀錄內的起伏只來自照 τ 的指數放電（原本 400 Hz 方波的週期成分不見了）
+    const decayOnly = (x) => x.rec.stats.every((r) => !r || r.max - r.min <= 1.5 * Math.abs(r.mean) * -Math.expm1(-(10 * x.sdiv) / tauOff) + 1e-6);
+    T.ok(s.acqN > n0 && s.trig.freq === null && decayOnly(s) && decayOnly(s2),
+      `示波器關機中拔線及關訊號，開機是新採集、只剩放電的直流（紀錄內起伏 ${s.rec?.stats.map((r) => (r ? (r.max - r.min).toExponential(1) : '-')).join('／')} V）`);
+    // 放電趨勢：0.3 秒後畫面自己更新，兩筆 CH2 平均的比值＝e^(−Δt/τ)（Δt＝兩筆紀錄的絕對時間差）
+    const m1 = s.rec.stats[1].mean, m2 = s2.rec.stats[1].mean, want = Math.exp(-(s2.rec.abs0 - s.rec.abs0) / tauOff);
+    T.ok(s2.rec.n > s.rec.n && Math.abs(m2) < Math.abs(m1) && Math.abs(m2 / m1 - want) < 0.02,
+      `放電中示波器自己更新，CH2 ${m1.toExponential(3)} → ${m2.toExponential(3)} V，比值 ${(m2 / m1).toFixed(4)}（理論 ${want.toFixed(4)}，τ＝${tauOff.toFixed(3)} s）`);
     await ui.tab('bench'); await wire('TDS.CH1.TIP', 'A');
     await ui.tab('afg'); await afgKeys('KEY.OUTPUT');
     await ui.tab('tds'); await key('TDS.KEY.AUTOSET');
