@@ -508,3 +508,212 @@ test('BENCH Stop 期間來源保持更新但紀錄凍結，Single 才採入新�
   assert.equal(m.acqN, n + 1);
   near(m.measure(0, 'FREQ').value, 2000, 1e-6);
 });
+
+// ---- 審查修正：採集時削頂、AC 耦合高通、BW Limit 濾波、AutoSet 辨識方波、慢時基混疊 ----
+// 自訂實驗台來源：sig＝[{table, period, at?} 或 {vpp, dc, f, delay}, …]；probe＝實際探棒倍率（示波器 Probe 設定仍是 10X）
+function custom(sig, probe = [1, 1]) {
+  const m = new TdsModel();
+  const fx = { sig, probe };
+  m.setBenchSource(() => fx);
+  m.setScenario('BENCH');
+  return m;
+}
+const TM = 4000; // 表格點數（同實驗台）
+const square = (hi = 1, lo = -1) => Float64Array.from({ length: TM }, (_, k) => (k < TM / 2 ? hi : lo));
+
+test('採集時削頂：S1X5 V/div 轉小 3 格 → 停止 → 轉回，Pk-Pk 維持削頂後的 2.00V?、波形是平頂（p.108、p.31、p.105）', () => {
+  const m = fresh('S1X5');
+  run(m, 'AUTOSET');
+  near(m.vdiv(0), 2);
+  turn(m, 'V1', 3);
+  near(m.vdiv(0), 0.2);
+  assert.equal(m.measure(0, 'PKPK').text, '2.00V?');
+  assert.deepEqual(m.rec.clip, [true, false]);
+  assert.deepEqual(m.rec.fe[0], { base: 0.02, pos: 0, probe: 10, coupling: 'DC', bw: false }); // 採集時的前端設定
+  run(m, 'RUN');
+  turn(m, 'V1', -3);
+  near(m.vdiv(0), 2);
+  const r = m.measure(0, 'PKPK');
+  assert.equal(r.text, '2.00V?');
+  assert.match(r.why, /削頂/);
+  const { ys } = polyline(m);
+  near((Math.max(...ys) - Math.min(...ys)) / 25, 1, 0.05, '±1 V 平頂 ÷ 2 V/div＝1 div');
+  assert.ok(m.status().some(([k, v]) => k === '採集紀錄' && v.includes('削頂')));
+});
+
+test('停止後放大：從紀錄算、不以新刻度重新削頂；超出畫面才加 ?，轉回後恢復（p.105）', () => {
+  const m = fresh();
+  run(m, 'AUTOSET RUN');
+  assert.equal(m.measure(0, 'PKPK').text, '2.00V');
+  turn(m, 'V1', 2); // 500 → 100 mV/div：波形超出 ±4 div
+  assert.deepEqual(m.rec.clip, [false, false]);
+  assert.deepEqual(m.measure(0, 'PKPK'), { text: '2.00V?', value: m.measure(0, 'PKPK').value, why: '波形超出畫面' });
+  near(m.measure(0, 'PKPK').value, 2, 1e-3);
+  turn(m, 'V1', -2);
+  assert.equal(m.measure(0, 'PKPK').text, '2.00V');
+});
+
+test('AC 耦合（實驗台波形表）：一階高通週期穩態，20 Hz 方波半週期傾斜 1× 探棒約 79%、10× 探棒（fc 1 Hz）約 15%（GAP-TDS-12）', () => {
+  for (const [X, fc] of [[1, 10], [10, 1]]) {
+    const m = custom([{ table: square(X, -X), period: 0.05 }, null], [X, X]);
+    run(m, 'CH1 O1');
+    assert.equal(m.ch[0].coupling, 'AC');
+    const p = m.path(0), h = 0.05 / TM, w = 2 * Math.PI * fc;
+    near(1 - p.at((TM / 2 - 1) * h) / p.at(h), 1 - Math.exp(-(0.025 - 2 * h) * w), 1e-3, `${X}× 平台傾斜`);
+    near(p.a, 2 / (1 + Math.exp(-0.025 * w)), 2e-3, `${X}× 穩態峰值 2/(1+e^(−T/2τ))`);
+    near(p.mean, 0, 1e-9, 'AC：平均為 0');
+    run(m, 'AUTOSET'); // AutoSet 不改 AC（只有 GND 改 DC）
+    assert.equal(m.ch[0].coupling, 'AC');
+    near(Math.max(...m.rec.v[0]), p.a, 0.01, '紀錄裡看得到平台起點的過衝');
+  }
+  const d = custom([{ table: square(), period: 0.05 }, null]); // 對照：DC 耦合沒有傾斜
+  near(d.path(0).at(0.05 / TM) - d.path(0).at(0.0249), 0, 1e-12);
+});
+
+test('實驗台精確解 at(t)：表格之間逐點取值、觸發交越用精確解求準；統計仍用表格；AC 耦合＝at(t) − 低通表格', () => {
+  const T = 1e-3, tau = 150e-9, h = T / TM;
+  const exact = (t) => 2 + Math.exp(-((((t % T) + T) % T) / tau)); // 每週期開頭一個 τ＝150 ns 的窄脈衝（比表格間隔 250 ns 還窄）
+  const table = Float64Array.from({ length: TM }, (_, k) => exact(k * h));
+  const m = custom([{ table, period: T, at: exact }, null]);
+  let p = m.path(0);
+  near(p.at(100e-9), exact(100e-9), 1e-12, '取樣點之間用精確解（表格內插會是 2.676）');
+  near(p.a, 0.5, 1e-12, '統計用表格');
+  near(p.cross(2.5, 'R'), T, 1e-12, '上升交越在邊緣上（表格內插會早 125 ns）');
+  const noAt = custom([{ table, period: T }, null]).path(0);
+  near(noAt.at(100e-9), 2 + (1 - 0.4 * (1 - Math.exp(-h / tau))), 1e-12, '沒有 at 時維持表格線性內插');
+  run(m, 'CH1 O1');
+  p = m.path(0);
+  const mean = table.reduce((s, x) => s + x, 0) / TM;
+  near(p.at(100e-9), exact(100e-9) - mean, 1e-4, 'AC：精確解減掉低通（≈ 平均）');
+});
+
+test('觸發耦合 AC＝一階高通 10 Hz：擋直流（Set To 50% 回到 0）、衰減 10 Hz 以下，通道波形不變（p.21、p.97–98）', () => {
+  const m = custom([{ table: square(2, 0), period: 1e-3 }, null]); // 0～2 V 方波
+  run(m, 'AUTOSET');
+  near(m.trig.level, 1, 1e-9, 'DC 耦合：50% 位準 1 V');
+  const before = stats(m);
+  run(m, 'TRIG O5 FIFTY');
+  assert.equal(m.trig.coup, 'AC');
+  near(m.trig.level, 0, 0.02 * m.base(0) + 1e-12, 'AC 耦合：直流被擋掉，50% 位準約 0 V');
+  assert.equal(m.trigStatus(), "Trig'd");
+  assert.equal(m.ch[0].coupling, 'DC');
+  near(stats(m).max, before.max, 1e-9);
+  near(stats(m).min, before.min, 1e-9);
+  const s = custom([{ vpp: 2, dc: 0.5, f: 2, delay: 0 }, null]); // 2 Hz 正弦＋0.5 V
+  run(s, 'TRIG O5');
+  near(s.trigPath().a, 2 / Math.hypot(2, 10), 1e-12, '觸發路徑衰減到 f/√(f²+10²)');
+  near(s.trigPath().m, 0, 1e-12);
+  near(s.path(0).a, 1, 1e-12, '顯示的訊號不受影響');
+  near(s.path(0).m, 0.5, 1e-12);
+});
+
+test('BW Limit 20 MHz：一階低通（正弦解析、表格夠細才濾、太粗不處理）；提示誠實標示近似；停止後切換變斷線', () => {
+  const m = custom([{ vpp: 2, dc: 0, f: 20e6, delay: 0 }, null]);
+  near(m.path(0).a, 1, 1e-12);
+  const h = run(m, 'CH1 O2');
+  assert.equal(m.ch[0].bw, true);
+  assert.match(h.text, /一階低通 fc＝20 MHz/);
+  assert.match(h.text, /近似/);
+  assert.doesNotMatch(h.text, /只切換/);
+  assert.deepEqual(m.menuItems().items[1].lines, ['BW Limit', 'On', '20MHz']);
+  near(m.path(0).a, Math.SQRT1_2, 1e-12, 'fc 處振幅 ×0.707');
+  near(m.path(0).d, 1 / (8 * 20e6), 1e-18, '相位落後 45°＝1/8 週期');
+  // 5 MHz 方波：表格間隔 50 ps ≤ τ/2，邊緣變成 τ＝7.96 ns 的指數（表格的邊緣是一格寬的斜坡，等效在 −h/2）
+  const tau = 1 / (2 * Math.PI * 20e6), T = 200e-9, hh = T / TM;
+  const m2 = custom([{ table: square(), period: T }, null]);
+  run(m2, 'CH1 O2');
+  near(m2.path(0).at(tau), 1 - 2 * Math.exp(-(tau + hh / 2) / tau), 1e-4, '上升緣後一個 τ');
+  // 1 kHz 方波：表格間隔 250 ns > τ/2，效果低於表格解析度，不處理
+  const m3 = custom([{ table: square(), period: 1e-3 }, null]), ts = [1e-7, 3e-7, 0.25e-3];
+  const before = ts.map((t) => m3.path(0).at(t));
+  run(m3, 'CH1 O2');
+  assert.deepEqual(ts.map((t) => m3.path(0).at(t)), before);
+  // S1（1 kHz 正弦）讀值不變；AutoSet 回到 BW Full；停止後切換＝前端設定套不到凍結紀錄 → 斷線
+  const m4 = fresh();
+  run(m4, 'AUTOSET CH1 O2');
+  assert.equal(m4.measure(0, 'PKPK').text, '2.00V');
+  assert.ok(m4.lcd().includes('>BW<'));
+  run(m4, 'AUTOSET');
+  assert.equal(m4.ch[0].bw, false);
+  run(m4, 'RUN CH1 O2');
+  assert.equal(m4.rec.broken, true);
+});
+
+test('AutoSet 辨識方波（p.80–81、TDS-F21）：訊息區、Multi-cycle square 選單、Pk-Pk／Mean／Period／Freq；正弦沒有訊息；三角波無法判定', () => {
+  const { m } = freshBench('SQUARE', 1000);
+  const before = settings(m);
+  assert.match(run(m, 'AUTOSET').text, /辨識為方波／脈波/);
+  assert.equal(m.autoKind, 'SQUARE');
+  assert.equal(m.msg, 'Square wave or pulse detected on CH1');
+  assert.ok(m.lcd().includes('Square wave or pulse detected on CH1'));
+  const am = m.snapshot().autoMeas;
+  assert.deepEqual(am.map((a) => a.type), ['PKPK', 'MEAN', 'PERIOD', 'FREQ']);
+  assert.deepEqual(am.slice(2).map((a) => a.text), ['1.000ms', '1.000kHz']);
+  const items = m.menuItems().items;
+  assert.deepEqual(items[0], { lines: ['Multi-cycle', 'square'], hot: [0, 1] });
+  assert.deepEqual(items.map((it) => it.lines.join(' ')), ['Multi-cycle square', 'Single-cycle square', 'Rising edge', 'Falling edge', 'Undo Autoset']);
+  const after = settings(m);
+  for (const o of ['O2', 'O3', 'O4']) {
+    assert.equal(run(m, o).kind, 'out', o);
+    assert.equal(settings(m), after, o);
+  }
+  assert.equal(m.msg, ''); // 下一個操作清掉訊息
+  assert.equal(run(m, 'O5').kind, 'approx'); // Undo Autoset 在 OPT5
+  assert.equal(settings(m), before);
+
+  const s = freshBench('SINE', 1000).m;
+  run(s, 'AUTOSET');
+  assert.equal(s.autoKind, 'SINE');
+  assert.equal(s.msg, ''); // 手冊沒有正弦的訊息字樣，不自創
+  assert.deepEqual(s.snapshot().autoMeas.map((a) => a.type), ['CYCRMS', 'FREQ', 'PERIOD', 'PKPK']);
+
+  const r = freshBench('RAMP', 1000).m; // Ramp 對稱 50%＝三角波
+  run(r, 'AUTOSET');
+  assert.equal(r.autoKind, 'UNKNOWN');
+  assert.equal(r.msg, '');
+  assert.deepEqual(r.snapshot().autoMeas.map((a) => a.type), ['MEAN', 'PKPK']);
+  assert.deepEqual(r.menuItems().items.map((it) => it.lines.join(' ')), ['', '', '', 'Undo Autoset', '']);
+  assert.equal(run(r, 'O4').kind, 'approx');
+
+  const t = custom([{ table: Float64Array.from({ length: TM }, (_, k) => Math.sin((2 * Math.PI * k) / TM) + 0.3), period: 1e-3 }, null]);
+  run(t, 'AUTOSET');
+  assert.equal(t.autoKind, 'SINE', '表格形式的正弦（含直流）也判為正弦');
+});
+
+test('慢時基取樣：欠取樣逐點混疊（1.001 kHz 在 250 ms/div 量到 1 Hz），連續採集輪播 4 幀；觸發頻率讀值仍是真實頻率；不再畫包絡帶', () => {
+  const m = custom([{ vpp: 2, dc: 0, f: 1001, delay: 0 }, null]);
+  run(m, 'AUTOSET TRIG O4'); // Normal：慢時基不進 Scan
+  turn(m, 'HS', -9); // 250 µs → 250 ms/div：取樣間隔 1 ms，每週期不到 2 點
+  near(m.sdiv, 0.25);
+  assert.equal(m.trigStatus(), "Trig'd");
+  assert.equal(m.frames.length, 4);
+  assert.equal(new Set(m.frames.map((r) => r.v[0][0])).size, 4, '每幀的次取樣相位不同，混疊的樣子也不同');
+  assert.equal(m.measure(0, 'FREQ').text, '1.000Hz'); // 從混疊的紀錄算：|1001 − 1000| Hz
+  near(m.trigFreq(), 1001);
+  const lcd = m.lcd();
+  assert.ok(lcd.includes('1.00100kHz'));
+  assert.equal((lcd.match(/<animate attributeName="opacity"/g) || []).length, 4);
+  assert.ok(!lcd.includes('<rect class="wave'));
+  assert.equal(m.snapshot().rec.band, undefined);
+  run(m, 'SINGLE'); // Single：只取一幀、不輪播
+  assert.equal(m.frames, null);
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  const d = new TdsModel(); // 首次載入＝500 ms/div Scan：1 kHz 每 2 ms 取一點 → 混疊成一條水平線
+  const v = d.rec.v[0];
+  assert.ok(Math.max(...v) - Math.min(...v) < 1e-9);
+  assert.ok(d.lcd().includes('<mask id="tds-scan" maskUnits="userSpaceOnUse"'), 'Scan 遮罩用 LCD 座標：高度 0 的水平線不會被整條遮掉');
+});
+
+test('取樣充足時畫面穩定：次取樣相位含在紀錄時間軸裡，觸發點仍在 Level 上、不輪播', () => {
+  const m = fresh();
+  run(m, 'AUTOSET');
+  assert.equal(m.frames, null);
+  const off = (m.rec.t0 - (m.mpos - 5 * m.sdiv)) / m.rec.dt;
+  assert.ok(off >= 0 && off < 1, `次取樣相位 ${off} 在一個取樣間隔內`);
+  near(m.sampleAt(0, 0), 0.5, 0.01);
+  const a = m.measure(0, 'FREQ').text;
+  run(m, 'MEAS'); // 再採一筆：相位不同，讀值不變
+  assert.equal(m.measure(0, 'FREQ').text, a);
+  const { ys } = polyline(m); // 每像素欄最多兩點（最小、最大）
+  assert.ok(ys.length <= 2 * 252 && ys.length >= 250, `${ys.length} 點`);
+});

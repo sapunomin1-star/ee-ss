@@ -184,6 +184,55 @@ export async function run() {
     await ui.press(K.POWER);
     s = await snap();
     T.ok(s.on && Math.abs(s.ch[0].vdiv - 0.5) < 1e-9 && Math.abs(s.sdiv - 250e-6) < 1e-12 && s.status === "Trig'd", '電源開：回復關機前設定並重新採集');
+
+    // ---- 採集時削頂（p.108 10 格動態範圍）：停止後把 V/div 轉回，削掉的波峰不會回來 ----
+    await scen('S1X5');
+    await ui.press(K.AUTOSET);
+    await knob('V1', 3); // 2 V/div → 200 mV/div
+    T.ok((await lcd('.rd-ch1')) === 'CH1 200mV' && (await lcd('.am4')) === 'CH1 Pk-Pk 2.00V?', 'S1X5 AutoSet 後 V/div 轉小 3 格：Pk-Pk 2.00V?（採集時削頂）');
+    await ui.press(K.RUN);
+    await knob('V1', -3);
+    y = await ys(1);
+    T.ok((await lcd('.rd-ch1')) === 'CH1 2.00V' && (await lcd('.am4')) === 'CH1 Pk-Pk 2.00V?', '停止後轉回 2 V/div：Pk-Pk 仍是 2.00V?，不會變回 10.0V');
+    T.near((Math.max(...y) - Math.min(...y)) / 25, 1, 0.05, '凍結的波形是 1 div 高的平頂（±1 V）');
+    await ui.shot('tds-clipped');
+    await ui.press(K.RUN);
+
+    // ---- 慢時基欠取樣（取樣率＝250 點／div）：逐點混疊、畫面不穩，不再畫包絡帶 ----
+    await scen('S1');
+    await ui.press(K.AUTOSET);
+    await keys('TRIG O4'); // Normal：慢時基不進 Scan
+    await knob('HS', -9); // 250 µs → 250 ms/div
+    s = await snap();
+    const nFrames = await p.evaluate(() => document.querySelectorAll('svg.screen animate[attributeName=opacity]').length);
+    T.ok(s.status === "Trig'd" && (await lcd('.rd-m')) === 'M 250ms' && nFrames === 4, '1 kHz 用 250 ms/div（Normal）：已觸發但欠取樣，LCD 輪播 4 幀不同相位');
+    T.ok((await p.evaluate(() => document.querySelectorAll('svg.screen rect.wave').length)) === 0 && (await lcd('.rd-freq')) === '1.00000kHz', '沒有包絡帶；右下角觸發頻率仍是真實的 1.00000kHz');
+    await keys('O4');
+    await knob('HS', 9);
+
+    // ---- 實驗台 20 Hz 方波：AutoSet 辨識方波、AC 耦合的平台傾斜、BW Limit ----
+    await ui.tab('afg');
+    for (const id of ['KEY.PRESET', 'KEY.CH1_CH2', 'KEY.CH1_CH2', 'SOFT.F1', 'SOFT.F2', 'KEY.AMPL', 'NUM.DIGIT_2', 'SOFT.F5',
+      'KEY.WAVEFORM', 'SOFT.F2', 'KEY.FREQ_RATE', 'NUM.DIGIT_2', 'NUM.DIGIT_0', 'SOFT.F3', 'KEY.OUTPUT']) await ui.press(`AFG.${id}`);
+    await ui.tab('bench');
+    await p.getByRole('button', { name: '示範接線（看答案）', exact: true }).click();
+    await ui.tab('tds');
+    await ui.press(K.AUTOSET);
+    s = await snap();
+    T.ok(s.scenario === 'BENCH' && (await lcd('.rd-msg')) === 'Square wave or pulse detected on CH1', 'AutoSet 辨識方波：訊息區 Square wave or pulse detected on CH1');
+    T.ok((await lcd('.mb1')) === 'Multi-cyclesquare' && (await lcd('.mb5')) === 'UndoAutoset', 'AutoSet 選單：Multi-cycle square（選取中）… OPT5 Undo Autoset');
+    const am = await Promise.all([1, 2, 3, 4].map((k) => lcd(`.am${k}`)));
+    T.ok(am[0] === 'CH1 Pk-Pk 2.00V' && am[1]?.startsWith('CH1 Mean ') && am[2] === 'CH1 Period 50.00ms' && am[3] === 'CH1 Freq 20.00Hz', `方波自動量測 Pk-Pk、Mean、Period、Freq（${am.join('／')}）`);
+    await keys('CH1 O1'); // Coupling AC
+    s = await snap();
+    const pk = s.autoMeas.find((a) => a.type === 'PKPK').text;
+    T.ok(s.ch[0].coupling === 'AC' && pk === '2.15V', `CH1 AC 耦合（10× 探棒 fc 1 Hz）：20 Hz 方波平台傾斜，Pk-Pk 2.00V → ${pk}`);
+    await ui.shot('tds-ac-square');
+    await keys('O2'); // BW Limit On
+    const hbw = await ui.hint();
+    T.ok((await lcd('.mb2')) === 'BW LimitOn20MHz' && hbw.includes('一階低通 fc＝20 MHz') && !hbw.includes('只切換'), 'BW Limit On：提示說明 20 MHz 一階低通（近似），不再說只切換圖示');
+    await keys('O2 O1 O1'); // BW Off；Coupling AC → Ground → DC
+    T.ok((await snap()).ch[0].coupling === 'DC', '耦合改回 DC');
     T.ok(ui.errors.length === 0, `沒有 JS 錯誤${ui.errors.length ? `：${ui.errors.join('; ')}` : ''}`);
   } finally {
     await ui.close();

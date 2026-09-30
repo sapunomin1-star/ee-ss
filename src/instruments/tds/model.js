@@ -1,9 +1,10 @@
 // TDS2001C 行為模型（I03）。規格：docs/data/tds.json（TDS-F01～F21、GAP-TDS-01～24）、common.json §0.2／§0.4。
 // 核心：每次採集產生一份紀錄（2500 點＝10 div，GAP-TDS-24）；波形、Measure、Cursor 都只從這份紀錄算。
-// 訊號路徑：情境訊號（探棒尖端）÷ 實際探棒 → BNC → 通道耦合 → 紀錄（存 BNC 伏特）。
+// 訊號路徑：情境訊號（探棒尖端）÷ 實際探棒 → BNC → 通道耦合（AC＝一階高通）→ BW Limit（一階 20 MHz）
+//   → 採集（每 div 250 點、10 格動態範圍外削頂）→ 紀錄（存 BNC 伏特）。
 //   顯示值＝紀錄 × 示波器 Probe 設定：設定與實際探棒不一致時，讀值按比例錯（TDS-F08）。
 // 時間模型：事件驅動。每次操作（按鍵、旋鈕、換情境）後做一次掃描更新 tick()：
-//   有效觸發 → 以觸發點為 t＝0 採一筆；Auto 無觸發 → 以固定種子隨機相位採幾幀（LCD 輪播成不穩定畫面，GAP-TDS-06）；
+//   有效觸發 → 以觸發點為 t＝0 採一筆（連續採集又欠取樣時採幾幀輪播）；Auto 無觸發 → 以固定種子隨機相位採幾幀（LCD 輪播成不穩定畫面，GAP-TDS-06）；
 //   Normal／Single 等待中 → 保留舊紀錄；Stop → 不採（凍結）。
 import { eng, fmtFixed, clamp } from '../../core/format.js';
 import layout from './layout.js';
@@ -75,34 +76,118 @@ function firstCycle(x) {
 // ---- 訊號路徑物件（正弦解析式／週期波形表）----
 function sinePath(a, m, f, d) {
   return {
-    a, m, f, d, mean: m,
+    kind: 'sine', a, m, f, d, mean: m,
     at: (t) => m + a * Math.sin(2 * Math.PI * f * (t - d)),
     cross: (L, slope) => { const s = Math.asin((L - m) / a); return d + (slope === 'R' ? s : Math.PI - s) / (2 * Math.PI * f); },
   };
 }
-// table：一個週期的探棒尖端電壓（等間隔 M 點）；k＝1／實際探棒倍率
-function tablePath(table, period, k) {
-  const M = table.length, v = Float64Array.from(table, (x) => x * k);
-  let mx = -Infinity, mn = Infinity, sum = 0;
-  for (const x of v) { if (x > mx) mx = x; if (x < mn) mn = x; sum += x; }
-  const a = (mx - mn) / 2 > 1e-12 ? (mx - mn) / 2 : 0;
-  const at = (t) => {
+// 週期表格（等間隔 M 點）在時間 t 的線性內插
+function lerpTable(v, period) {
+  const M = v.length;
+  return (t) => {
     const u = ((((t / period) % 1) + 1) % 1) * M, j = Math.floor(u) % M, fr = u - Math.floor(u);
     return v[j] + (v[(j + 1) % M] - v[j]) * fr;
   };
+}
+// v：一個週期的波形（BNC 伏特，等間隔 M 點，點間線性）；ex：選填的精確解 ex(t)（實驗台提供，取樣點之間也準）。
+// 統計（a、m、mean）、交越、濾波都用表格；at() 有精確解就逐點用它，交越在表格找到的區段內再用精確解二分求準
+// （例：RC 窄脈衝的邊緣，否則觸發點會偏離邊緣最多一個表格間隔）。
+function tablePath(v, period, ex = null) {
+  const M = v.length;
+  let mx = -Infinity, mn = Infinity, sum = 0;
+  for (const x of v) { if (x > mx) mx = x; if (x < mn) mn = x; sum += x; }
+  const a = (mx - mn) / 2 > 1e-12 ? (mx - mn) / 2 : 0;
   const cross = (L, slope) => { // 一個週期內第一個符合斜率的穿越點
+    const before = (y) => (slope === 'R' ? y < L : y > L); // 還沒穿越
     for (let j = 0; j < M; j++) {
       const y0 = v[j], y1 = v[(j + 1) % M];
-      const hit = slope === 'R' ? y0 < L && y1 >= L : y0 > L && y1 <= L;
-      if (hit) return ((j + (L - y0) / (y1 - y0)) / M) * period;
+      if (!before(y0) || before(y1)) continue;
+      let lo = (j / M) * period, hi = ((j + 1) / M) * period;
+      if (!ex || !before(ex(lo)) || before(ex(hi))) return ((j + (L - y0) / (y1 - y0)) / M) * period;
+      for (let n = 0; n < 40; n++) { const c = (lo + hi) / 2; if (before(ex(c))) lo = c; else hi = c; }
+      return hi;
     }
     return 0;
   };
-  return { a, m: (mx + mn) / 2, f: a > 0 && period > 0 ? 1 / period : 0, d: 0, mean: sum / M, at, cross };
+  return { kind: 'table', v, period, ex, a, m: (mx + mn) / 2, f: a > 0 && period > 0 ? 1 / period : 0, d: 0, mean: sum / M, at: ex ?? lerpTable(v, period), cross };
 }
-function shiftPath(p, dv) {
-  return { ...p, m: p.m + dv, mean: p.mean + dv, at: (t) => p.at(t) + dv, cross: (L, slope) => p.cross(L - dv, slope) };
+
+// 一階低通 dz/dt＝(x−z)/τ（τ＝1/(2πfc)）對週期表格的週期穩態解。x 在點間線性（和 at() 的內插一致），每段精確積分：
+//   z⁺＝z＋(1−e^(−s))(x₀−z)＋(1−(1−e^(−s))/s)(x₁−x₀)，s＝h/τ（小 s 用級數，同 bench/circuit.js）；
+//   shooting：z(T)＝e^(−T/τ)·z(0)＋b → z(0)＝b/(1−e^(−T/τ))，用 expm1 維持數值穩定。
+function lowpassTable(v, period, fc) {
+  const M = v.length, tau = 1 / (2 * Math.PI * fc), z = new Float64Array(M);
+  if (period < 1e-6 * tau) { // 週期遠小於 τ：輸出＝平均值（同 bench/circuit.js）
+    let mean = 0;
+    for (const x of v) mean += x / M;
+    return z.fill(mean);
+  }
+  const s = period / M / tau, dec = -Math.expm1(-s);
+  const ramp = s < 1e-3 ? s * (0.5 + s * (-1 / 6 + s * (1 / 24 - s / 120))) : 1 - dec / s;
+  const run = (z0) => {
+    let y = z0;
+    for (let k = 0; k < M; k++) {
+      z[k] = y;
+      const x0 = v[k], x1 = v[(k + 1) % M];
+      y += dec * (x0 - y) + ramp * (x1 - x0);
+    }
+    return y;
+  };
+  run(run(0) / -Math.expm1(-period / tau));
+  return z;
 }
+
+// 一階高通 fc（AC 耦合）：正弦用解析的增益與相位超前；表格＝x − LPF(x)（週期穩態），有精確解時 at'(t)＝at(t) − LPF 表格內插
+function highpass(p, fc) {
+  if (p.kind === 'sine') {
+    if (!(p.f > 0)) return sinePath(0, 0, 0, 0);
+    return sinePath((p.a * p.f) / Math.hypot(p.f, fc), 0, p.f, p.d - Math.atan(fc / p.f) / (2 * Math.PI * p.f));
+  }
+  const z = lowpassTable(p.v, p.period, fc), zt = lerpTable(z, p.period);
+  return tablePath(p.v.map((x, k) => x - z[k]), p.period, p.ex && ((t) => p.ex(t) - zt(t)));
+}
+
+// BW Limit：一階低通 fc＝20 MHz（手冊只寫會濾掉高頻雜訊，響應形狀未載，PD 近似）。
+//   正弦：解析的增益與相位落後。表格：取樣間隔 h ≤ τ/2 才對表格做週期穩態低通（輸出在 τ 尺度上平滑，之後用表格內插、
+//   不再用精確解）；h 更粗時（實驗台每週期 4000 點，約 63 kHz 以下）20 MHz 的效果小於表格解析度，不處理。
+//   示波器本身 50 MHz 的類比頻寬仍不模擬（I00 範圍表 OUT）。
+const BW_FC = 20e6;
+function bwLimit(p) {
+  if (p.kind === 'sine') {
+    if (!(p.f > 0)) return p;
+    const r = p.f / BW_FC;
+    return sinePath(p.a / Math.hypot(1, r), p.m, p.f, p.d + Math.atan(r) / (2 * Math.PI * p.f));
+  }
+  if (p.period / p.v.length > 1 / (4 * Math.PI * BW_FC)) return p;
+  return tablePath(lowpassTable(p.v, p.period, BW_FC), p.period);
+}
+
+// AutoSet 的波形辨識（手冊 p.80–81 只列結果，演算法 PD）。正弦情境（解析式）＝正弦。表格：
+//   扣掉基頻正弦後的殘差 RMS < 基頻 RMS 的 2%（THD < 2%）＝正弦；
+//   ≥ 70% 的點落在距最大值或最小值 20% 峰對峰以內（平頂＋平底，容許 RC 圓角與小傾斜）＝方波／脈波；
+//   其他（三角波、Ramp、圓角太多的充放電波形、窄尖脈衝）＝無法判定。
+function waveKind(p) {
+  if (!(p.a > 0 && p.f > 0)) return 'UNKNOWN';
+  if (p.kind === 'sine') return 'SINE';
+  const v = p.v, M = v.length, top = p.m + 0.6 * p.a, bot = p.m - 0.6 * p.a;
+  let re = 0, im = 0, s2 = 0, flat = 0;
+  for (let k = 0; k < M; k++) {
+    const x = v[k] - p.mean, w = (2 * Math.PI * k) / M;
+    re += x * Math.cos(w);
+    im += x * Math.sin(w);
+    s2 += x * x;
+    if (v[k] >= top || v[k] <= bot) flat++;
+  }
+  const fund = (2 * (re * re + im * im)) / (M * M); // 基頻成分的均方值
+  if (s2 / M - fund < 0.02 ** 2 * fund) return 'SINE';
+  return flat >= 0.7 * M ? 'SQUARE' : 'UNKNOWN';
+}
+// 各辨識結果的自動量測（手冊 p.80–81、TDS-F21）與 Undo Autoset 鍵位（依手冊表列順序暫定，GAP-TDS-02）
+const AUTO = {
+  SINE: { meas: ['CYCRMS', 'FREQ', 'PERIOD', 'PKPK'], undo: 3, name: '正弦' },
+  SQUARE: { meas: ['PKPK', 'MEAN', 'PERIOD', 'FREQ'], undo: 4, name: '方波／脈波' },
+  UNKNOWN: { meas: ['MEAN', 'PKPK'], undo: 3, name: '無法判定' },
+};
 
 export class TdsModel {
   constructor() {
@@ -115,11 +200,11 @@ export class TdsModel {
       '通道：按 1／2 開關通道並開垂直選單；右側 OPT1 Coupling（DC→AC→Ground）、OPT4 Probe → 用多功能旋鈕選倍率。',
       '刻度與位置：垂直、水平的大旋鈕改 V/div、s/div；位置旋鈕每格 1/25 div；Set to Zero 讓 M Pos 歸零。',
       '觸發：Trig Menu → Source／Slope／Mode（Auto、Normal）／Coupling；位準旋鈕、Set To 50%、Force Trig。',
-      '採集：Run/Stop 停止後仍可縮放凍結的紀錄；單一（Single）取到一幀就停。',
+      '採集：Run/Stop 停止後仍可縮放凍結的紀錄（採集時超出 10 格的部分已削頂，放大縮小也回不來）；單一（Single）取到一幀就停。',
       '量測：Measure → 按 OPT1–5 選一格 → Source／Type（也可轉多功能旋鈕）→ Back。',
       '游標：Cursor → Type（Time／Amplitude）→ Source → Cursor 1／Cursor 2，再轉多功能旋鈕（每格 1/25 div）。',
       '探棒錯配：側欄情境裡的「實際探棒」和示波器的 Probe 設定是兩回事，設錯時讀值按比例錯。',
-      '近似／暫定：LCD 語言暫定英文；Trigger、Probe、Measure n、AutoSet、Horiz 選單的鍵位暫定；Auto 無觸發的不穩定畫面、Scan、AutoSet 選檔、游標步進都是教學近似。',
+      '近似／暫定：LCD 語言暫定英文；Trigger、Probe、Measure n、AutoSet、Horiz 選單的鍵位暫定；Auto 無觸發的不穩定畫面、Scan、AutoSet 選檔與波形辨識、AC 耦合與 BW Limit 的一階濾波、游標步進都是教學近似。',
     ];
     this.scenarios = {
       title: '單機測試情境（明示訊號，不是自由接線）',
@@ -178,31 +263,26 @@ export class TdsModel {
   }
 
   // ---- 訊號路徑 ----
-  // 通道 i 在 BNC、經通道耦合後的訊號（BNC 伏特）。兩種來源：
+  // 通道 i 在 BNC、經通道耦合與 BW Limit 後的訊號（BNC 伏特）。兩種來源：
   //   正弦情境：v(τ) = m + a·sin(2πf(τ − d))（解析式）
-  //   週期波形表（實驗台電路算出的探棒尖端電壓，一個週期 M 點）：線性內插
+  //   週期波形表（實驗台電路算出的探棒尖端電壓，一個週期 M 點）：線性內插；另給精確解 at(t) 時逐點用它
   // 共同欄位：a＝(max−min)/2、m＝(max+min)/2、f（0＝直流或無訊號）、mean、at(t)、cross(L, slope)
   path(i) {
     const s = this.fx.sig[i], c = this.ch[i];
     if (!s || c.coupling === 'GND') return sinePath(0, 0, 0, 0); // Ground＝零伏參考線
-    const k = 1 / this.fx.probe[i];
-    if (s.table) {
-      const p = tablePath(s.table, s.period, k);
-      return c.coupling === 'AC' ? shiftPath(p, -p.mean) : p; // AC：去掉直流（不模擬低頻傾斜，近似 GAP-TDS-12）
-    }
-    let a = (s.vpp / 2) * k, m = s.dc * k, d = s.delay;
-    if (c.coupling === 'AC') { // 一階高通 fc＝10 Hz，實際 10× 探棒時 1 Hz，直接呈現穩態（GAP-TDS-12）
-      const fc = this.fx.probe[i] === 10 ? 1 : 10;
-      m = 0;
-      if (s.f > 0) { a *= s.f / Math.hypot(s.f, fc); d -= Math.atan(fc / s.f) / (2 * Math.PI * s.f); } else a = 0;
-    }
-    return sinePath(a, m, s.f, d);
+    const px = this.fx.probe[i], k = 1 / px;
+    let p = s.table
+      ? tablePath(Float64Array.from(s.table, (x) => x * k), s.period, s.at ? (t) => s.at(t) * k : null)
+      : sinePath((s.vpp / 2) * k, s.dc * k, s.f, s.delay);
+    if (c.coupling === 'AC') p = highpass(p, px === 10 ? 1 : 10); // 一階高通 fc＝10 Hz，實際 10× 探棒時 1 Hz，直接呈現週期穩態（GAP-TDS-12）
+    return c.bw ? bwLimit(p) : p;
   }
 
-  // 觸發路徑：取自通道耦合後的訊號（GAP-TDS-13）；觸發耦合 AC 再去掉直流（只影響觸發，TDS-F07）
+  // 觸發路徑：取自通道耦合（含 BW Limit）後的訊號（GAP-TDS-13）。觸發耦合 AC 再加一階高通 10 Hz：手冊 p.97–98
+  //   「blocks DC、attenuates below 10 Hz」，一階為 PD；是觸發系統內部的耦合，不隨探棒倍率改變（PD）。只影響觸發，不改波形（p.21、TDS-F07）
   trigPath() {
     const p = this.path(this.trig.src);
-    return this.trig.coup === 'AC' ? shiftPath(p, -p.mean) : p;
+    return this.trig.coup === 'AC' ? highpass(p, 10) : p;
   }
 
   // Level 必須落在觸發訊號的最小值與最大值之間才有觸發事件（DC、無訊號永遠沒有）
@@ -218,22 +298,42 @@ export class TdsModel {
   trigFreq() { const p = this.trigPath(); return this.crosses() && p.f >= 10 ? p.f : null; }
 
   // ---- 採集 ----
-  // tau＝觸發事件的絕對時間（紀錄的 t＝0 對到觸發點）；null＝未觸發（隨機相位）
+  // tau＝觸發事件的絕對時間（紀錄的 t＝0 對到觸發點）；null＝未觸發（隨機相位）。
+  // 取樣（Sample 模式，每 div 250 點，GAP-TDS-24）：取樣時鐘和觸發不同步，每筆採集相對觸發點有隨機的次取樣相位
+  //   （固定種子，測試可重現），紀錄的時間軸含這個相位 → 取樣充足的訊號畫面穩定；欠取樣的訊號逐點取值後自然混疊
+  //   （手冊的 aliasing 段落），每筆的樣子都不同。快時基（≤250 ns/div，超過 500 MS/s）仍直接取值：真機以 sin(x)/x
+  //   內插補點，對頻寬內的訊號結果等同直接取值。
+  // 前端（p.108：每格 25 階、10 格動態範圍）：樣本限制在採集當下的 [(−5 − pos)·V/div, (5 − pos)·V/div]（BNC 伏特，
+  //   1X V/div），超出的削頂並記旗標；紀錄保存採集時的前端設定。停止後轉 V/div、位置只縮放既有資料，削掉的波峰不會回來。
+  //   不做 8-bit 量化（範圍外）。
   acquire(tau) {
     const triggered = tau != null;
     if (!triggered) tau = this.rand();
-    const dt = this.sdiv / PTS_DIV, t0 = this.mpos - 5 * this.sdiv;
-    const band = [false, false];
+    const dt = this.sdiv / PTS_DIV, t0 = this.mpos - 5 * this.sdiv + this.rand() * dt;
+    const fe = [null, null], clip = [false, false];
     const v = this.ch.map((c, i) => {
       if (!c.on) return null; // 只採顯示中的通道
+      const base = this.base(i), lo = (-5 - c.pos) * base, hi = (5 - c.pos) * base;
       const p = this.path(i), arr = new Float64Array(N);
-      band[i] = p.a > 0 && p.f * dt > 0.25; // 每週期不到 4 點：畫成包絡帶，不模擬混疊（取樣率與混疊本輪 OUT）
+      fe[i] = { base, pos: c.pos, probe: c.probe, coupling: c.coupling, bw: c.bw };
       for (let k = 0; k < N; k++) {
-        arr[k] = band[i] ? p.m + (k % 2 ? -p.a : p.a) : p.at(tau + t0 + k * dt);
+        const y = p.at(tau + t0 + k * dt);
+        if (y > hi || y < lo) clip[i] = true;
+        arr[k] = clamp(y, lo, hi);
       }
       return arr;
     });
-    return { n: ++this.acqN, t0, dt, v, band, triggered, broken: false };
+    return { n: ++this.acqN, t0, dt, v, fe, clip, triggered, broken: false };
+  }
+
+  // 欠取樣：顯示中的通道有訊號頻率 > 取樣率/2（取樣率＝250 點／div）
+  undersampled() {
+    const dt = this.sdiv / PTS_DIV;
+    return this.ch.some((c, i) => {
+      if (!c.on) return false;
+      const p = this.path(i);
+      return p.a > 0 && p.f * dt > 0.5;
+    });
   }
 
   tick(force = false) {
@@ -242,7 +342,10 @@ export class TdsModel {
     if (this.isScan()) { this.rec = this.acquire(null); return; } // Scan：不等觸發（簡化，GAP-TDS-08）
     const tt = this.trigTime();
     if (tt != null || force) {
-      this.rec = this.acquire(tt);
+      if (tt != null && this.run === 'run' && this.undersampled()) { // 連續採集又欠取樣：每筆混疊的樣子不同 → 幾幀輪播（真機畫面不穩定）
+        this.frames = [0, 1, 2, 3].map(() => this.acquire(tt));
+        this.rec = this.frames[3];
+      } else this.rec = this.acquire(tt);
       if (this.run === 'single') { this.run = 'stop'; this.complete = true; }
       return;
     }
@@ -265,30 +368,30 @@ export class TdsModel {
 
   // ---- 從紀錄算量測（TDS-F16、F21）----
   // 回傳 { text, value, why }：text＝'' 留空（通道未顯示或尚無採集，GAP-TDS-14）；'?' 或結尾 '?'＝無效
+  // 數值一律從紀錄（採集時已削頂）算；紀錄有削頂，或以目前 V/div、位置顯示時超出 ±4 div（overrange），讀值後加 ?（p.31、p.105）
   measure(i, type) {
     if (type === 'NONE') return { text: '', value: null };
-    const c = this.ch[i], arr = this.rec?.v[i];
+    const c = this.ch[i], r = this.rec, arr = r?.v[i];
     if (!c.on) return { text: '', value: null, why: `CH${i + 1} 未顯示` };
     if (!arr) return { text: '', value: null, why: '尚無採集' };
     if (this.isScan()) return { text: '?', value: null, why: 'Scan 模式不能量測' };
-    const vd = this.vdiv(i), lo = (-5 - c.pos) * vd, hi = (5 - c.pos) * vd; // 10 div 動態範圍外視為削頂
-    const x = new Float64Array(arr.length);
-    let over = false, mx = -Infinity, mn = Infinity, sum = 0;
+    const b = this.base(i), x = new Float64Array(arr.length);
+    let off = false, mx = -Infinity, mn = Infinity, sum = 0;
     for (let j = 0; j < arr.length; j++) {
-      const y = arr[j] * c.probe;
-      if (Math.abs(c.pos + y / vd) > 4 + 1e-9) over = true; // 超出畫面（overrange）
-      x[j] = clamp(y, lo, hi);
+      if (Math.abs(c.pos + arr[j] / b) > 4 + 1e-9) off = true; // 超出畫面（overrange）
+      x[j] = arr[j] * c.probe;
       if (x[j] > mx) mx = x[j];
       if (x[j] < mn) mn = x[j];
       sum += x[j];
     }
+    const over = r.clip[i] || off, why = r.clip[i] ? '採集時超出 10 格動態範圍（削頂）' : off ? '波形超出畫面' : '';
     let value = null, unit = 'V', digits = 3;
     if (type === 'PKPK') value = mx - mn;
     else if (type === 'MEAN') value = sum / x.length;
     else {
-      const cr = this.rec.band[i] ? null : firstCycle(x);
+      const cr = firstCycle(x);
       if (!cr) return { text: '?', value: null, why: '紀錄裡沒有完整週期' };
-      const period = (cr[1].k - cr[0].k) * this.rec.dt;
+      const period = (cr[1].k - cr[0].k) * r.dt;
       if (type === 'FREQ') { value = 1 / period; unit = 'Hz'; digits = 4; }
       if (type === 'PERIOD') { value = period; unit = 's'; digits = 4; }
       if (type === 'CYCRMS') {
@@ -298,7 +401,7 @@ export class TdsModel {
       }
     }
     const txt = unit === 'V' ? fmtV(value) : `${engp(value, digits)}${unit}`;
-    return { text: txt + (over ? '?' : ''), value, why: over ? '波形超出畫面' : '' };
+    return { text: txt + (over ? '?' : ''), value, why };
   }
 
   // 紀錄在時間 t（相對觸發點）的顯示電壓；超出紀錄範圍回 null
@@ -363,7 +466,7 @@ export class TdsModel {
       case 'TDS.KEY.TRIG_MENU': this.menu = 'TRIG'; this.msg = 'For TRIGGER HOLDOFF, go to HORIZONTAL MENU'; return null;
       case 'TDS.KEY.MEASURE': this.menu = 'MEAS'; this.msg = 'Push an option button to change its measurement'; return null;
       case 'TDS.KEY.CURSOR': this.menu = 'CURSOR'; return null;
-      case 'TDS.KEY.ACQUIRE': this.menu = 'ACQ'; return { kind: 'approx', text: 'Acquire 選單：本模擬器固定 Sample（Peak Detect、Average 未納入）。' };
+      case 'TDS.KEY.ACQUIRE': this.menu = 'ACQ'; return { kind: 'approx', text: 'Acquire 選單：本模擬器固定 Sample（Peak Detect、Average 未納入）。Sample 取樣率＝每 div 250 點，訊號頻率超過取樣率一半會混疊（畫面不穩、量到假頻率），這時把 s/div 轉快。' };
       case 'TDS.KEY.HORIZ_MENU': this.menu = 'HORIZ'; return { kind: 'approx', text: 'Horiz 選單只啟用 Main（Window Zone、Window、Holdoff 未納入）。' };
       case 'TDS.KEY.AUTOSET': return this.autoset();
       case 'TDS.KEY.DEFAULT_SETUP': return this.defaultSetup();
@@ -417,7 +520,13 @@ export class TdsModel {
   chanSoft(i, j) {
     const c = this.ch[i];
     if (j === 0) { c.coupling = { DC: 'AC', AC: 'GND', GND: 'DC' }[c.coupling]; this.markBroken(); return null; }
-    if (j === 1) { c.bw = !c.bw; return { kind: 'approx', text: `BW Limit ${c.bw ? 'On（20MHz）' : 'Off'}：只切換狀態與 BW 圖示，1 kHz 測試訊號的波形不變（近似）。` }; }
+    if (j === 1) { // 停止後切換：前端設定套不到凍結紀錄，和耦合一樣改斷線樣式（GAP-TDS-21 的原則，PD）
+      c.bw = !c.bw;
+      this.markBroken();
+      return { kind: 'approx', text: c.bw
+        ? 'BW Limit On（20MHz）：通道訊號加一階低通 fc＝20 MHz（響應形狀手冊未載，近似）；1 kHz 訊號幾乎看不出差別。示波器本身 50 MHz 的類比頻寬不模擬。'
+        : 'BW Limit Off：拿掉 20 MHz 低通（示波器本身 50 MHz 的類比頻寬不模擬，近似）。' };
+    }
     if (j === 2) return OUT('Volts/Div Fine');
     if (j === 3) { this.menu = `PROBE${i + 1}`; return null; }
     return OUT('Invert');
@@ -490,14 +599,17 @@ export class TdsModel {
     return null; // OPT3 是 Δ 讀值格，按了沒有作用（PD）
   }
 
+  // AutoSet 選單（p.80–81）：Multi-cycle 選取中；Single-cycle、FFT、Rising／Falling edge 本輪 OUT；Undo 鍵位依選單而定
   autosetSoft(j) {
-    if (j === 3 && this.undo) {
+    const k = this.autoKind in AUTO ? this.autoKind : 'UNKNOWN';
+    if (j === AUTO[k].undo) {
+      if (!this.undo) return null;
       this.restore(this.undo);
       this.undo = null;
       return { kind: 'approx', text: 'Undo Autoset：回到按 AutoSet 之前的設定（近似）。' };
     }
-    if (this.autoKind === 'SINE' && j === 1) return OUT('Single-cycle sine');
-    if (this.autoKind === 'SINE' && j === 2) return OUT('FFT');
+    if (k === 'SINE') return [null, OUT('Single-cycle sine'), OUT('FFT'), null, null][j];
+    if (k === 'SQUARE') return [null, OUT('Single-cycle square'), OUT('Rising edge'), OUT('Falling edge'), null][j];
     return null;
   }
 
@@ -540,11 +652,13 @@ export class TdsModel {
     this.cursor.type = 'OFF';
     this.run = 'run';
     this.complete = false;
-    this.autoKind = periodic.includes(src) ? 'SINE' : 'UNKNOWN';
-    this.autoMeas = { src, types: this.autoKind === 'SINE' ? ['CYCRMS', 'FREQ', 'PERIOD', 'PKPK'] : ['MEAN', 'PKPK'] };
+    this.autoKind = periodic.includes(src) ? waveKind(P[src]) : 'UNKNOWN';
+    this.autoMeas = { src, types: AUTO[this.autoKind].meas };
     this.menu = 'AUTOSET';
+    // 訊息區：方波字樣照手冊（tds.json 的 AutoSet 回饋引文）；正弦、無法判定沒有引文，不顯示
+    if (this.autoKind === 'SQUARE') this.msg = `Square wave or pulse detected on CH${src + 1}`;
     const scales = this.ch.map((c, i) => (c.on ? `CH${i + 1} ${fmtV(this.vdiv(i))}/div` : null)).filter(Boolean).join('、');
-    return { kind: 'approx', text: `AutoSet：${scales}、${fmtScale(this.sdiv)}/div、觸發 CH${src + 1} 位準 50%${notes.length ? `；${notes.join('；')}` : ''}。選檔規則是教學近似（GAP-TDS-10），Probe 設定不變；之後訊號再變也不會自動重調。` };
+    return { kind: 'approx', text: `AutoSet：${scales}、${fmtScale(this.sdiv)}/div、觸發 CH${src + 1} 位準 50%、CH${src + 1} 辨識為${AUTO[this.autoKind].name}${notes.length ? `；${notes.join('；')}` : ''}。選檔規則與波形辨識是教學近似（GAP-TDS-10），Probe 設定不變；之後訊號再變也不會自動重調。` };
   }
 
   // ---- Default Setup（TDS-F18）----
@@ -683,9 +797,12 @@ export class TdsModel {
     if (m === 'ACQ') return { title: 'Acquire', items: [{ lines: ['Sample'], hot: [0] }, plain('Peak Detect'), plain('Average'), plain('Averages', '16'), E] };
     if (m === 'HORIZ') return { title: 'Horizontal', items: [{ lines: ['Main'], hot: [0] }, plain('Window', 'Zone'), plain('Window'), plain('Set', 'Holdoff'), E] };
     if (m === 'AUTOSET') {
-      const undo = plain('Undo', 'Autoset');
-      return { title: 'Autoset', items: this.autoKind === 'SINE'
-        ? [{ lines: ['Multi-cycle', 'sine'], hot: [0, 1] }, plain('Single-cycle', 'sine'), plain('FFT'), undo, E] : [E, E, E, undo, E] };
+      const undo = plain('Undo', 'Autoset'), sel = (a, b) => ({ lines: [a, b], hot: [0, 1] });
+      const items = {
+        SINE: [sel('Multi-cycle', 'sine'), plain('Single-cycle', 'sine'), plain('FFT'), undo, E],
+        SQUARE: [sel('Multi-cycle', 'square'), plain('Single-cycle', 'square'), plain('Rising', 'edge'), plain('Falling', 'edge'), undo],
+      }[this.autoKind] ?? [E, E, E, undo, E];
+      return { title: 'Autoset', items };
     }
     return null;
   }
@@ -700,7 +817,7 @@ export class TdsModel {
     ];
     this.ch.forEach((c, i) => {
       const probe = `Probe ${c.probe}X（實際 ${this.fx.probe[i]}×${c.probe !== this.fx.probe[i] ? '，不一致' : ''}）`;
-      rows.push([`CH${i + 1}`, c.on ? `${CPL[c.coupling]} · ${fmtV(this.vdiv(i))}/div · 位置 ${fmtFixed(c.pos, 2)} div · ${probe}` : `關閉 · ${probe}`]);
+      rows.push([`CH${i + 1}`, c.on ? `${CPL[c.coupling]}${c.bw ? ' · BW 20MHz' : ''} · ${fmtV(this.vdiv(i))}/div · 位置 ${fmtFixed(c.pos, 2)} div · ${probe}` : `關閉 · ${probe}`]);
     });
     rows.push(['水平', `${fmtScale(this.sdiv)}/div · M Pos ${fmtS(this.mpos)}`]);
     rows.push(['觸發', `Edge · CH${t.src + 1} · ${t.slope === 'R' ? 'Rising' : 'Falling'} · ${t.mode === 'AUTO' ? 'Auto' : 'Normal'} · 耦合 ${t.coup} · Level ${fmtV(this.levelV())}`]);
@@ -711,7 +828,7 @@ export class TdsModel {
     });
     rows.push(['多功能旋鈕', KNOB_TEXT[this.knobTarget()] ?? '目前沒有作用（LED 熄滅）']);
     const r = this.rec;
-    rows.push(['採集紀錄', r ? `第 ${r.n} 筆（${r.triggered ? '已觸發' : '未觸發'}）${this.run === 'stop' ? '，已凍結' : ''}${r.broken ? '，停止後改了觸發／耦合（斷線樣式）' : ''}` : '尚無']);
+    rows.push(['採集紀錄', r ? `第 ${r.n} 筆（${r.triggered ? '已觸發' : '未觸發'}）${this.run === 'stop' ? '，已凍結' : ''}${r.broken ? '，停止後改了觸發／耦合／BW（斷線樣式）' : ''}${r.clip.some(Boolean) ? '，採集時有削頂' : ''}` : '尚無']);
     return rows;
   }
 
@@ -735,7 +852,7 @@ export class TdsModel {
       autoMeas: this.autoMeas && this.autoMeas.types.map((ty) => ({ type: ty, text: this.measure(this.autoMeas.src, ty).text })),
       cursor: { ...this.cursor, info: this.cursorInfo() },
       acqN: this.acqN,
-      rec: r && { n: r.n, triggered: r.triggered, broken: r.broken, t0: r.t0, dt: r.dt, band: r.band, stats: [stats(0), stats(1)] },
+      rec: r && { n: r.n, triggered: r.triggered, broken: r.broken, t0: r.t0, dt: r.dt, clip: r.clip, fe: r.fe, stats: [stats(0), stats(1)] },
     };
   }
 }
