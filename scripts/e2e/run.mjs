@@ -6,9 +6,10 @@ import { run as dmm } from './dmm.mjs';
 import { run as i06 } from './i06.mjs';
 import { run as bench } from './bench.mjs';
 import { run as benchRecovery } from './bench-recovery.mjs';
+import { run as benchAudit } from './bench-audit.mjs';
 
 let fail = 0, pass = 0;
-for (const r of [afg, tds, gpe, dmm, i06, bench, benchRecovery]) {
+for (const r of [afg, tds, gpe, dmm, i06, bench, benchRecovery, benchAudit]) {
   const T = await r();
   T.print();
   fail += T.fail; pass += T.pass;

@@ -207,7 +207,7 @@ test('I04-6：Lock 只鎖 CH1／CH2 Voltage；Output 照常；解鎖時 Output �
   slow(m, K.V1, 1); assert.equal(m.snapshot().vset[1], 5.01);
 });
 
-test('POWER：關機不反應；開機回到重設狀態、全段顯示 1 s；測試情境保留', () => {
+test('POWER：關機不反應；開機回到重設狀態、全段顯示 1 s；測試情境與機械模式鍵保留', () => {
   const m = fresh();
   fast(m, K.V1, 6); m.press(K.RIGHT); m.press(K.OUT); m.scenarios.set('ch1-100');
   m.press(K.POWER);
@@ -216,7 +216,8 @@ test('POWER：關機不反應；開機回到重設狀態、全段顯示 1 s；�
   assert.equal(m.snapshot().vset[1], 5);
   assert.equal(m.press(K.POWER).kind, 'approx');
   const s = m.snapshot();
-  assert.deepEqual([s.on, s.booting, s.mode, s.output, s.lock, s.rows, s.vset[1], s.load], [true, true, 'INDEP', false, false, [1, 2], 0, 'ch1-100']);
+  // 右鍵按下（Series）是機械位置，關開機不變（p.25、GAP-GPE-07）
+  assert.deepEqual([s.on, s.booting, s.mode, s.output, s.lock, s.rows, s.vset[1], s.load], [true, true, 'SER', false, false, [1, 2], 0, 'ch1-100']);
   assert.ok(m.lcd().includes('data-v="8.8.8.8."'));
   m.tick(1100);
   assert.equal(m.snapshot().booting, false); assert.ok(!m.lcd().includes('8.8.8.8.'));

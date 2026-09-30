@@ -47,9 +47,17 @@ const TERM = { V: 'Input HI／LO', R: 'Input HI／LO', I: 'I 3A／LO' };
 const CAT = { V: '電壓類', R: '電阻類', I: '電流類' };
 const USE = { V: 'DCV 或 ACV', R: 'Ω 2W 或 Cont', I: 'DCI 或 ACI（Shift → DCV／ACV）' };
 
-// Auto 選檔（GAP-DMM-05 暫定）：能容納 |x| 的最小量程；都容納不了就停在最高檔（超量程）
-export function pickRange(f, x) {
-  const i = f.ranges.findIndex((r) => Math.abs(x) <= r.limit * (1 + 1e-12));
+// 積分時間：預設 10 PLC（DS 產品照 "Aperture 10 PLC"，GAP-DMM-20）；台灣市電 60 Hz → 1/6 秒，
+// 10 PLC 約每秒 6 筆讀值（D-DMM p.23）。DCV 讀值＝最近一次積分窗內的平均。
+export const APERTURE = 10 / 60;
+// 峰值容量：AC 依峰值因數「滿刻度 3:1」（D-DMM p.21）→ 約 3×量程。DC 功能的峰值過載規則沒有原廠依據，不判斷。
+const PEAK = { ac: 3 };
+export const peakLimit = (f, r) => r.v * (PEAK[f.part] ?? Infinity);
+
+// Auto 選檔（GAP-DMM-05 暫定）：能容納 |x| 的最小量程；AC／DC 另外要容納峰值（D-DMM p.21「Will select
+// higher range if peak input overload is detected during auto range」）；都容納不了就停在最高檔（超量程）
+export function pickRange(f, x, pk = 0) {
+  const i = f.ranges.findIndex((r) => Math.abs(x) <= r.limit * (1 + 1e-12) && pk <= peakLimit(f, r) * (1 + 1e-12));
   return i < 0 ? f.ranges.length - 1 : i;
 }
 
@@ -122,7 +130,12 @@ export class DmmModel {
     if (fx.bench) { // 實驗台：由電路算出 HI−LO（J 階段）
       const b = this.benchSource?.();
       if (!b) return null;
-      if (f.kind === 'V') return b.v ? (f.part === 'dc' ? b.v.dc : b.v.ac) : null;
+      if (f.kind === 'V') {
+        if (!b.v) return null;
+        if (f.part === 'ac') return b.v.ac;
+        const tr = Math.floor(b.v.now / APERTURE) * APERTURE; // 最近一次讀值的積分窗 [tr−10 PLC, tr]
+        return b.v.meanOver(tr - APERTURE, tr);
+      }
       if (f.kind === 'R') return b.ohm;
       return null;
     }
@@ -131,9 +144,45 @@ export class DmmModel {
     return f.part === 'dc' ? fx.dc : fx.ac;
   }
 
+  // 輸入峰值（量程要容納）：DC 功能看瞬間最大 |v|、AC 功能看交流峰值；D1 情境是純 DC／純正弦
+  peakIn() {
+    const fx = this.fx, f = this.f;
+    if (f.kind === 'R') return 0;
+    if (fx.bench) { const v = this.benchSource?.()?.v; return v ? (f.part === 'ac' ? v.peakAc : v.peak) : 0; }
+    if (fx.kind !== f.kind) return 0;
+    return f.part === 'ac' ? Math.abs(fx.ac) * Math.SQRT2 : Math.abs(fx.dc);
+  }
+
   rangeIdx() {
     const x = this.input();
-    return this.st.auto && x != null ? pickRange(this.f, x) : this.st.idx;
+    return this.st.auto && x != null ? pickRange(this.f, x, this.peakIn()) : this.st.idx;
+  }
+
+  // 接在電路上的輸入電阻（實驗台負載用）：DCV 10 MΩ（Input Z 預設 10M；>10 GΩ 選項未納入）、
+  // ACV 1 MΩ（D-DMM p.21；並聯 < 100 pF 未計入）；其他功能或關機不計
+  inputZ() {
+    if (!this.on) return null;
+    return { DCV: 10e6, ACV: 1e6 }[this.fn] ?? null;
+  }
+
+  // 讀值會隨時間變（實驗台 DCV 的積分窗與電容充放電；ACV 是穩態有效值，不變）：外殼要定時重畫
+  isLive() {
+    if (!this.on || !this.fx.bench || this.fn !== 'DCV') return false;
+    return !!this.benchSource?.()?.v?.live;
+  }
+
+  // 實驗台 ACV 的適用條件（D-DMM p.11 頻率 3 Hz–300 kHz、p.21 峰值因數最大 10:1）：超出時真機讀值不準，
+  // 模擬器仍顯示理想有效值，只在儀器外標示
+  specNotes() {
+    if (!this.on || !this.fx.bench || this.fn !== 'ACV') return [];
+    const v = this.benchSource?.()?.v;
+    if (!v || !(v.ac > 1e-9)) return [];
+    const out = [];
+    const hz = (x) => (x >= 1e6 ? `${Number((x / 1e6).toPrecision(4))} MHz` : x >= 1e3 ? `${Number((x / 1e3).toPrecision(4))} kHz` : `${Number(x.toPrecision(4))} Hz`);
+    if (v.freq > 0 && (v.freq < 3 || v.freq > 300e3)) out.push(`訊號 ${hz(v.freq)} 超出 ACV 規格 3 Hz–300 kHz，真機讀值不準`);
+    const cf = v.peakAc / v.ac;
+    if (cf > 10) out.push(`峰值因數 ${cf.toFixed(0)} 超過規格上限 10，真機讀值不準`);
+    return out;
   }
 
   settle() { if (this.st.auto) this.st.idx = this.rangeIdx(); } // 記住 Auto 最後選的檔（沒有輸入時沿用）
@@ -143,6 +192,7 @@ export class DmmModel {
     if (x == null) return { state: 'none' };
     const r = f.ranges[this.rangeIdx()];
     if (Math.abs(x) > r.limit * (1 + 1e-12)) return { state: this.fn === 'CONT' ? 'open' : 'over', raw: x };
+    if (this.peakIn() > peakLimit(f, r) * (1 + 1e-12)) return { state: 'over', raw: x, peak: true }; // 峰值過載
     const shown = st.nullOn ? x - st.base : x; // Null：量測值－基準（超量程／無輸入時不做減法）
     const text = fmtReading(shown, r);
     if (text == null) return { state: 'over', raw: x };
@@ -220,10 +270,13 @@ export class DmmModel {
     const label = this.f.ranges[this.rangeIdx()].label;
     if (rd.state === 'none') return { kind: 'info', text: `未提供相容測試輸入：${this.compatNote()}LCD 讀值欄留空。` };
     if (rd.state === 'over') {
-      return { kind: 'approx', text: `超量程：${this.st.auto ? `超過最大量程 ${label}` : `手動 ${label} 檔太小`}，讀值欄顯示中性記號「-------」（原廠字樣未取得，近似）。` };
+      const why = rd.peak ? `峰值超過 ${label} 檔的容量（約 3 倍量程，依峰值因數規格）` : this.st.auto ? `超過最大量程 ${label}` : `手動 ${label} 檔太小`;
+      return { kind: 'approx', text: `超量程：${why}，讀值欄顯示中性記號「-------」（原廠字樣未取得，近似）。` };
     }
     if (rd.state === 'open') return { kind: 'approx', text: '開路：電阻超過 1.2 kΩ，LCD 顯示 OPEN（字樣依搜尋摘要，近似）。' };
     if (rd.beep) return { kind: 'approx', text: '導通：電阻 ≤ 10 Ω，LCD 出現 ·)) 導通指示（畫面為近似；提示音本模擬器未提供）。' };
+    const spec = this.specNotes();
+    if (spec.length) return { kind: 'approx', text: `${spec.join('；')}（模擬器顯示理想有效值）。` };
     return null;
   }
 
@@ -364,6 +417,10 @@ export class DmmModel {
       ['Shift', this.shift ? '已按下：下一個藍字鍵執行次功能（近似）' : '未按'],
       scen,
     ];
+    const spec = this.specNotes();
+    if (spec.length) rows.push(['規格外', `${spec.join('；')}（這裡顯示理想有效值）`]);
+    if (this.fx.bench && this.fn === 'DCV' && rd.state === 'value') rows.push(['積分', 'DCV 每筆讀值是 10 PLC（1/6 秒）內的平均：波形比這個慢，讀值會跟著起伏']);
+    if (this.fx.bench && this.inputZ()) rows.push(['輸入電阻', `${this.fn === 'DCV' ? '10 MΩ' : '1 MΩ'}（接在電路上會分走一點電流，R 很大時讀值偏低）`]);
     const note = this.note();
     if (note) rows.push(['說明', note]);
     return rows;

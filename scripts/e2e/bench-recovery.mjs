@@ -1,5 +1,5 @@
 // 獨立補驗：用真面板／接線 UI 重現審查問題；__eess 僅讀取斷言資料。
-import { openApp, Check } from './lib.mjs';
+import { openApp, Check, sleep } from './lib.mjs';
 
 export async function run() {
   const T = new Check('RC 接線與採集恢復');
@@ -63,10 +63,12 @@ export async function run() {
 
     await ui.tab('afg'); await afgKeys('KEY.DC_OFFSET'); await digits(1); await afgKeys('SOFT.F2');
     await ui.tab('dmm'); await key('DMM.KEY.DCV');
-    T.near((await ui.snap('dmm')).view.value, 1, 0.002, 'DMM DCV 讀電容平均值 +1 V');
+    // DCV 每筆讀值是 10 PLC（1/6 秒）積分：等下一筆；400 Hz 方波在積分窗裡不是整數週期，讀值會有幾 mV 的起伏（真機也會）
+    await sleep(450);
+    T.near((await ui.snap('dmm')).view.value, 1, 0.01, 'DMM DCV 讀電容平均值 +1 V');
     await ui.tab('bench'); await wire('DMM.HI', 'G'); await wire('DMM.LO', 'B');
-    await ui.tab('dmm');
-    T.near((await ui.snap('dmm')).view.value, -1, 0.002, '反接表筆時 DCV 符號反轉');
+    await ui.tab('dmm'); await sleep(450);
+    T.near((await ui.snap('dmm')).view.value, -1, 0.01, '反接表筆時 DCV 符號反轉');
     await ui.tab('bench'); await unplug('DMM.LO');
     await ui.tab('dmm');
     T.ok((await ui.snap('dmm')).view.state === 'none', '拔掉 LO 後不沿用先前電壓讀值');
@@ -80,7 +82,11 @@ export async function run() {
     await afgKeys('KEY.WAVEFORM', 'SOFT.F4', 'SOFT.F1'); await digits(30); await afgKeys('SOFT.F2');
     await freq(999, 'F4');
     await ui.tab('dmm'); await key('DMM.KEY.DCV');
-    T.near((await ui.snap('dmm')).view.value, 0, 2e-6, '100 kΩ／10 µF、999 kHz Ramp 的 DCV 保持零，不產生假直流');
+    // 換成 τ≈1 s 時電容還帶著換之前的電壓，要幾秒才放完（真實行為）；這裡檢查的是週期穩態本身沒有假直流
+    const bs = await ui.snap('bench');
+    T.near(bs.ssMean.B, 0, 2e-6, '100 kΩ／10 µF、999 kHz Ramp 的週期穩態 DC 保持零，不產生假直流');
+    await sleep(600);
+    T.ok(Math.abs((await ui.snap('bench')).dev) < Math.abs(bs.dev) || Math.abs(bs.dev) < 1e-6, '電容偏離穩態的電壓隨時間衰減（暫態）');
     T.ok(ui.errors.length === 0, '沒有瀏覽器程式錯誤');
   } finally { await ui.close(); }
   return T;

@@ -11,12 +11,13 @@ const KNOB_DEG = 15;         // 每一格旋轉的視覺角度
 const DRAG_PX_PER_STEP = 9;  // 拖曳多少像素算一格（不接受滑鼠滾輪，避免誤改值）
 const HINT_KIND = { out: '未納入', approx: '近似', reject: '已拒絕', info: '說明', ok: '完成' };
 const BENCH = 'bench';
+const LIVE_MS = 200; // 讀值隨時間變（電表積分窗、電容充放電）時的畫面更新間隔
 
 export function startApp(root) {
   const models = createInstruments();
   const ids = Object.keys(models);
   const metas = Object.fromEntries(ids.map((id) => [id, controlMeta(id)]));
-  const bench = new Bench(models.afg);
+  const bench = new Bench(models.afg, models.dmm);
   models.tds.setBenchSource(() => bench.tdsInput());
   models.dmm.setBenchSource(() => bench.dmmInput());
   let benchKey = bench.key();
@@ -51,13 +52,31 @@ export function startApp(root) {
     hintbar.innerHTML = `<b>${HINT_KIND[item.kind] ?? '說明'}</b> ${esc(item.text)}`;
   }
 
-  // 電路有變（接線、R／C、探棒開關、AFG 設定）才通知示波器重新採集；電表讀值是即時算的
+  // 電路有變（接線、R／C、探棒開關、AFG 設定、電表功能）才重算並通知示波器重新採集；電表讀值是即時算的。
+  // 立刻重算：暫態要從「這次操作的時刻」開始算，不能等到下次有人讀電路才開始。
   function syncBench() {
     const k = bench.key();
     if (k === benchKey) return;
     benchKey = k;
+    bench.solution();
     models.tds.inputChanged?.();
   }
+
+  // 定時更新：電容還在充放電，或電表 DCV 的積分窗隨時間移動時，只重畫螢幕與狀態，不重建面板（不影響點擊）
+  // 只重畫讀值真的在變的那一台（示波器重畫會重播 LCD 動畫，不能每次都畫）
+  setInterval(() => {
+    const live = { tds: bench.transientActive(), dmm: models.dmm.isLive?.() };
+    if (live.tds) models.tds.inputChanged?.();
+    if (cur === BENCH) {
+      host.querySelectorAll('svg[data-mini]').forEach((el) => { const id = el.dataset.mini, m = models[id]; if (live[id] && m.isOn()) el.innerHTML = m.lcd(); });
+      return;
+    }
+    if (!live[cur]) return;
+    const m = models[cur], screen = host.querySelector('svg.panel svg.screen');
+    if (screen && m.isOn()) screen.innerHTML = m.lcd();
+    const dl = side.querySelector('dl.kv');
+    if (dl) dl.innerHTML = m.status().map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
+  }, LIVE_MS);
 
   function mountPanel() {
     root.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === cur)));

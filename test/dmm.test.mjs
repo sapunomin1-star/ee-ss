@@ -227,3 +227,43 @@ test('LCD 只放英文字樣：各情境×功能都沒有中文；側欄與快�
     }
   }
 });
+
+// ---- 2026-09-30 審查修正：AC 峰值升檔、規格外標示、輸入電阻 ----
+test('ACV 自動量程也看峰值（D-DMM p.21 峰值過載升檔）；手動小量程峰值過載＝超量程', () => {
+  const m = fresh('bench');
+  // 窄脈衝：有效值 16.3 mV、峰值 1.33 V → 不能停在 100 mV 檔（峰值容量約 3×量程）
+  const v = { ac: 0.01633, peakAc: 1.333, peak: 1.333, dc: 0, freq: 1000, now: 0, meanOver: () => 0, live: true };
+  m.setBenchSource(() => ({ v, ohm: null, why: '' }));
+  run(m, 'ACV');
+  assert.equal(range(m), 'Auto 1V');
+  assert.equal(pickRange(FUNCS.ACV, 0.01633), 0, '只看有效值會選 100 mV');
+  run(m, 'RANGE DOWN');
+  assert.equal(range(m), 'Manual 100mV'); assert.equal(m.view().state, 'over');
+  assert.ok(m.readingHint().text.includes('峰值'));
+  // 規格外：峰值因數 82 ＞ 10
+  run(m, 'RANGE');
+  assert.ok(m.specNotes().some((s) => s.includes('峰值因數')));
+  assert.ok(m.status().some(([k]) => k === '規格外'));
+});
+
+test('ACV 規格頻寬 3 Hz–300 kHz 外標示真機讀值不準；DCV 不標示', () => {
+  const m = fresh('bench');
+  let v = { ac: 0.5, peakAc: 0.707, peak: 0.707, dc: 0, freq: 10e6, now: 0, meanOver: () => 0, live: true };
+  m.setBenchSource(() => ({ v, ohm: null, why: '' }));
+  run(m, 'ACV');
+  assert.ok(m.specNotes()[0].includes('10 MHz') && m.specNotes()[0].includes('300 kHz'));
+  v = { ...v, freq: 1000 };
+  assert.deepEqual(m.specNotes(), []);
+  v = { ...v, freq: 1 };
+  assert.ok(m.specNotes()[0].includes('1 Hz'));
+  run(m, 'DCV');
+  assert.deepEqual(m.specNotes(), []);
+});
+
+test('輸入電阻（實驗台負載）：DCV 10 MΩ、ACV 1 MΩ、Ω 與關機不計', () => {
+  const m = fresh('bench');
+  assert.equal(m.inputZ(), 10e6);
+  run(m, 'ACV'); assert.equal(m.inputZ(), 1e6);
+  run(m, 'OHM'); assert.equal(m.inputZ(), null);
+  run(m, 'DCV POWER'); assert.equal(m.inputZ(), null);
+});

@@ -24,7 +24,7 @@ function mini(model, x, y, w, h, screen, goto, title) {
   const body = model.isOn() ? model.lcd() : `<rect width="${screen[0]}" height="${screen[1]}" fill="#050505"/>`;
   return `<g class="mini" data-goto="${goto}" tabindex="0" role="button" aria-label="切到 ${esc(title)} 面板"><title>點一下切到 ${esc(title)} 面板操作</title>` +
     `<rect x="${x - 3}" y="${y - 3}" width="${w + 6}" height="${h + 6}" rx="3" fill="#111"/>` +
-    `<svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="0 0 ${screen[0]} ${screen[1]}" preserveAspectRatio="none">${body}</svg></g>`;
+    `<svg data-mini="${goto}" x="${x}" y="${y}" width="${w}" height="${h}" viewBox="0 0 ${screen[0]} ${screen[1]}" preserveAspectRatio="none">${body}</svg></g>`;
 }
 
 function leadEnd(id, bench) {
@@ -148,7 +148,9 @@ export function benchSide(bench, models, hints) {
     <section><h3>接線狀態</h3><ul class="wires">${rows}</ul>
       <div class="btns"><button data-bench="demo">示範接線（看答案）</button><button data-bench="clear">全部拔掉</button></div></section>
     <section><h3>理論值（標準接線、正弦）</h3><dl class="kv">${theory(bench, models.afg).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
-      <p class="muted">以上以 CH1 驅動的標準接線、A 點為輸入參考；方波不能直接套用這個振幅比與相位。模擬有算 AFG 的 50 Ω 內阻，實際端子電壓會隨負載改變。Load 設 50 Ω 時開路電壓是顯示值的 2 倍；High Z 時顯示的是開路電壓，接上電路後仍可能降低。</p></section>
+      <p class="muted">以上以 CH1 驅動的標準接線、A 點為輸入參考；方波不能直接套用這個振幅比與相位。模擬有算 AFG 的 50 Ω 內阻，實際端子電壓會隨負載改變。Load 設 50 Ω 時開路電壓是顯示值的 2 倍；High Z 時顯示的是開路電壓，接上電路後仍可能降低。</p>
+      <p class="muted">儀器接上去也是負載：探棒尖端對地 10 MΩ（1× 時 1 MΩ）、電表 DCV 10 MΩ、ACV 1 MΩ。R 很大（例如 100 kΩ）時，量到的電壓會比上面的理論值低；輸入電容（約 10–100 pF）尚未模擬。</p>
+      <p class="muted">電容電壓不能跳變：改接線、改設定或關 OUTPUT 後，電容會以時間常數 τ 慢慢充放電（R、C 很大時看得到讀值慢慢變）。</p></section>
     <section><h3>練習步驟</h3><ol class="practice">
       <li>AFG：Preset → CH1/CH2 按兩下（回到 CH1 並開 CH 選單）→ F1 Load → F2 High Z → AMPL 2、F5 VPP → FREQ/Rate 1、F4 kHz → OUTPUT。</li>
       <li>接線：AFG CH1 紅夾→A、黑夾→G；示波器 CH1 尖端→A、接地夾→G；CH2 尖端→B、接地夾→G；電表 HI→B、LO→G。</li>

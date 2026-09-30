@@ -104,3 +104,91 @@ test('紅夾接在接地點：輸出被短路', () => {
   const sol = solve({ topo: 'RC', R: 1000, C: 0.1e-6, wires: { 'AFG.CH1+': 'G', 'AFG.CH1-': 'G' } }, [sine(2), off]);
   assert.ok(sol.warn.some((x) => x.text.includes('短路到地')));
 });
+
+// ---- 2026-09-30 審查修正：窄脈衝、儀器負載、電容暫態、電阻量測 ----
+import { diffStats, diffMeanOver, nodeAt, ohms } from '../src/bench/circuit.js';
+import { Bench, DEMO } from '../src/bench/bench.js';
+import { DmmModel, APERTURE as APERTURE_S } from '../src/instruments/dmm/model.js';
+
+test('窄脈衝（τ 比取樣間隔短）：有效值照區間解析式積分，等於解析值；區間內照指數衰減取值', () => {
+  // CR 高通 100 Ω／1 nF、1 kHz 方波：τ＝150 ns，取樣間隔 250 ns
+  const sol = solve({ topo: 'CR', R: 100, C: 1e-9, wires: std }, [{ ...sine(2, 1000), wave: 'SQUARE' }, off]);
+  const V0 = (2 * 100) / 150, tau = 150e-9;
+  near(diffStats(sol, 'B', 'G').acRms, Math.sqrt((2 * V0 * V0 * tau) / 2 / 1e-3), 1e-7, '有效值');
+  near(nodeAt(sol, 'B', 0.5e-3 + tau), -V0 * Math.exp(-1), 1e-6, '下降緣後 τ');
+  near(nodeAt(sol, 'B', 5.5e-3 + 2 * tau), -V0 * Math.exp(-2), 1e-6, '第 6 個週期、下降緣後 2τ');
+  // 正弦時與取樣表統計一致
+  const s2 = solve({ topo: 'RC', R: 1000, C: 0.1e-6, wires: std }, [sine(2, 1000, 1), off]);
+  const d = diffStats(s2, 'B', 'G'), t = stats(s2.v.B);
+  near(d.mean, t.mean, 1e-9, '平均'); near(d.acRms, t.acRms, 1e-9, '有效值');
+});
+
+test('儀器負載：電表 ACV 1 MΩ 跨在 C 上，R 100 kΩ 時電壓照並聯後的阻抗下降', () => {
+  const R = 100e3, C = 1e-9, f = 100, w = 2 * Math.PI * f;
+  const loaded = solve({ topo: 'RC', R, C, wires: std, loads: [{ a: 'B', b: 'G', r: 1e6 }] }, [sine(2, f), off]);
+  const Zp = div(cx(1e6), add(cx(1), cx(0, w * C * 1e6))); // 1 MΩ ∥ C
+  const want = (2 * mag(div(Zp, add(cx(R + 50), Zp)))) / (2 * Math.SQRT2);
+  near(stats(loaded.v.B).acRms, want, 1e-4, '含負載有效值');
+  const bare = solve({ topo: 'RC', R, C, wires: std }, [sine(2, f), off]);
+  assert.ok(stats(bare.v.B).acRms / want > 1.09, '不計負載時高估約 10%');
+});
+
+test('電容暫態：關 OUTPUT 後電容保有電荷，經儀器輸入電阻以 τ 放電；改偏移後 DC 以 τ 趨近新值', () => {
+  let t = 100;
+  const afg = { on: true, ch: [{ wave: 'SINE', freq: 1000, sym: 50, emfVpp: 2, emfOffset: 1, output: true }, { ...off }] };
+  const dmm = new DmmModel();
+  const b = new Bench(afg, dmm);
+  b.now = () => t;
+  Object.entries(DEMO).forEach(([l, n]) => b.connect(l, n));
+  dmm.setBenchSource(() => b.dmmInput()); dmm.setFixture('bench');
+  b.solution(); // 剛接好線：電容從 0 V 以 τ≈105 µs 充電
+  assert.ok(Math.abs(b.dev(t)) > 0.1, '接線當下電容還沒充電');
+  t += 0.01;
+  near(b.dmmInput().v.dc, 1 * (10e6 / 3) / (10e6 / 3 + 1050), 1e-3, '10 ms 後電容平均 ≈ 1 V（含儀器負載分壓）');
+  t += 1;
+  const vcBefore = b.vcAt(t);
+  afg.ch[0].output = false; b.solution(); // 關輸出
+  const tau = b.solution().tau, d0 = b.dev(t);
+  near(d0, vcBefore, 1e-9, '關輸出那一刻電容電壓不變（新穩態＝0）');
+  near(tau / (0.1e-6 / (1 / 10e6 + 1 / 10e6 + 1 / (10e6 + 1000))), 1, 1e-4, '放電 τ＝C×(電表 10 MΩ ∥ CH2 10 MΩ ∥ R＋CH1 10 MΩ)');
+  assert.ok(d0 > 0.1 && d0 < 1.9, `關輸出瞬間電容保有 1 V±漣波（${d0}）`);
+  t += tau; near(b.dev(t), d0 * Math.exp(-1), 1e-9, '經過 τ 剩 e^-1');
+  near(b.dmmInput().v.dc, d0 * Math.exp(-1), 1e-6, '電表讀到慢慢下降的電壓');
+  t += 20 * tau; assert.ok(!b.transientActive(t), '10τ 以上就視為放完');
+  // 大 RC：改 DC 偏移後電容以 τ 趨近
+  afg.ch[0].output = true; afg.ch[0].emfOffset = 0; b.R = 100e3; b.C = 10e-6; t += 1; b.solution();
+  const tau2 = b.solution().tau;
+  t += 100 * tau2; afg.ch[0].emfOffset = 1; b.solution(); const t0 = t;
+  t = t0 + tau2;
+  const want = b.solution().kv.B - b.solution().kv.G; // 暫態係數（電容兩端差＝1）
+  near(want, 1, 1e-12, '電容兩端的暫態係數');
+  const target = diffStats(b.solution(), 'B', 'G').mean;
+  near(b.dmmInput().v.dc, target * (1 - Math.exp(-1)), 1e-3, 'DC 偏移改 1 V 後 τ 時刻約到 63%');
+});
+
+test('Ω：示波器探棒 10 MΩ 對大地也會並聯進量測（1 kΩ ∥ 20 MΩ）；探棒拔掉就是 R', () => {
+  const wires = { ...DEMO, 'DMM.HI': 'A', 'DMM.LO': 'B' };
+  const withProbes = ohms({ topo: 'RC', R: 1000, wires, loads: [{ a: 'A', b: 'E', r: 10e6 }, { a: 'B', b: 'E', r: 10e6 }] }, 'A', 'B');
+  near(withProbes, (1000 * 20e6) / (20e6 + 1000), 1e-6, '含探棒');
+  near(ohms({ topo: 'RC', R: 1000, wires: { 'DMM.HI': 'A', 'DMM.LO': 'B' } }, 'A', 'B'), 1000, 1e-6, '只有 R');
+  assert.equal(ohms({ topo: 'RC', R: 1000, wires: { 'DMM.HI': 'B', 'DMM.LO': 'G' } }, 'B', 'G'), Infinity, '跨在 C 上：開路');
+});
+
+test('電表 DCV 是 10 PLC 積分窗的平均：0.1 Hz 正弦的讀值跟著波形走，1 kHz 幾乎不動', () => {
+  let t = 1000.05;
+  const afg = { on: true, ch: [{ wave: 'SINE', freq: 0.1, sym: 50, emfVpp: 2, emfOffset: 0, output: true }, { ...off }] };
+  const dmm = new DmmModel(), b = new Bench(afg, dmm);
+  b.now = () => t;
+  Object.entries(DEMO).forEach(([l, n]) => b.connect(l, n));
+  dmm.setBenchSource(() => b.dmmInput()); dmm.setFixture('bench');
+  const read = () => dmm.view().value;
+  const vals = [0, 2.5, 5, 7.5].map((dt) => { t = 1000.05 + dt; return read(); });
+  assert.ok(vals[1] > 0.9 && vals[3] < -0.9 && Math.abs(vals[0]) < 0.1 && Math.abs(vals[2]) < 0.1, `讀值隨正弦起伏：${vals.map((x) => x.toFixed(3))}`);
+  const s = b.solution(), T = APERTURE_S;
+  near(read(), diffMeanOver(s, 'B', 'G', Math.floor(t / T) * T - T, Math.floor(t / T) * T), 1e-12, '讀值＝最近一次積分窗平均');
+  const before = read();
+  afg.ch[0].freq = 1000; b.solution(); t += 0.01;
+  near(read(), before, 1e-9, '改頻率後 10 ms：畫面仍是上一筆（積分窗在改之前）');
+  t += 0.5;
+  assert.ok(Math.abs(read()) < 5e-3, `下一筆以後：1 kHz 的積分窗平均接近 0（${read()}）`);
+});

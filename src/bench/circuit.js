@@ -2,9 +2,12 @@
 // 模型：板上三個接點 A、B、G，串聯 RC（topo 'RC'：R 在 A–B、C 在 B–G；'CR'：C 在 A–B、R 在 B–G）。
 //   AFG 每通道＝EMF e(t) 串 50 Ω 內阻（AFG-F10：內阻固定 50 Ω；Output OFF＝高阻、不接）；黑夾＝AFG 機殼地（大地）。
 //   示波器接地夾＝大地（接在哪一點，那一點就被接到大地）；探棒尖端量「該點對大地」的電壓。
-//   電表浮接，量 HI−LO；探棒與電表的輸入阻抗（10 MΩ 級）忽略不計。
+//   電表浮接，量 HI−LO。儀器輸入電阻會並聯在電路上（bench.loads：探棒尖端對大地 10 MΩ／1 MΩ、
+//   電表 DCV 10 MΩ、ACV 1 MΩ）；輸入電容（探棒約 10–20 pF、電表 ACV < 100 pF）尚未計入。
 // 解法：只有一顆電容 → 戴維寧等效 Vth(t)、Rth，一階方程 dVc/dt＝(Vth−Vc)/(Rth·C) 在每段取樣間以
 //   分段線性輸入精確積分（方波各區間保持常值）；週期穩態用 shooting：Vc(T)＝a·Vc(0)＋b → Vc(0)＝b/(1−a)。
+//   每個取樣區間內的接點電壓是 a＋b·s＋c·e^(−s/τ)（co 係數）：窄脈衝（τ 比取樣間隔短）的有效值與逐點取值
+//   都照這個解析式算，不靠取樣點。電容電壓偏離穩態 δ 時，各接點再加 kv·δ（暫態由 Bench 依時間衰減）。
 export const M = 4000;           // 每週期取樣點
 export const R_OUT = 50;         // AFG 輸出內阻
 const GMIN = 1e-12;              // 每個節點對地的極小電導，讓浮接電路也可解
@@ -48,9 +51,10 @@ function linSolve(A, b) {
   return a.map((r, i) => r[n] / r[i]);
 }
 
-// bench＝{ topo, R, C, wires:{ leadId: 'A'|'B'|'G' } }；afg＝兩通道 { wave, freq, sym, emfVpp, emfOffset, output }
+// bench＝{ topo, R, C, wires:{ leadId: 'A'|'B'|'G' }, loads?:[{ a, b, r }]（a、b＝接點或 'E' 大地）}；
+// afg＝兩通道 { wave, freq, sym, emfVpp, emfOffset, output }
 export function solve(bench, afg) {
-  const { topo, R, C, wires } = bench;
+  const { topo, R, C, wires, loads = [] } = bench;
   const warn = [];
   // ---- 1. 大地與接點合併（黑夾、接地夾都是大地）----
   const parent = { A: 'A', B: 'B', G: 'G', E: 'E' };
@@ -96,38 +100,45 @@ export function solve(bench, afg) {
   groups.forEach((g) => stamp(g, E, GMIN));
   if (!shorted(rA, rB)) stamp(find(rA), find(rB), 1 / R);
   sources.forEach((s) => stamp(s.node, E, 1 / R_OUT));
+  // 儀器輸入電阻：接上就並聯在電路上（負載效應）
+  for (const L of loads) { const x = L.a === 'E' ? E : find(L.a), y = L.b === 'E' ? E : find(L.b); if (x !== y) stamp(x, y, 1 / L.r); }
   const solveI = (I) => (n ? linSolve(G0, I) : []);
   const volt = (v, x) => (x === E ? 0 : v[idx[x]]);
   const inj = (pairs) => { const I = new Array(n).fill(0); for (const [x, a] of pairs) if (x !== E) I[idx[x]] += a; return I; };
 
-  // 每個訊號源單位 EMF 的節點電壓（電容開路）u_j，與電容電流 1 A 的節點響應 z
+  // 電容電流 1 A 的節點響應 z、戴維寧電阻 Rth；電容電壓比穩態多 δ 時，接點電壓多 kv·δ
   const P = find(cA), Q = find(cB), capLive = P !== Q;
-  const u = sources.map((s) => solveI(inj([[s.node, 1 / R_OUT]])));
   const z = capLive ? solveI(inj([[P, -1], [Q, 1]])) : new Array(n).fill(0);
-  const kth = u.map((v) => (capLive ? volt(v, P) - volt(v, Q) : 0));
   const Rth = capLive ? -(volt(z, P) - volt(z, Q)) : 0;
+  const tau = capLive ? Rth * C : 0;
+  const kv = Object.fromEntries(NODES.map((x) => { const g = find(x); return [x, capLive && Rth > 0 && g !== E ? -z[idx[g]] / Rth : 0]; }));
+  const common = { warn, grounded: Object.fromEntries(NODES.map((x) => [x, grounded(x)])), Rth, tau, capLive, kv };
 
   // ---- 5. 週期與取樣 ----
-  if (!sources.length) return { period: 0, dc: true, v: { A: 0, B: 0, G: 0 }, warn, grounded: Object.fromEntries(NODES.map((x) => [x, grounded(x)])), Rth, tau: 0 };
+  if (!sources.length) return { ...common, period: 0, dc: true, v: { A: 0, B: 0, G: 0 }, vcAt: () => 0 };
+  // 每個訊號源單位 EMF 的節點電壓（電容開路）u_j
+  const u = sources.map((s) => solveI(inj([[s.node, 1 / R_OUT]])));
+  const kth = u.map((v) => (capLive ? volt(v, P) - volt(v, Q) : 0));
   const f = sources[0].p.freq;
   if (sources.some((s) => Math.abs(s.p.freq - f) > 1e-9 * f)) warn.push({ level: 'info', text: '兩個 AFG 通道頻率不同：本模擬以 CH1 的週期計算，畫面只是近似。' });
   const T = 1 / f, h = T / M;
   const e = sources.map((s) => Float64Array.from({ length: M + 1 }, (_, k) => emf(s.p, k * h)));
   const vth = Float64Array.from({ length: M + 1 }, (_, k) => sources.reduce((acc, s, j) => acc + kth[j] * e[j][k], 0));
-  const tau = capLive ? Rth * C : 0;
+  // 區間內各訊號源的斜率（方波在跳變前保持原值＝0）與 Vth 的斜率
+  const slope = sources.map((s, j) => Float64Array.from({ length: M }, (_, k) => (s.p.wave === 'SQUARE' ? 0 : (e[j][k + 1] - e[j][k]) / h)));
+  const dv = Float64Array.from({ length: M }, (_, k) => sources.reduce((acc, s, j) => acc + kth[j] * slope[j][k] * h, 0));
   const vc = new Float64Array(M + 1);
+  let mean = 0;
+  for (let k = 0; k < M; k++) mean += vth[k] / M;
+  const slow = capLive && tau > 1e6 * T; // 時間常數遠大於週期：電容電壓＝輸入平均值
   if (capLive) {
-    let mean = 0;
-    for (let k = 0; k < M; k++) mean += vth[k] / M;
-    if (tau > 1e6 * T) vc.fill(mean); // 時間常數遠大於週期：電容電壓＝輸入平均值
+    if (slow) vc.fill(mean);
     else {
       const step = h / tau, decay = -Math.expm1(-step);
       // 線性輸入的係數 1−(1−exp(−step))/step；小 step 用級數避免相減失去精度。
       const ramp = step < 1e-3
         ? step * (0.5 + step * (-1 / 6 + step * (1 / 24 - step / 120)))
         : 1 - decay / step;
-      const dv = Float64Array.from({ length: M }, (_, k) => sources.reduce((acc, s, j) =>
-        acc + (s.p.wave === 'SQUARE' ? 0 : kth[j] * (e[j][k + 1] - e[j][k])), 0));
       const run = (x0) => {
         vc[0] = x0;
         for (let k = 0; k < M; k++) {
@@ -140,21 +151,113 @@ export function solve(bench, afg) {
       run(cycleDecay > 1e-12 ? b / cycleDecay : mean);
     }
   }
-  // ---- 6. 各接點電壓波形（對大地）----
-  const out = {};
+  // ---- 6. 各接點電壓（對大地）：區間 k 內 v(s)＝a＋b·s＋c·e^(−s/τ)，s＝t−k·h；取樣表＝a＋c ----
+  const out = {}, co = {};
+  const live = capLive && Rth > 0;
   for (const x of NODES) {
-    const g = find(x), arr = new Float64Array(M);
+    const g = find(x), a = new Float64Array(M), b = new Float64Array(M), c = new Float64Array(M), arr = new Float64Array(M);
     if (g !== E) {
+      const gi = idx[g], zr = live ? z[gi] / Rth : 0;
       for (let k = 0; k < M; k++) {
-        let v = 0;
-        sources.forEach((s, j) => { v += e[j][k] * u[j][idx[g]]; });
-        if (capLive && Rth > 0) v += ((vth[k] - vc[k]) / Rth) * z[idx[g]];
-        arr[k] = v;
+        let a0 = 0, b0 = 0;
+        sources.forEach((s, j) => { a0 += e[j][k] * u[j][gi]; b0 += slope[j][k] * u[j][gi]; });
+        const gk = dv[k] / h; // 區間內 Vth 的斜率
+        if (!live) { a[k] = a0; b[k] = b0; } else if (slow) { a[k] = a0 + zr * (vth[k] - mean); b[k] = b0 + zr * gk; } else {
+          a[k] = a0 + zr * gk * tau;
+          b[k] = b0;
+          c[k] = -zr * (vc[k] - vth[k] + gk * tau);
+        }
+        arr[k] = a[k] + c[k];
       }
     }
     out[x] = arr;
+    co[x] = { a, b, c };
   }
-  return { period: T, dc: false, v: out, warn, grounded: Object.fromEntries(NODES.map((x) => [x, grounded(x)])), Rth, tau };
+  // 電容電壓（週期穩態）在絕對時間 t 的精確值：換線／改設定時接續暫態用
+  const vcAt = (t) => {
+    if (!capLive) return 0;
+    if (slow) return mean;
+    const ph = t - Math.floor(t / T) * T, k = Math.min(M - 1, Math.floor(ph / h)), s = ph - k * h, gk = dv[k] / h;
+    return vth[k] + gk * s - gk * tau + (vc[k] - vth[k] + gk * tau) * Math.exp(-s / tau);
+  };
+  return { ...common, period: T, h, dc: false, v: out, co, vcAt };
+}
+
+// 某接點在絕對時間 t 的週期穩態電壓（取樣點之間照解析式，不是線性內插）
+export function nodeAt(sol, node, t) {
+  if (sol.dc) return 0;
+  const { h, tau, period: T } = sol, q = sol.co[node];
+  const ph = t - Math.floor(t / T) * T, k = Math.min(M - 1, Math.floor(ph / h)), s = ph - k * h;
+  return q.a[k] + q.b[k] * s + (q.c[k] ? q.c[k] * Math.exp(-s / tau) : 0);
+}
+
+// HI−LO 電壓差的區間係數與一個週期內的累積積分（每個解答只算一次）
+function diff(sol, hi, lo) {
+  const key = `${hi}${lo}`;
+  sol.memo ??= {};
+  if (sol.memo[key]) return sol.memo[key];
+  const { h, tau } = sol, P = sol.co[hi], Q = sol.co[lo], m1 = tau > 0 ? -Math.expm1(-h / tau) : 0;
+  const a = Float64Array.from(P.a, (x, k) => x - Q.a[k]), b = Float64Array.from(P.b, (x, k) => x - Q.b[k]), c = Float64Array.from(P.c, (x, k) => x - Q.c[k]);
+  const pre = new Float64Array(M + 1);
+  for (let k = 0; k < M; k++) pre[k + 1] = pre[k] + a[k] * h + (b[k] * h * h) / 2 + (c[k] ? c[k] * tau * m1 : 0);
+  return (sol.memo[key] = { a, b, c, pre });
+}
+
+// HI−LO 的週期精確統計：平均、交流有效值（區間內解析積分，窄脈衝也準）、峰值（取樣點上，脈衝尖峰正好落在跳變點）
+export function diffStats(sol, hi, lo) {
+  if (sol.dc) return { mean: 0, acRms: 0, peak: 0, peakAc: 0 };
+  const { h, tau } = sol, d = diff(sol, hi, lo), T = M * h, mean = d.pre[M] / T;
+  const E = tau > 0 ? Math.exp(-h / tau) : 0, m1 = tau > 0 ? -Math.expm1(-h / tau) : 0, m2 = tau > 0 ? -Math.expm1(-2 * h / tau) : 0;
+  let S = 0, peak = 0, peakAc = 0;
+  for (let k = 0; k < M; k++) {
+    const a = d.a[k] - mean, b = d.b[k], c = d.c[k];
+    // ∫0^h (a＋b·s＋c·e^(−s/τ))² ds
+    S += a * a * h + a * b * h * h + (b * b * h * h * h) / 3;
+    if (c) S += 2 * a * c * tau * m1 + 2 * b * c * tau * (tau * m1 - h * E) + c * c * (tau / 2) * m2;
+    const v = d.a[k] + c;
+    if (Math.abs(v) > peak) peak = Math.abs(v);
+    if (Math.abs(v - mean) > peakAc) peakAc = Math.abs(v - mean);
+  }
+  return { mean, acRms: Math.sqrt(Math.max(0, S / T)), peak, peakAc };
+}
+
+// HI−LO 在時間窗 [t1, t2] 的平均（週期延拓，分段精確積分）：電表 DCV 的積分窗
+export function diffMeanOver(sol, hi, lo, t1, t2) {
+  if (sol.dc || !(t2 > t1)) return sol.dc ? 0 : diffStats(sol, hi, lo).mean;
+  const { h, tau, period: T } = sol, d = diff(sol, hi, lo);
+  const part = (t) => { // 從該週期起點積到 t
+    const ph = t - Math.floor(t / T) * T, k = Math.min(M - 1, Math.floor(ph / h)), s = ph - k * h;
+    return d.pre[k] + d.a[k] * s + (d.b[k] * s * s) / 2 + (d.c[k] ? d.c[k] * tau * -Math.expm1(-s / tau) : 0);
+  };
+  const n = Math.floor(t2 / T) - Math.floor(t1 / T);
+  return (n * d.pre[M] + part(t2) - part(t1)) / (t2 - t1);
+}
+
+// 電表 Ω 檔的直流電阻（電路未通電時）：黑夾、接地夾把接點接到大地；電容開路；
+// 板上電阻＋已接上的儀器輸入電阻（例如示波器探棒 10 MΩ 對大地）都會並聯進來
+export function ohms(bench, hi, lo) {
+  const { topo, R, wires, loads = [] } = bench;
+  const parent = { A: 'A', B: 'B', G: 'G', E: 'E' };
+  const find = (x) => (parent[x] === x ? x : (parent[x] = find(parent[x])));
+  Object.entries(wires).forEach(([id, nd]) => { if (nd && LEADS[id].role === 'gnd') parent[find(nd)] = find('E'); });
+  const h = find(hi), l = find(lo), E = find('E');
+  if (h === l) return 0.05; // 同一點（導線／接地相連）：只剩測試線電阻
+  const groups = [...new Set(NODES.map(find))].filter((g) => g !== E), idx = Object.fromEntries(groups.map((g, i) => [g, i]));
+  const G0 = groups.map(() => new Array(groups.length).fill(0));
+  const stamp = (x, y, g) => {
+    const i = x === E ? -1 : idx[x], j = y === E ? -1 : idx[y];
+    if (i >= 0) G0[i][i] += g;
+    if (j >= 0) G0[j][j] += g;
+    if (i >= 0 && j >= 0) { G0[i][j] -= g; G0[j][i] -= g; }
+  };
+  groups.forEach((g) => stamp(g, E, 1e-15));
+  const [rA, rB] = topo === 'RC' ? ['A', 'B'] : ['B', 'G'];
+  if (find(rA) !== find(rB)) stamp(find(rA), find(rB), 1 / R);
+  for (const L of loads) { const x = L.a === 'E' ? E : find(L.a), y = L.b === 'E' ? E : find(L.b); if (x !== y) stamp(x, y, 1 / L.r); }
+  const I = groups.map((g) => (g === h ? 1 : g === l ? -1 : 0));
+  const v = linSolve(G0, I), vol = (x) => (x === E ? 0 : v[idx[x]]);
+  const r = vol(h) - vol(l);
+  return r > 1e11 ? Infinity : r;
 }
 
 // 某接點的電壓波形（週期表）或 null（該點沒有訊號時仍回傳 0 陣列）

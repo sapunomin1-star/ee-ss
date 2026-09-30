@@ -88,7 +88,8 @@ export async function run() {
     await ui.tab('afg'); await ui.press(A.OUT);
     await ui.tab('bench'); await wire('DMM.HI', 'A'); await wire('DMM.LO', 'B');
     await ui.tab('dmm');
-    T.near((await ui.snap('dmm')).view.value, 1000, 1e-6, '關輸出後電表跨在 R 兩端：1 kΩ');
+    // 示波器兩支探棒（各 10 MΩ 對地）還接在 A、B：量到的是 1 kΩ ∥ 20 MΩ（真機也一樣）
+    T.near((await ui.snap('dmm')).view.value, (1000 * 20e6) / (20e6 + 1000), 1e-6, '關輸出後電表跨在 R 兩端：1 kΩ ∥ 探棒 20 MΩ ≈ 999.95 Ω');
     T.ok(ui.errors.length === 0, `沒有 JS 錯誤${ui.errors.length ? `：${ui.errors.join('; ')}` : ''}`);
   } finally {
     await ui.close();

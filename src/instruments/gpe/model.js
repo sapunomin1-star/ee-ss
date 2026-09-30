@@ -61,7 +61,7 @@ export class GpeModel {
       'CH1/CH4、CH2/CH3 只切換 LCD 那一列看哪一路，旋鈕歸屬不變。',
       'Set View：Output ON 時短按看設定值（亮 Set；再按一次或 3 秒沒操作就回讀回）；長按＝Lock。',
       '模式鍵（按下會停住）：兩鍵彈起＝Independent、只按右鍵＝Series、兩鍵都按＝Parallel；換模式時 Output 自動全關，要重新按 On/Off 才恢復。',
-      '近似清單（手冊沒寫或說法不一，待校機確認）：Set View 返回方式（再按或 3 秒）；Lock 只鎖 CH1／CH2 Voltage；長按門檻模擬器 0.8 秒（原廠 >2 秒）；開機重設值不是校機開機記憶；旋鈕步進；CH3／CH4 沒有限流設定，看設定時電流欄顯示「---」；換模式後 LCD 回到 ①②；tracking 時 CH2 列與限流是示意模型。',
+      '近似清單（手冊沒寫或說法不一，待校機確認）：Set View 返回方式（再按或 3 秒）；Lock 只鎖 CH1／CH2 Voltage；Lock 要按住 2 秒以上（p.27）；開機重設值不是校機開機記憶（模式鍵是按下／彈起的機械鍵，關開機不變）；旋鈕步進；CH3／CH4 沒有限流設定，看設定時電流欄顯示「---」；換模式後 LCD 回到 ①②；tracking 時 CH2 列與限流是示意模型。',
     ];
     this.now = () => Date.now();
     this.load = 'open'; // 測試情境在儀器外：重設、開關機都不改
@@ -114,11 +114,15 @@ export class GpeModel {
     }
   }
 
+  // 模式鍵是按下／彈起的機械鍵（p.25「the right key is not pressed」、GAP-GPE-07），關開機不會改變它們的位置
   power() {
     if (this.on) { this.on = false; return { kind: 'approx', text: '模擬電源關：LCD 全暗、四路都沒有輸出。' }; }
+    const { keyL, keyR } = this;
     this.reset();
+    Object.assign(this, { keyL, keyR });
     this.bootAt = this.now();
-    return { kind: 'approx', text: '模擬電源開：LCD 全段亮 1 秒後顯示設定值；回到重設狀態（四路 0.00 V、CH1／CH2 限流 0.100 A、Independent、Output OFF、Lock 解除）。這是模擬器定義，不是校機開機記憶。' };
+    const mode = { INDEP: 'Independent', SER: 'Series', PARA: 'Parallel' }[this.mode];
+    return { kind: 'approx', text: `模擬電源開：LCD 全段亮 1 秒後顯示設定值；四路 0.00 V、CH1／CH2 限流 0.100 A、Output OFF、Lock 解除（模擬器定義，不是校機開機記憶）。模式鍵是機械鍵，位置不變：${mode}。` };
   }
 
   // GPE-F05：一鍵開關四路；Lock 不影響
@@ -142,7 +146,7 @@ export class GpeModel {
   toggleLock() {
     if (!this.lock) {
       this.lock = true;
-      return { kind: 'approx', text: 'Lock：Lock 圖示亮，CH1、CH2 Voltage 旋鈕鎖住；On/Off 不受影響。鎖定範圍暫依 p.27（p.19／p.43 說鎖面板按鍵，待校機確認）；模擬器按住 0.8 秒就算長按（原廠 >2 秒）。' };
+      return { kind: 'approx', text: 'Lock：Lock 圖示亮，CH1、CH2 Voltage 旋鈕鎖住；On/Off 不受影響。鎖定範圍暫依 p.27（p.19／p.43 說鎖面板按鍵，待校機確認）；按住 2 秒以上才算長按（p.27）。' };
     }
     const was = this.output;
     this.lock = false; this.output = false; this.viewAt = null;
