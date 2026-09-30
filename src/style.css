@@ -97,3 +97,28 @@ svg.bench-svg { display: block; width: 100%; height: auto; user-select: none; ba
 .side ul.warn .w-ok { color: var(--ok); }
 .side .btns { display: flex; gap: 6px; margin-top: 8px; }
 .side .btns button { flex: 1; padding: 5px; border-radius: 6px; border: 1px solid var(--line); background: #f4f6f8; }
+
+/* ---- 實驗台：麵包板 ---- */
+.side .board-sw { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; padding: 6px 10px; border-radius: 8px; background: #f4f6f8; border: 1px solid var(--line); }
+.side .board-sw b { font-size: 12px; color: var(--muted); }
+.side .bbtools { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 4px 0 6px; }
+.bb-svg .bb-board { fill: #f7f4ec; stroke: #c8c0ad; stroke-width: 1.5; }
+.bb-svg .bb-trench { fill: #e4ddcc; }
+.bb-svg .bb-num { fill: #8a8170; }
+.bb-svg .hole { cursor: pointer; outline: none; }
+.bb-svg .hole .hit { fill: transparent; }
+.bb-svg .hole .h { fill: #55595e; }
+.bb-svg .hole:hover .hit { fill: rgba(10, 132, 255, .16); }
+.bb-svg .hole.hl .hit { fill: rgba(46, 160, 67, .28); }
+.bb-svg .hole.hl .h { fill: #1a7f37; }
+.bb-svg .hole.first .hit { fill: rgba(245, 124, 0, .5); stroke: #e65100; stroke-width: 1.5; }
+.bb-svg .hole:focus-visible .hit { stroke: #0a84ff; stroke-width: 2; }
+.bb-svg.armed .hole:hover .hit { fill: rgba(10, 132, 255, .38); }
+/* 元件只在「選取」工具（且沒選導線端）時接收滑鼠，其他時候點下去是點到底下的孔 */
+.bb-svg .comp { pointer-events: none; outline: none; }
+.bb-svg.pick .comp { pointer-events: auto; cursor: pointer; }
+.bb-svg .bbw { pointer-events: none; }
+.bb-svg .comp .glow { stroke: #0a84ff; opacity: .4; }
+.bb-svg .comp:focus-visible .grab { stroke: rgba(10, 132, 255, .35); }
+.bb-svg .lbl { font-size: 9px; font-weight: 700; fill: #3b2f16; paint-order: stroke; stroke: #fff; stroke-width: 2.5px; stroke-linejoin: round; }
+.bb-svg .comp.sel .lbl { fill: #0a5bd7; }

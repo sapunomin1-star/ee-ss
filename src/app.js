@@ -2,9 +2,11 @@
 // 儀器本身的行為都在 src/instruments/<id>/model.js；實驗台電路在 src/bench/；這裡只負責事件與畫面更新。
 import { panelSvg, controlMeta } from './core/panel.js';
 import { createInstruments } from './instruments/index.js';
-import { Bench, DEMO } from './bench/bench.js';
+import { Bench, DEMO, fmtR, fmtC } from './bench/bench.js';
 import { LEADS } from './bench/circuit.js';
 import { benchSvg, benchSide } from './bench/view.js';
+import { Breadboard, BB_DEMO, DEFAULT_VALUE, KIND_NAME, holeGroup, groupName, occupantName } from './bench/breadboard.js';
+import { bbSvg, bbSide, boardSwitch } from './bench/bb-view.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const KNOB_DEG = 15;         // 每一格旋轉的視覺角度
@@ -12,12 +14,23 @@ const DRAG_PX_PER_STEP = 9;  // 拖曳多少像素算一格（不接受滑鼠滾
 const HINT_KIND = { out: '未納入', approx: '近似', reject: '已拒絕', info: '說明', ok: '完成' };
 const BENCH = 'bench';
 const LIVE_MS = 200; // 讀值隨時間變（電表積分窗、電容充放電）時的畫面更新間隔
+const RC_HELP = '點一個導線端（變藍），再點電路板上的 A／B／G 接上；已接好的導線端選取後再點一次＝拔掉。';
+const BB_HELP = '右邊選工具（電阻／電容／跳線）後點兩個孔擺上；點導線端（變藍）再點孔＝接線；滑鼠移到孔上會標出所有相連的孔。';
+const FOCUSABLE = '[data-lead],[data-node],[data-goto],[data-hole],[data-comp]'; // 實驗台上可聚焦、Enter／空白鍵＝點擊的東西
+const TOOL_HELP = { select: '選取：點元件選取（可改值），Delete 刪除。', R: '電阻：點第一個孔，再點第二個孔。', C: '電容：點第一個孔，再點第二個孔。', W: '跳線：點第一個孔，再點第二個孔，兩個孔所在的組就連在一起。' };
 
 export function startApp(root) {
   const models = createInstruments();
   const ids = Object.keys(models);
   const metas = Object.fromEntries(ids.map((id) => [id, controlMeta(id)]));
   const bench = new Bench(models.afg, models.dmm);
+  // 麵包板模式（掛在 bench 上的純屬性，Bench 本身不用它們；電路計算讀 bench.bb.netlist(bench.bbWires)）：
+  //   board＝'rc'（固定 RC 板，用 bench.wires）｜'bb'（麵包板）；bb＝麵包板上的元件；bbWires＝導線 id → 孔 id
+  bench.board = 'rc';
+  bench.bb = new Breadboard();
+  bench.bbWires = {};
+  // 麵包板的操作狀態（只給畫面用）：工具、已點的第一個孔、選取的元件、新元件的值、滑鼠所在的孔
+  const bbUi = { tool: 'select', first: null, sel: null, newR: DEFAULT_VALUE.R, newC: DEFAULT_VALUE.C, hover: null };
   models.tds.setBenchSource(() => bench.tdsInput());
   models.dmm.setBenchSource(() => bench.dmmInput());
   let benchKey = bench.key();
@@ -29,7 +42,7 @@ export function startApp(root) {
   root.innerHTML = `
     <header class="top">
       <div class="brand">電子學實習儀器練習<small>模擬器 · 操作順序練習用，數值行為依手冊與暫定規則</small></div>
-      <nav class="tabs" role="tablist">${ids.map((id) => `<button role="tab" data-tab="${id}">${esc(models[id].title)}<small>${esc(models[id].subtitle)}</small></button>`).join('')}<button role="tab" data-tab="${BENCH}" class="tab-bench">實驗台<small>接線：AFG → RC → 示波器＋電表</small></button></nav>
+      <nav class="tabs" role="tablist">${ids.map((id) => `<button role="tab" data-tab="${id}">${esc(models[id].title)}<small>${esc(models[id].subtitle)}</small></button>`).join('')}<button role="tab" data-tab="${BENCH}" class="tab-bench">實驗台<small>接線：RC 板／麵包板</small></button></nav>
       <div class="tools">
         <button data-zoom="-1" title="縮小">－</button><button data-zoom="0" title="符合視窗">符合</button><button data-zoom="1" title="放大">＋</button>
         <button data-act="reset-all" title="四台都回到開機重設狀態（接線保留）">全部重設</button>
@@ -83,7 +96,7 @@ export function startApp(root) {
     root.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === cur)));
     hintbar.className = 'hintbar';
     if (cur === BENCH) {
-      hintbar.textContent = '點一個導線端（變藍），再點電路板上的 A／B／G 接上；已接好的導線端選取後再點一次＝拔掉。';
+      hintbar.textContent = bench.board === 'bb' ? `麵包板：${BB_HELP}` : RC_HELP;
       refresh();
       return;
     }
@@ -121,14 +134,21 @@ export function startApp(root) {
   }
 
   function renderBench() {
-    // 重畫後把鍵盤焦點還給同一個導線端／接點
-    const f = document.activeElement?.closest?.('[data-lead],[data-node],[data-goto]');
-    const key = f && (f.dataset.lead ? `[data-lead="${f.dataset.lead}"]` : f.dataset.node ? `[data-node="${f.dataset.node}"]` : `[data-goto="${f.dataset.goto}"]`);
-    host.innerHTML = benchSvg(bench, models);
-    applyZoom();
+    // 重畫後把鍵盤焦點還給同一個導線端／接點／孔／元件
+    const f = document.activeElement?.closest?.(FOCUSABLE);
+    const k = f && ['lead', 'node', 'goto', 'hole', 'comp'].find((a) => f.dataset[a]);
+    const key = k && `[data-${k}="${f.dataset[k]}"]`;
     const log = hints.filter((h) => h.inst === BENCH).slice(-6).reverse().map((h) => `<li class="k-${h.kind}"><b>${HINT_KIND[h.kind] ?? ''}</b> ${esc(h.text)}</li>`).join('');
-    side.innerHTML = benchSide(bench, models, log) + '<button class="reset-one" data-act="reset-one">重設實驗台（拔掉所有線、R／C 回預設）</button>';
+    if (bench.board === 'bb') {
+      host.innerHTML = bbSvg(bench, models, bbUi);
+      side.innerHTML = boardSwitch(bench.board) + bbSide(bench, bbUi, log);
+    } else {
+      host.innerHTML = benchSvg(bench, models);
+      side.innerHTML = boardSwitch(bench.board) + benchSide(bench, models, log) + '<button class="reset-one" data-act="reset-one">重設實驗台（拔掉所有線、R／C 回預設）</button>';
+    }
+    applyZoom();
     if (key) host.querySelector(key)?.focus({ preventScroll: true });
+    if (bench.board === 'bb') bbHighlight(bbUi.hover);
   }
 
   function renderSide() {
@@ -196,6 +216,135 @@ export function startApp(root) {
     refresh();
   }
 
+  // ---- 麵包板操作（bench.board＝'bb'）----
+  const holeText = (h) => `${h}（${groupName(holeGroup(h), true)}）`;
+  function setBoard(b) {
+    if (b !== 'rc' && b !== 'bb') return;
+    bench.board = b;
+    bench.sel = null;
+    bbUi.first = null;
+    hint({ kind: 'info', text: b === 'bb' ? `換到麵包板：${BB_HELP}（固定 RC 板的接線保留，切回去還在。）` : '換回固定 RC 板（麵包板上的元件與接線保留）。' });
+    refresh();
+  }
+  // 導線端：和 RC 板一樣——點一下選取（變藍）→ 點孔插上；已插的導線端選取後再點一次＝拔掉
+  function bbLead(id) {
+    bbUi.first = null;
+    if (bench.sel === id && bench.bbWires[id]) {
+      const h = bench.bbWires[id];
+      delete bench.bbWires[id];
+      bench.sel = null;
+      hint({ kind: 'info', text: `拔掉 ${LEADS[id].name}（原本插在 ${h}）。` });
+    } else if (bench.sel === id) {
+      bench.sel = null;
+    } else {
+      bench.sel = id;
+      hint({ kind: 'info', text: `選取 ${LEADS[id].name}：接著點麵包板上的孔${bench.bbWires[id] ? `（目前插在 ${bench.bbWires[id]}；再點一次這個導線端＝拔掉）` : ''}。` });
+    }
+    refresh();
+  }
+  function bbHole(h) {
+    const bb = bench.bb, occ = bb.occupant(h, bench.bbWires);
+    if (bench.sel) { // 有選導線端：插導線優先
+      const id = bench.sel, r = bb.plug(bench.bbWires, id, h);
+      if (!r.ok) { hint({ kind: 'reject', text: r.why }); return refresh(); }
+      bench.sel = null;
+      const sw = useBench(LEADS[id].inst);
+      hint({ kind: 'ok', text: `${LEADS[id].name} 插到 ${holeText(h)}。${sw ? '（已改用實驗台訊號）' : ''}` });
+      return refresh();
+    }
+    if (bbUi.tool === 'select') {
+      const g = holeGroup(h), n = bb.netlist(bench.bbWires).groupOf(h);
+      hint({ kind: 'info', text: `孔 ${h}：${groupName(g)}${n !== g ? `，經跳線併入節點 ${n}` : ''}；${occ ? `插著${occupantName(occ)}` : '空著'}。要擺元件先在右邊選工具；要接線先點導線端。` });
+      return refresh();
+    }
+    const kind = bbUi.tool, name = KIND_NAME[kind], leg1 = kind === 'W' ? '第一端' : '第一隻腳';
+    if (!bbUi.first) {
+      if (occ) { hint({ kind: 'reject', text: `孔 ${h} 已經插了${occupantName(occ)}：一個孔只能插一樣東西。` }); return refresh(); }
+      bbUi.first = h;
+      hint({ kind: 'info', text: `${name}的${leg1}：${holeText(h)}。接著點第二個孔（再點 ${h} 一次＝取消）。` });
+      return refresh();
+    }
+    if (bbUi.first === h) {
+      bbUi.first = null;
+      hint({ kind: 'info', text: `取消擺放${name}。` });
+      return refresh();
+    }
+    const r = bb.add(kind, bbUi.first, h, kind === 'R' ? bbUi.newR : kind === 'C' ? bbUi.newC : undefined, bench.bbWires);
+    if (!r.ok) { hint({ kind: 'reject', text: `${r.why}（${leg1}仍在 ${bbUi.first}，換一個孔，或再點 ${bbUi.first} 取消）` }); return refresh(); }
+    const p = r.part;
+    bbUi.first = null;
+    bbUi.sel = p.id;
+    const val = kind === 'R' ? ` ${fmtR(p.value)}` : kind === 'C' ? ` ${fmtC(p.value)}` : '';
+    const bad = bb.netlist(bench.bbWires).warnings.find((w) => w.level === 'bad' && w.text.startsWith(`${p.id}（`));
+    hint(bad ? { kind: 'info', text: `擺上 ${p.id}（${name}${val}）：${p.a}–${p.b}。注意：${bad.text}` } : { kind: 'ok', text: `擺上 ${p.id}（${name}${val}）：${p.a}–${p.b}。` });
+    refresh();
+  }
+  function bbComp(id) {
+    const p = bench.bb.get(id);
+    if (!p) return;
+    bench.sel = null;
+    bbUi.first = null;
+    bbUi.sel = id;
+    hint({ kind: 'info', text: `選取 ${id}（${KIND_NAME[p.kind]}${p.kind === 'W' ? '' : ` ${p.kind === 'R' ? fmtR(p.value) : fmtC(p.value)}`}，${p.a}–${p.b}）：右邊可${p.kind === 'W' ? '' : '改值、'}按「刪除」，或按 Delete 鍵拿掉。` });
+    refresh();
+  }
+  function bbDelete() {
+    if (!bbUi.sel || !bench.bb.remove(bbUi.sel)) return;
+    hint({ kind: 'info', text: `拿掉 ${bbUi.sel}。` });
+    bbUi.sel = null;
+    refresh();
+  }
+  function bbAction(a) {
+    if (a === 'delete') return bbDelete();
+    const demo = { 'demo-rc': BB_DEMO.rc, 'demo-gpe': BB_DEMO.gpe }[a];
+    if (a !== 'clear' && !demo) return;
+    bench.sel = null;
+    bbUi.first = null;
+    bbUi.sel = null;
+    if (demo) {
+      // 示範是完整接線答案：先清空再擺；接上的示波器／電表改用實驗台訊號
+      bench.bb.load(demo, bench.bbWires);
+      new Set(Object.keys(demo.wires).map((id) => LEADS[id].inst)).forEach((inst) => useBench(inst));
+      hint({ kind: 'info', text: demo.desc });
+    } else {
+      bench.bb.clear();
+      bench.bbWires = {};
+      hint({ kind: 'info', text: '麵包板清空了：元件都拿掉、導線都拔掉。' });
+    }
+    refresh();
+  }
+  function bbSet(name, value) {
+    if (name === 'bbtool' && TOOL_HELP[value]) {
+      bbUi.tool = value;
+      bbUi.first = null;
+      bench.sel = null;
+      hint({ kind: 'info', text: `工具＝${TOOL_HELP[value]}` });
+    }
+    if (name === 'bbR') bbUi.newR = Number(value);
+    if (name === 'bbC') bbUi.newC = Number(value);
+    if (name === 'bbVal' && bbUi.sel && bench.bb.setValue(bbUi.sel, Number(value))) {
+      const p = bench.bb.get(bbUi.sel);
+      hint({ kind: 'info', text: `${p.id} 改成 ${p.kind === 'R' ? fmtR(p.value) : fmtC(p.value)}。` });
+    }
+    refresh();
+  }
+  // 滑鼠所在（或鍵盤聚焦）的孔：同一個節點的孔都加上 hl
+  function bbHighlight(h) {
+    host.querySelectorAll('.hole.hl').forEach((el) => el.classList.remove('hl'));
+    const net = h && host.querySelector(`[data-hole="${h}"]`)?.dataset.net;
+    if (net) host.querySelectorAll(`[data-net="${net}"]`).forEach((el) => el.classList.add('hl'));
+  }
+  function bbHover(e) {
+    if (cur !== BENCH || bench.board !== 'bb') return;
+    const h = e.target.closest?.('[data-hole]')?.dataset.hole ?? null;
+    if (h === bbUi.hover) return;
+    bbUi.hover = h;
+    bbHighlight(h);
+  }
+  host.addEventListener('pointerover', bbHover);
+  host.addEventListener('focusin', bbHover);
+  host.addEventListener('pointerleave', () => { if (bbUi.hover) { bbUi.hover = null; bbHighlight(null); } });
+
   // ---- 事件：按鍵（滑鼠／觸控／鍵盤）與旋鈕（拖曳／方向鍵） ----
   let drag = null;
   let downAt = 0;
@@ -239,7 +388,11 @@ export function startApp(root) {
   host.addEventListener('click', (e) => {
     if (cur !== BENCH) return;
     const lead = e.target.closest('[data-lead]');
-    if (lead) return benchLead(lead.dataset.lead);
+    if (lead) return bench.board === 'bb' ? bbLead(lead.dataset.lead) : benchLead(lead.dataset.lead);
+    const comp = e.target.closest('[data-comp]'); // 麵包板的元件、孔（只在麵包板模式出現）
+    if (comp) return bbComp(comp.dataset.comp);
+    const hole = e.target.closest('[data-hole]');
+    if (hole) return bbHole(hole.dataset.hole);
     const node = e.target.closest('[data-node]');
     if (node) return benchNode(node.dataset.node);
     const go = e.target.closest('[data-goto]');
@@ -247,7 +400,7 @@ export function startApp(root) {
   });
   host.addEventListener('keydown', (e) => {
     if (cur === BENCH) {
-      const el = e.target.closest?.('[data-lead],[data-node],[data-goto]');
+      const el = e.target.closest?.(FOCUSABLE);
       if (el && (e.key === 'Enter' || e.key === ' ')) { el.dispatchEvent(new MouseEvent('click', { bubbles: true })); e.preventDefault(); }
       return;
     }
@@ -291,11 +444,22 @@ export function startApp(root) {
       refresh();
     }
     if (b?.dataset.bench === 'clear') { bench.wires = {}; bench.sel = null; hint({ kind: 'info', text: '所有線都拔掉了。' }); refresh(); }
+    const bbBtn = e.target.closest('[data-bb]');
+    if (bbBtn && cur === BENCH) bbAction(bbBtn.dataset.bb);
+  });
+  // 麵包板：Delete／Backspace 刪除選取的元件（焦點在輸入欄、選單時不攔）
+  document.addEventListener('keydown', (e) => {
+    if ((e.key !== 'Delete' && e.key !== 'Backspace') || cur !== BENCH || bench.board !== 'bb' || !bbUi.sel) return;
+    if (e.target.closest?.('input, select, textarea')) return;
+    e.preventDefault();
+    bbDelete();
   });
   side.addEventListener('change', (e) => {
     const t = e.target;
     if (t.name === 'scen') { hint(models[cur].scenarios.set(t.value)); refresh(); return; }
     if (cur !== BENCH) return;
+    if (t.name === 'board') return setBoard(t.value);
+    if (t.name?.startsWith('bb')) return bbSet(t.name, t.value);
     if (t.name === 'topo') bench.topo = t.value;
     if (t.name === 'R') bench.R = Number(t.value);
     if (t.name === 'C') bench.C = Number(t.value);
@@ -309,7 +473,10 @@ export function startApp(root) {
   Object.defineProperty(window, '__eess', {
     value: Object.freeze({
       current: () => cur,
-      snapshot: (id = cur) => JSON.parse(JSON.stringify(id === BENCH ? bench.snapshot() : models[id].snapshot())),
+      // 實驗台另外附上麵包板：board、bb（元件清單＋netlist 的 nodes／elements／leads／warnings）、bbWires、bbUi（工具、第一個孔、選取）
+      snapshot: (id = cur) => JSON.parse(JSON.stringify(id === BENCH
+        ? { ...bench.snapshot(), board: bench.board, bb: bench.bb.snapshot(bench.bbWires), bbWires: bench.bbWires, bbUi: { tool: bbUi.tool, first: bbUi.first, sel: bbUi.sel } }
+        : models[id].snapshot())),
       hints: () => hints.map((h) => ({ ...h })),
     }),
   });
