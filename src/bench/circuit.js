@@ -27,6 +27,16 @@ export const LEADS = {
   'TDS.CH2.GND': { inst: 'tds', ch: 1, role: 'gnd', name: '示波器 CH2 接地夾' },
   'DMM.HI': { inst: 'dmm', role: 'hi', name: '電表 HI（紅）' },
   'DMM.LO': { inst: 'dmm', role: 'lo', name: '電表 LO（黑）' },
+  // GPE-4323 輸出端子（麵包板模式用）：各路浮接的＋／−；GND＝機殼地（大地）
+  'GPE.CH1+': { inst: 'gpe', ch: 0, role: 'pos', name: 'GPE CH1 ＋（紅）' },
+  'GPE.CH1-': { inst: 'gpe', ch: 0, role: 'neg', name: 'GPE CH1 −（黑）' },
+  'GPE.CH2+': { inst: 'gpe', ch: 1, role: 'pos', name: 'GPE CH2 ＋（紅）' },
+  'GPE.CH2-': { inst: 'gpe', ch: 1, role: 'neg', name: 'GPE CH2 −（黑）' },
+  'GPE.CH3+': { inst: 'gpe', ch: 2, role: 'pos', name: 'GPE CH3 ＋（紅）' },
+  'GPE.CH3-': { inst: 'gpe', ch: 2, role: 'neg', name: 'GPE CH3 −（黑）' },
+  'GPE.CH4+': { inst: 'gpe', ch: 3, role: 'pos', name: 'GPE CH4 ＋（紅）' },
+  'GPE.CH4-': { inst: 'gpe', ch: 3, role: 'neg', name: 'GPE CH4 −（黑）' },
+  'GPE.GND': { inst: 'gpe', role: 'gnd', name: 'GPE GND（機殼地）' },
 };
 
 // AFG 開路電壓（EMF）：offset＋Vpp/2×波形；相位 0（Phase 本輪 OUT）

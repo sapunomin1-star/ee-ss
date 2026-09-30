@@ -131,7 +131,7 @@ function theory(bench, afg) {
 
 export function benchSide(bench, models, hints) {
   const sol = bench.solution();
-  const rows = Object.keys(LEADS).map((id) => `<li><b>${esc(LEADS[id].name)}</b>：${bench.wires[id] ? `接在 ${bench.wires[id]}` : '<span class="muted">未接</span>'}</li>`).join('');
+  const rows = Object.keys(LEADS).filter((id) => LEADS[id].inst !== 'gpe').map((id) => `<li><b>${esc(LEADS[id].name)}</b>：${bench.wires[id] ? `接在 ${bench.wires[id]}` : '<span class="muted">未接</span>'}</li>`).join('');
   const warn = sol.warn.length ? sol.warn.map((w) => `<li class="w-${w.level}">${esc(w.text)}</li>`).join('') : '<li class="w-ok">接線沒有問題。</li>';
   return `
     <h2>實驗台（接線）<small>AFG → RC → 示波器＋電表</small></h2>
