@@ -1,7 +1,7 @@
 // 實驗台狀態：固定 RC 板（R、C 的值與接法、A／B／G 接點）或麵包板（外殼掛上 bb＝Breadboard，導線接孔 bbWires），
 // 探棒 1×／10× 開關，以及三台儀器（AFG、電表、GPE）的設定。提供示波器、電表、GPE 讀回的輸入。
 // 電路一律由通用解算 solveNet 計算（src/bench/net.js）；固定 RC 板只是一個固定的電路描述。
-// 時間：this.now()（秒，預設為頁面時鐘）。電路每變一次就開新的一段 { sol, built, from, to, t0, amp }，保留最近幾秒：
+// 時間：this.now()（秒，預設為頁面時鐘）。電路每變一次就開新的一段 { sol, built, from, to, t0, amp }，保留操作歷史：
 //   各電容電壓在變化那一刻連續（改變前一刻的電壓；新插上的電容從 0 V 開始），之後各模態以自己的時間常數衰減到新的週期穩態。
 //   電表積分窗、示波器單次擷取往前看的部分，都照「當時那一段」的電路算：已完成的讀值不會被後來的操作改掉。
 import { stats, LEADS, NODES, M } from './circuit.js';
@@ -13,7 +13,6 @@ export const fmtR = (r) => (r >= 1000 ? `${r / 1000} kΩ` : `${r} Ω`);
 export const fmtC = (c) => (c >= 1e-6 ? `${Number((c * 1e6).toPrecision(3))} µF` : `${Number((c * 1e9).toPrecision(3))} nF`);
 // 示波器輸入 1 MΩ（M-TDS-13 p.107）；10× 被動探棒尖端 10 MΩ
 export const PROBE_R = { 1: 1e6, 10: 10e6 };
-const HIST_S = 2; // 保留多久以前的電路狀態（秒）：電表積分窗 1/6 秒、示波器單次擷取往前看都在這之內
 // 示波器連續採集取改變後這麼久的電路狀態（模擬器的取樣策略，不代表真機時序）；更短的暫態用 Single／Normal 擷取（見 TdsModel）
 export const SCOPE_SETTLE = 0.05;
 // GPE CH3／CH4 沒有限流旋鈕：實驗台以額定 1 A 當限流（PD，避免短路時電流無限大）
@@ -48,19 +47,44 @@ function devInt(g, w, t1, t2) {
   return sum;
 }
 const nodeIn = (g, node, t) => (node == null ? 0 : node === 'E' ? 0 : g.sol.nodeAt(node, t) + devNode(g, node, t));
-// 某一段各電容在 t 的電壓 { 元件 id: V }
+// 某一段各電容在 t 的電壓 { 元件生命週期識別碼: V }
 function capsAt(g, t) {
   const ss = g.sol.capSS(t), d = decay(g, t), out = {};
-  g.sol.caps.forEach((id, k) => { let v = ss[k]; g.sol.capD[k]?.forEach((w, m) => { v += w * (g.amp[m] || 0) * d[m]; }); out[id] = v; });
+  g.sol.capKeys.forEach((id, k) => { let v = ss[k]; g.sol.capD[k]?.forEach((w, m) => { v += w * (g.amp[m] || 0) * d[m]; }); out[id] = v; });
   return out;
 }
 
-// GPE 第 k 路在某一段、時刻 t 的端電壓與輸出電流（週期平均＋暫態；CV 電流＝(設定−端電壓)/R_GPE）
+// GPE 第 k 路在某一段、時刻 t 的端電壓與輸出電流（瞬間週期電壓＋暫態）。
 function chanAt(g, k, t) {
-  const c = g.built.gpe[k], o = g.sol.dcOut[k], m = g.modes[k];
+  const c = g.built.gpe[k], m = g.modeAt ? g.modeAt(t)[k] : g.modes[k];
   if (c.pos === c.neg) return { v: 0, i: m === 'CC' ? c.ilim : m === 'RB' ? 0 : Infinity };
-  const v = o.v + devNode(g, c.pos, t) - devNode(g, c.neg, t);
+  const v = nodeIn(g, c.pos, t) - nodeIn(g, c.neg, t);
   return { v, i: m === 'CC' ? c.ilim : m === 'RB' ? 0 : (c.v - v) / R_GPE };
+}
+const nextMode = (c, m, { v, i }) => m === 'CV'
+  ? (i > c.ilim * (1 + 1e-9) ? 'CC' : i < -1e-6 ? 'RB' : m)
+  : m === 'CC' ? (v > c.v * (1 + 1e-9) ? 'CV' : m) : v < c.v * (1 - 1e-9) ? 'CV' : m;
+// 幾路電源互相影響時，同時更新所有模式可能在幾組不合法模式間循環。
+// 先試快速迭代，遇到循環再有限枚舉（最多四路，3⁴＝81 組），逐路驗證。
+function resolveModes(channels, initial, t, candidate) {
+  const seen = new Set(); let modes = [...initial], g;
+  const legal = (s) => channels.every((c, k) => nextMode(c, s.modes[k], chanAt(s, k, t)) === s.modes[k]);
+  for (let it = 0; it < 16; it++) {
+    const key = modes.join('|');
+    if (seen.has(key)) break;
+    seen.add(key); g = candidate(modes);
+    if (legal(g)) return g;
+    modes = modes.map((m, k) => nextMode(channels[k], m, chanAt(g, k, t)));
+  }
+  for (let code = 0; code < 3 ** channels.length; code++) {
+    let value = code;
+    const choice = channels.map(() => { const mode = ['CV', 'CC', 'RB'][value % 3]; value = Math.floor(value / 3); return mode; });
+    const s = candidate(choice);
+    if (legal(s)) return s;
+  }
+  // 無法找到一致工作點時不宣稱此接法的保護有效。
+  g.modesUnsupported = true;
+  return g;
 }
 
 export class Bench {
@@ -209,22 +233,18 @@ export class Bench {
   // 一段電路狀態：從 t0 起，GPE 各路用 modes（CV／CC／RB）。模式依「t0 當下」的狀態決定（含電容電壓），
   //   不是只看最後的穩態：例如開輸出時電容還沒充電，電流超過限流就先 CC（線性充電），之後再回 CV。
   makeSeg(built, caps, t0, hint) {
-    const modes = hint ? [...hint] : built.gpe.map(() => 'CV');
-    let seg;
-    for (let it = 0; it < 10; it++) {
-      const sol = solveNet({ ...built.net, dc: built.gpe.map((c, k) => ({ id: c.id, pos: c.pos, neg: c.neg, v: c.v, i: c.ilim, mode: modes[k] })) });
-      seg = { sol, built, modes: [...modes], t0, from: t0, to: Infinity, amp: sol.modalFromCaps(sol.caps.map((id) => caps[id] ?? 0), t0) }; // 新插上的電容從 0 V 開始
-      let changed = false;
-      built.gpe.forEach((c, k) => {
-        const { v, i } = chanAt(seg, k, t0 + 1e-12);
-        const m = modes[k];
-        const to = m === 'CV' ? (i > c.ilim * (1 + 1e-9) ? 'CC' : i < -1e-6 ? 'RB' : m) : m === 'CC' ? (v > c.v * (1 + 1e-9) ? 'CV' : m) : v < c.v * (1 - 1e-9) ? 'CV' : m;
-        if (to !== m) { modes[k] = to; changed = true; }
-      });
-      if (!changed) break;
-    }
+    const variants = new Map();
+    const candidate = (modes) => {
+      const key = modes.join('|');
+      if (variants.has(key)) return variants.get(key);
+      const sol = solveNet({ ...built.net, dc: built.gpe.map((c, k) => ({ id: c.id, pos: c.pos, neg: c.neg, v: c.v, i: c.ilim, mode: modes[k] })) }, { retainFastModes: built.gpe.length > 0 });
+      const seg = { sol, built, modes: [...modes], t0, from: t0, to: Infinity, amp: sol.modalFromCaps(sol.capKeys.map((id) => caps[id] ?? 0), t0) }; // 新插上的電容從 0 V 開始
+      variants.set(key, seg); return seg;
+    };
+    const seg = resolveModes(built.gpe, hint || built.gpe.map(() => 'CV'), t0, candidate);
     const sol = seg.sol;
     sol.warn = [...built.warn];
+    if (seg.modesUnsupported) sol.warn.push({ level: 'bad', text: '目前不支援此多電源接法：無法找到一致的 CV／CC／逆灌工作點，波形及保護讀回無效。' });
     built.gpe.forEach((c, k) => {
       if (seg.modes[k] === 'RB') sol.warn.push({ level: 'bad', text: `GPE CH${c.ch} 被其他電源灌入：端電壓高於設定的 ${c.v.toFixed(2)} V。電源不能吸收電流，會失去穩壓（真機可能損壞）；不同電壓的兩路不要直接並接。` });
     });
@@ -233,10 +253,91 @@ export class Bench {
     return seg;
   }
 
+  // 沒有電容的電路沒有需要承接的動態狀態。每個 AFG 線性取樣區間內，
+  // 直接找出合法的 CV／CC／RB 工作點與交界，組成可無限重複的週期。
+  // 如此即使過了數千個週期，讀回、示波器及電表仍看同一個受限的波形。
+  periodicSeg(seg) {
+    const { built } = seg, variants = new Map(), thisBench = this;
+    const variant = (modes) => {
+      const key = modes.join('|');
+      if (!variants.has(key)) {
+        const sol = solveNet({ ...built.net, dc: built.gpe.map((c, k) => ({ id: c.id, pos: c.pos, neg: c.neg, v: c.v, i: c.ilim, mode: modes[k] })) });
+        variants.set(key, { ...seg, sol, modes: [...modes], amp: [] });
+      }
+      return variants.get(key);
+    };
+    const operatingPoint = (t) => resolveModes(built.gpe, built.gpe.map(() => 'CV'), t, variant);
+    const T = seg.sol.period, h = seg.sol.h, intervals = [];
+    for (let k = 0; k < M; k++) {
+      let a = k * h;
+      const b = (k + 1) * h, eps = h * 1e-8;
+      for (let it = 0; it < 16 && a < b; it++) {
+        const ga = operatingPoint(a + eps), gb = operatingPoint(b - eps);
+        if (ga === gb) { intervals.push({ from: a, to: b, g: ga }); break; }
+        let lo = a, hi = b;
+        for (let r = 0; r < 45; r++) {
+          const mid = (lo + hi) / 2;
+          if (operatingPoint(mid) === ga) lo = mid; else hi = mid;
+        }
+        intervals.push({ from: a, to: hi, g: ga });
+        a = hi;
+      }
+    }
+    const locate = (t) => {
+      const phase = t - Math.floor(t / T) * T;
+      let lo = 0, hi = intervals.length;
+      while (lo + 1 < hi) { const mid = (lo + hi) >> 1; if (intervals[mid].from <= phase) lo = mid; else hi = mid; }
+      return { interval: intervals[lo], phase };
+    };
+    const nodeAt = (node, t) => locate(t).interval.g.sol.nodeAt(node, t);
+    const tables = new Map(), pairs = new Map();
+    const table = (node) => {
+      if (!tables.has(node)) tables.set(node, Float64Array.from({ length: M }, (_, k) => nodeAt(node, k * h)));
+      return tables.get(node);
+    };
+    const pair = (hi, lo) => {
+      const key = `${hi}|${lo}`;
+      if (pairs.has(key)) return pairs.get(key);
+      const pre = [0], pieces = []; let min = Infinity, max = -Infinity;
+      for (const s of intervals) {
+        const dt = s.to - s.from, f = (t) => s.g.sol.nodeAt(hi, t) - s.g.sol.nodeAt(lo, t);
+        const x = f(s.from + dt / 3), y = f(s.from + 2 * dt / 3), a = 2 * x - y, b = 2 * y - x;
+        pre.push(pre.at(-1) + dt * (a + b) / 2);
+        pieces.push({ dt, a, b });
+        min = Math.min(min, a, b); max = Math.max(max, a, b);
+      }
+      const mean = pre.at(-1) / T;
+      const acSquare = pieces.reduce((sum, { dt, a, b }) => {
+        const x = a - mean, y = b - mean;
+        return sum + dt * (x * x + x * y + y * y) / 3;
+      }, 0);
+      const p = { pre, stats: { mean, acRms: Math.sqrt(acSquare / T), peak: Math.max(Math.abs(min), Math.abs(max)), peakAc: Math.max(Math.abs(min - mean), Math.abs(max - mean)) } };
+      pairs.set(key, p); return p;
+    };
+    const meanOver = (hi, lo, t1, t2) => {
+      const p = pair(hi, lo);
+      if (!(t2 > t1)) return p.stats.mean;
+      const integral = (t) => {
+        const { interval: s, phase } = locate(t), i = intervals.indexOf(s);
+        return Math.floor(t / T) * p.pre.at(-1) + p.pre[i] + s.g.sol.meanOver(hi, lo, s.from, phase) * (phase - s.from);
+      };
+      return (integral(t2) - integral(t1)) / (t2 - t1);
+    };
+    const warn = [...built.warn];
+    if ([...variants.values()].some((g) => g.modesUnsupported)) warn.push({ level: 'bad', text: '目前不支援此多電源接法：週期中無法找到一致的 CV／CC／逆灌工作點，波形及保護讀回無效。' });
+    built.gpe.forEach((c, k) => {
+      if (intervals.some((s) => s.g.modes[k] === 'RB')) warn.push({ level: 'bad', text: `GPE CH${c.ch} 在 AFG 週期中被其他電源灌入：電源不能吸收電流，逆灌時輸出開路（RB）。` });
+    });
+    const sol = { ...seg.sol, nodeAt, table, stats: (hi, lo) => pair(hi, lo).stats, meanOver, warn };
+    if (this.board !== 'bb') sol.v = Object.fromEntries(NODES.map((x) => [x, table(built.find(x))]));
+    const modeAt = (t) => locate(t).interval.g.modes;
+    return { ...seg, sol, modeAt, get modes() { return modeAt(thisBench.now()); } };
+  }
+
   // 這一段之後第一次模式切換（CC 的端電壓升到設定值→CV；CV 電流超過限流→CC、變成負的→RB；RB 端電壓降回設定→CV）
   nextEvent(seg) {
     const b = seg.built;
-    if (!b.gpe.length || !seg.sol.lam.length || !seg.amp.some((a) => Math.abs(a) > 1e-12)) return null;
+    if (!b.gpe.length || seg.modeAt || !seg.sol.lam.length || !seg.amp.some((a) => Math.abs(a) > 1e-12)) return null;
     const span = 40 / Math.min(...seg.sol.lam), N = 240;
     const f = (k, t) => {
       const c = b.gpe[k], { v, i } = chanAt(seg, k, t), m = seg.modes[k];
@@ -277,6 +378,13 @@ export class Bench {
       if (prev) prev.to = t;
       const built = this.build();
       let seg = this.makeSeg(built, before, t, null);
+      if (built.gpe.length && seg.sol.periodic && !seg.sol.caps.length) seg = this.periodicSeg(seg);
+      else if (seg.sol.periodic && seg.sol.caps.length && built.gpe.some((c) => seg.sol.stats(c.pos, c.neg).acRms > 1e-12)) {
+        // 有動態狀態的混合電源需要完整的混合系統求解，目前的有限暫態事件
+        // 排程不能保證無限週期的保護切換；接線結果必須明確標示這個限制。
+        built.warn.push({ level: 'bad', text: '目前不支援 AFG 與 GPE 共同驅動含電容電路的週期限流／逆灌切換：波形及 GPE CV／CC 讀回僅為近似，請關閉其中一台輸出後再量測。' });
+        seg.sol.warn = [...seg.sol.warn, built.warn.at(-1)];
+      }
       if (!prev) seg.from = -Infinity;
       this.segs.push(seg);
       for (let ev = 0; ev < 8; ev++) { // 依序排出之後的模式切換（例：CC 充電 → CV）
@@ -286,7 +394,8 @@ export class Bench {
         seg = this.makeSeg(built, capsAt(seg, nx.t), nx.t, nx.modes);
         this.segs.push(seg);
       }
-      this.segs = this.segs.filter((g) => g.to > t - HIST_S);
+      // 保留已發生的電路變更，讓慢時基與任意水平位置的預觸發查詢
+      // 仍用真正的歷史；不得拿最早剩下的 ON 電路向 OFF 的過去外插。
     }
     return this.segAt(this.now()).sol;
   }
@@ -304,7 +413,7 @@ export class Bench {
   }
 
   // 第一顆電容的電壓（相容舊介面）
-  vcAt(t) { this.solution(); const g = this.segAt(t), id = g.sol.caps[0]; return id == null ? 0 : capsAt(g, t)[id]; }
+  vcAt(t) { this.solution(); const g = this.segAt(t), id = g.sol.capKeys[0]; return id == null ? 0 : capsAt(g, t)[id]; }
 
   // 最近一次電路改變的時刻（第一段＝第一次計算的時刻）
   changedAt() { this.solution(); return this.changeT; }
@@ -316,6 +425,12 @@ export class Bench {
     const g = this.segAt(t);
     if (!g.amp.some((a) => Math.abs(a) > 1e-9)) return false;
     return g.sol.names.some((x) => Math.abs(devNode(g, x, t)) > 1e-6);
+  }
+
+  // 無電容的 AFG／GPE 週期模式也會改變讀回，外殼須定時重畫 GPE。
+  gpeReadbackActive(t = this.now()) {
+    this.solution();
+    return !!this.segAt(t).modeAt || this.transientActive(t);
   }
 
   connect(lead, node) {
@@ -339,9 +454,32 @@ export class Bench {
       if (!node) return null;
       const off = devNode(g, node, tView);
       const abs = (t) => { const h = this.segAt(t); return nodeIn(h, h.built.leadNode[lead], t); };
-      if (node === 'E') return { table: new Float64Array(M), period: sol.period, at: () => 0, abs };
+      // abs(t) 相對連續採集的 at(t) 的保守範圍：每個模態分別取兩端
+      // 最大／最小值，避免多模態互相抵消後讓觸發搜尋跳過真正的交越。
+      const transientRange = (a, b) => {
+        let min = Infinity, max = -Infinity;
+        for (const s of this.segs) {
+          const x = Math.max(a, s.from), y = Math.min(b, s.to);
+          if (y < x) continue;
+          const n = s.built.leadNode[lead];
+          let low = -off, high = -off;
+          if (s.sol !== sol || n !== node) {
+            const sw = s.sol.stats(n, 'E'), gw = sol.stats(node, 'E');
+            low += sw.mean - gw.mean - sw.peakAc - gw.peakAc;
+            high += sw.mean - gw.mean + sw.peakAc + gw.peakAc;
+          }
+          const w = s.sol.modeW(n);
+          s.sol.lam.forEach((l, m) => {
+            const c = w[m] * (s.amp[m] || 0), va = c * Math.exp(-l * Math.max(0, x - s.t0)), vb = c * Math.exp(-l * Math.max(0, y - s.t0));
+            low += Math.min(va, vb); high += Math.max(va, vb);
+          });
+          min = Math.min(min, low); max = Math.max(max, high);
+        }
+        return min === Infinity ? [0, 0] : [min, max];
+      };
+      if (node === 'E') return { table: new Float64Array(M), period: sol.period, at: () => 0, abs, transientRange };
       const tb = sol.table(node);
-      return { table: Float64Array.from(tb, (x) => x + off), period: sol.period, at: (t) => sol.nodeAt(node, t) + off, abs };
+      return { table: Float64Array.from(tb, (x) => x + off), period: sol.period, at: (t) => sol.nodeAt(node, t) + off, abs, transientRange };
     });
     return { sig, probe: [...this.probeX], now, tView, changedAt: this.changeT, tau: sol.tauMax };
   }
@@ -388,7 +526,8 @@ export class Bench {
       const j = g.built.gpe.findIndex((x) => x.ch === k + 1);
       if (j < 0) { out[k + 1] = { v: c.v, i: 0, cc: false }; return; }
       const { v, i } = chanAt(g, j, t); // 含暫態：例如限流充電時顯示 CC 與上升中的端電壓
-      out[k + 1] = { v: Math.max(0, v), i: Math.max(0, Math.min(i, c.ilim)), cc: g.modes[j] === 'CC', rb: g.modes[j] === 'RB' };
+      const mode = g.modeAt ? g.modeAt(t)[j] : g.modes[j];
+      out[k + 1] = { v: Math.max(0, v), i: Math.max(0, Math.min(i, c.ilim)), cc: mode === 'CC', rb: mode === 'RB' };
     });
     return out;
   }

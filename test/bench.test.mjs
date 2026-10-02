@@ -421,3 +421,120 @@ test('GPE Series：CH2 電壓跟 CH1；自己把 CH1− 接到 CH2＋，CH1＋�
   const r = s.gpe.readback();
   near(r[1].v, 5, 1e-3, 'CH1'); near(r[2].v, 5, 1e-3, 'CH2 跟 CH1（不是自己的 1 V）');
 });
+
+const sharedSupplyWires = { 'GPE.CH1+': 'b5', 'GPE.CH1-': 'b10', 'GPE.GND': 'c10', 'TDS.CH1.TIP': 'c5' };
+
+test('47 nF 直接跨 GPE 5 V／1 mA：100 µs 仍以 CC 充到 2.127 V，約 235 µs 後才轉 CV', () => {
+  const s = bbSetup([['C', 'a5', 'a10', 47e-9]], sharedSupplyWires);
+  s.gpe.vset[1] = 500; s.gpe.iset[1] = 1; s.b.solution();
+  s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
+  const t0 = s.now();
+  near(s.b.vcAt(t0), 0, 1e-12, '開輸出當下保持未充電');
+  assert.equal(s.b.gpeInput()[1].cc, true);
+  s.adv(100e-6);
+  near(s.b.vcAt(s.now()), 0.001 * 10e6 * -Math.expm1(-100e-6 / (10e6 * 47e-9)), 1e-8, '限流充電及探棒負載');
+  const r = s.b.gpeInput()[1];
+  assert.equal(r.cc, true); near(r.i, 0.001, 1e-12, '1 mA 限流');
+  const sw = s.b.segs.find((g) => g.from > t0 && g.modes[0] === 'CV');
+  assert.ok(sw);
+  near(sw.from - t0, -10e6 * 47e-9 * Math.log1p(-5 / (0.001 * 10e6)), 1e-8, '轉 CV 時刻');
+  s.adv(150e-6);
+  assert.equal(s.b.gpeInput()[1].cc, false);
+  near(s.b.vcAt(s.now()), 5, 1e-7, '已轉 CV');
+});
+
+function periodicSupply(C = 0) {
+  const s = bbSetup(C ? [['C', 'a5', 'a10', C]] : [], { ...sharedSupplyWires, 'AFG.CH1+': 'd5', 'AFG.CH1-': 'd10' });
+  s.afg.ch[0] = sine(10, 1000, 5); s.gpe.vset[1] = 500; s.gpe.iset[1] = 10;
+  s.b.solution(); s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
+  return s;
+}
+
+test('同節點 AFG 0～10 V／GPE 5 V 10 mA：正峰 RB、負峰 CC，10 秒後與示波器波形仍遵守限制', () => {
+  const s = periodicSupply(), t0 = s.now();
+  for (const elapsed of [0, 10]) {
+    s.adv(t0 + elapsed + 0.25e-3 - s.now());
+    let r = s.b.gpeInput()[1];
+    assert.equal(r.rb, true); assert.equal(r.cc, false); near(r.i, 0, 0, '不能吸收 AFG 電流');
+    near(r.v, 10 / (1 + 50 / 10e6), 1e-8, 'RB 端電壓跟隨 AFG');
+    near(s.b.tdsInput().sig[0].abs(s.now()), r.v, 1e-10, '示波器實際 RB 波形');
+    assert.equal(s.b.cur.modes[0], 'RB');
+    s.adv(0.5e-3); r = s.b.gpeInput()[1];
+    assert.equal(r.cc, true); assert.equal(r.rb, false); near(r.i, 0.01, 0, '10 mA 限流');
+    near(r.v, 0.01 / (1 / 50 + 1 / 10e6), 1e-8, 'CC 端電壓沒有箝在 5 V');
+    near(s.b.tdsInput().sig[0].abs(s.now()), r.v, 1e-10, '示波器實際 CC 波形');
+  }
+  assert.ok(s.b.snapshot().warn.some((w) => w.includes('灌入')));
+  assert.ok(s.b.segs.length <= 2, '週期切換不會產生無限事件歷史');
+});
+
+test('GPE／AFG 無電容的受限波形：週期統計、負時間與大絕對時間的積分一致', () => {
+  const s = periodicSupply(), sol = s.b.solution(), node = s.b.cur.built.leadNode['GPE.CH1+'];
+  const expected = (t) => {
+    const emf = 5 + 5 * Math.sin(2 * Math.PI * 1000 * t), load = 1 / 10e6 + 1e-12;
+    if (emf / (1 + 50 * load) > 5) return emf / (1 + 50 * load);
+    if ((5 - emf) / 50 + 5 * load > 0.01) return (emf / 50 + 0.01) / (1 / 50 + load);
+    return (emf / 50 + 5 / 0.01) / (1 / 50 + 1 / 0.01 + load);
+  };
+  const numericalMean = (a, b) => {
+    let sum = 0; const n = 100000;
+    for (let i = 0; i < n; i++) sum += expected(a + (i + 0.5) * (b - a) / n);
+    return sum / n;
+  };
+  const mean = numericalMean(0, sol.period);
+  near(sol.stats(node, 'E').mean, mean, 2e-6, '受限波形整週期平均');
+  for (const [a, b] of [[-2.25e-3, 2.75e-3], [1234.000123, 1234.005123]]) near(sol.meanOver(node, 'E', a, b), mean, 2e-6, '任意時間的整週期積分');
+  for (const [a, b] of [[-0.1e-3, 0.1e-3], [12.0002, 12.0008]]) near(sol.meanOver(node, 'E', a, b), numericalMean(a, b), 2e-6, '部分週期跨模式積分');
+});
+
+test('含電容的 AFG／GPE 共同驅動會明確顯示週期保護切換未支援，避免把近似 CV 誤當保護有效', () => {
+  const s = periodicSupply(47e-9);
+  assert.ok(s.b.snapshot().warn.some((w) => w.includes('目前不支援') && w.includes('週期限流')));
+});
+
+test('多路 GPE 模式迭代循環時，枚舉找到合法工作點；無關 AFG 不會使端電壓暴增到 1000 V', () => {
+  for (const periodic of [false, true]) {
+    const b = new Bench({ on: true, ch: [{ ...off }, { ...off }] });
+    b.now = () => 12.00025;
+    const built = { net: { nodes: ['P', 'X', 'Y'], elements: [
+      { id: 'R1', kind: 'R', a: 'P', b: 'E', value: 10000 },
+      { id: 'R2', kind: 'R', a: 'X', b: 'E', value: 100 },
+      { id: 'R3', kind: 'R', a: 'Y', b: 'E', value: 10000 },
+    ], afg: periodic ? [{ node: 'P', p: sine(2, 1000, 1) }] : [] }, gpe: [
+      { id: 'GPE1', ch: 1, pos: 'X', neg: 'Y', v: 10, ilim: 0.1 },
+      { id: 'GPE2', ch: 2, pos: 'X', neg: 'Y', v: 0, ilim: 1 },
+      { id: 'GPE3', ch: 3, pos: 'Y', neg: 'X', v: 5, ilim: 1 },
+    ], warn: [], find: (x) => x };
+    let g = b.makeSeg(built, {}, 12, null);
+    if (periodic) g = b.periodicSeg(g);
+    for (const t of [12.00025, 22.00075]) {
+      const modes = g.modeAt ? g.modeAt(t) : g.modes;
+      assert.deepEqual(modes, ['CC', 'CV', 'CC']);
+      near(g.sol.nodeAt('X', t) - g.sol.nodeAt('Y', t), -0.008999991, 1e-9, '一致工作點');
+      built.gpe.forEach((c, k) => {
+        const v = g.sol.nodeAt(c.pos, t) - g.sol.nodeAt(c.neg, t);
+        if (modes[k] === 'CC') assert.ok(v <= c.v + 1e-9, 'CC 端電壓不能超过設定');
+        if (modes[k] === 'CV') assert.ok((c.v - v) / 0.01 <= c.ilim + 1e-9 && (c.v - v) / 0.01 >= -1e-6, 'CV 電流合法');
+      });
+    }
+  }
+});
+
+test('慢時基歷史超過 2 秒：10.5 秒的 OFF 真值在 14 秒與後續改設定後仍為 0 V', () => {
+  let t = 10;
+  const afg = { on: true, ch: [{ ...off, emfVpp: 0.002, emfOffset: 1 }, { ...off }] }, b = new Bench(afg);
+  b.now = () => t; b.R = 1000; b.C = 10e-6; Object.assign(b.wires, DEMO); b.solution();
+  t = 11; afg.ch[0].output = true; b.solution();
+  const at105 = b.tdsInput().sig[0].abs(10.5), at115 = b.tdsInput().sig[0].abs(11.5);
+  near(at105, 0, 0, 'OFF 時段'); assert.ok(at115 > 0.9);
+  t = 14; afg.ch[0].emfOffset = 2; b.solution();
+  near(b.tdsInput().sig[0].abs(10.5), at105, 0, '3 秒後不外插 ON 設定');
+  near(b.tdsInput().sig[0].abs(11.5), at115, 0, '旧 ON 波形也保留');
+  t = 80; afg.ch[0].emfOffset = 3; b.solution();
+  near(b.tdsInput().sig[0].abs(10.5), at105, 0, '任意水平位置仍看實際歷史');
+  const sig = b.tdsInput().sig[0], [low, high] = sig.transientRange(10, 80);
+  for (const x of [10.5, 11.5, 14.5, 79]) {
+    const residual = sig.abs(x) - sig.at(x);
+    assert.ok(residual >= low - 1e-10 && residual <= high + 1e-10, '觸發用殘差範圍涵蓋歷史');
+  }
+});

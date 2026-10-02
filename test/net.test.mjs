@@ -44,6 +44,17 @@ test('GPE 浮接：負端不接地時元件兩端電壓仍正確；電容直接�
   assert.equal(s.lam.length, 0, '電容直接跨在電源上：τ＝R_GPE·C＜1 ns，當作瞬間跟上');
 });
 
+test('GPE 限流判斷保留 sub-ns CV 模態時，47 nF 的初始 0 V 不會被穩態覆蓋', () => {
+  const s = solveNet({ nodes: ['P'], elements: [{ id: 'C1', stateId: 'capacitor-instance', kind: 'C', a: 'P', b: 'E', value: 47e-9 }],
+    loads: [{ a: 'P', b: 'E', r: 10e6 }], dc: [{ id: 'GPE1', pos: 'P', neg: 'E', v: 5, mode: 'CV' }] }, { retainFastModes: true });
+  assert.equal(s.lam.length, 1);
+  assert.ok(s.lam[0] > 1e9, 'CV 的 τ 小於 1 ns');
+  assert.deepEqual(s.capKeys, ['capacitor-instance']);
+  const amp = s.modalFromCaps([0], 10), initialV = s.nodeAt('P', 10) + s.modeW('P')[0] * amp[0];
+  near(initialV, 0, 1e-12, '電容初始電壓');
+  near((5 - initialV) / R_GPE, 500, 1e-8, 'CV 要求 500 A，必須改用 CC');
+});
+
 test('CC：輸出電流超過限流 → 定電流，端電壓＝I×R', () => {
   const net = { nodes: ['P', 'N'], elements: [{ id: 'R1', kind: 'R', a: 'P', b: 'N', value: 10 }], dc: [{ id: 'GPE1', pos: 'P', neg: 'N', i: 0.1, mode: 'CC' }] };
   const s = solveNet(net);

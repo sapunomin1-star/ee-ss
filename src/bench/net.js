@@ -6,7 +6,7 @@
 //      Cr·z′＝−Gr·z＋Br·i（沒有人為的小電容，慢模態的精度不被快模態拖累）。
 //   2. 廣義特徵分解 Gr·ψ＝λ·Cr·ψ 化成 r 個獨立的一階模態 y′＝−λy＋g(t)；每個取樣區間內輸入是一次式，用
 //      φ 函數精確積分：y(s)＝y₀＋(p₀−λy₀)·s·φ₁(λs)＋p₁·s²·φ₂(λs)（對任何 λ 都不會大數相消）。
-//   3. 時間常數短於 1 ns 的模態（例：電容直接跨在 GPE 輸出上）視為瞬間跟上（代數）。
+//   3. 一般把時間常數短於 1 ns 的模態視為瞬間跟上；實驗台有 GPE 時保留這些模態，先以真實初始電荷判斷限流。
 //   節點電壓在區間內＝A＋B·s＋Σ_m w_m·(a_m·s·φ₁(λ_m s)＋b_m·s²·φ₂(λ_m s))；平方積分用分段 Gauss–Legendre（快模態在區間開頭分級）。
 import { emf } from './circuit.js';
 
@@ -100,7 +100,7 @@ const GL8 = [[0.1834346424956498, 0.362683783378362], [0.525532409916329, 0.3137
 // net＝{ nodes:[名稱], elements:[{id, kind:'R'|'C', a, b, value}], loads:[{a, b, r}],
 //        afg:[{ node, p:{wave,freq,sym,emfVpp,emfOffset} }]（黑夾＝大地）, dc:[{ id, pos, neg, v, i, mode:'CV'|'CC' }] }
 // 節點名 'E'＝大地。回傳週期穩態解（見檔頭）。
-export function solveNet(net) {
+export function solveNet(net, { retainFastModes = false } = {}) {
   const names = net.nodes.filter((x) => x !== 'E'), n = names.length, idx = new Map(names.map((x, i) => [x, i]));
   const at = (x) => (x === 'E' || !idx.has(x) ? -1 : idx.get(x));
   const G = zeros(n, n), Cn = zeros(n, n);
@@ -115,7 +115,7 @@ export function solveNet(net) {
   for (const el of net.elements) {
     if (at(el.a) === at(el.b)) continue; // 兩端同一點：被短路（不影響電路）
     if (el.kind === 'R') stamp(G, el.a, el.b, 1 / el.value);
-    if (el.kind === 'C') { stamp(Cn, el.a, el.b, el.value); caps.push({ id: el.id, a: at(el.a), b: at(el.b), C: el.value }); }
+    if (el.kind === 'C') { stamp(Cn, el.a, el.b, el.value); caps.push({ id: el.id, key: el.stateId ?? el.id, a: at(el.a), b: at(el.b), C: el.value }); }
   }
   for (const L of net.loads || []) if (at(L.a) !== at(L.b)) stamp(G, L.a, L.b, 1 / L.r);
   // 電源的 Norton 等效：AFG＝EMF/50 注入紅夾節點；GPE CV＝V/R_GPE 注入＋、流出−（並聯 1/R_GPE）；CC＝定電流
@@ -163,7 +163,10 @@ export function solveNet(net) {
     lam = val.map((x) => Math.max(x, 0));
     Phi = Psi.map((psi) => { const v = new Float64Array(n); Hz.forEach((h, j) => { for (let i = 0; i < n; i++) v[i] += h[i] * psi[j]; }); return v; });
   }
-  const slow = lam.map((l, m) => m).filter((m) => lam[m] <= LAMBDA_FAST);
+  // GPE 的限流判斷必須先看見所有電容的初始電壓；CV 的快模態也可能
+  // 對應到數百 µs 的 CC 充電，不能在判斷之前把初始電荷消去。
+  const fastLimit = retainFastModes ? Infinity : LAMBDA_FAST;
+  const slow = lam.map((l, m) => m).filter((m) => lam[m] <= fastLimit);
   // 某個輸入向量 u（Norton 注入）的響應：代數部分 Q·Gqq⁻¹·Qᵀu（直接解）＋快模態的準靜態部分；慢模態的輸入係數 Ψᵀ·Br·u
   const respond = (u) => {
     const w = q ? refined(Gqq, Lq, Q.map((qq) => dot(qq, u))) : new Float64Array(0);
@@ -171,7 +174,7 @@ export function solveNet(net) {
     Q.forEach((qq, k) => { for (let i = 0; i < n; i++) alg[i] += qq[i] * w[k]; });
     const bru = P.map((p, i) => dot(p, u) - Q.reduce((s2, qq, k) => s2 + dot(qq, GP[i]) * w[k], 0));
     const g = Psi.map((psi) => dot(psi, bru));
-    lam.forEach((l, m) => { if (l > LAMBDA_FAST) for (let i = 0; i < n; i++) alg[i] += (Phi[m][i] * g[m]) / l; });
+    lam.forEach((l, m) => { if (l > fastLimit) for (let i = 0; i < n; i++) alg[i] += (Phi[m][i] * g[m]) / l; });
     return { alg, beta: slow.map((m) => g[m]) };
   };
   const rAfg = nAfg.map(respond), rDc = respond(nDc);
@@ -285,14 +288,14 @@ export function solveNet(net) {
   };
   const modeW = (x) => { const i = at(x); return i < 0 ? lamS.map(() => 0) : PhiS.map((p) => p[i]); };
 
-  // 直流工作點（週期平均）：GPE 讀回與 CV／CC 判斷用。端電壓直接算＋、−之間（浮接時各自對地的值只由漏電導決定）
+  // 直流工作點（週期平均）；瞬間的 GPE 讀回與模式判斷另用 nodeAt。
   const dcOut = (net.dc || []).map((s) => {
     const vt = at(s.pos) === at(s.neg) ? 0 : stats(s.pos, s.neg).mean;
     return { id: s.id, v: vt, i: s.mode === 'CC' ? s.i : s.mode === 'RB' ? 0 : at(s.pos) === at(s.neg) ? Infinity : (s.v - vt) / R_GPE, mode: s.mode };
   });
 
   return {
-    names, periodic, period: T, h, M, lam: lamS, caps: caps.map((c) => c.id), capIdx: caps,
+    names, periodic, period: T, h, M, lam: lamS, caps: caps.map((c) => c.id), capKeys: caps.map((c) => c.key), capIdx: caps,
     table, nodeAt: nodeAtFast, stats, meanOver, capSS, modalFromCaps, modeW, dcOut, capD: D,
     tauMax: lamS.length ? 1 / Math.min(...lamS) : 0,
   };

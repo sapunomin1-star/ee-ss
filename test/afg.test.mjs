@@ -110,6 +110,26 @@ test('F05：1 kHz 游標移到 kHz 個位，順時針得 2 kHz、逆時針回 1 
   m.turn('AFG.KNOB.SCROLL_WHEEL', -1); assert.equal(m.c.freq, 1000);
 });
 
+test('F05：微赫茲頻率的預設游標不低於 1 µHz 解析度，提交與重開選單後旋鈕每格生效', () => {
+  for (const f of [1, 25, 999]) {
+    const m = fresh();
+    run(m, `FREQ ${f} F1`);
+    assert.equal(m.cexp, -6, `${f} µHz 提交後游標是合法最低位`);
+    for (let i = 0; i < 10; i++) m.turn('AFG.KNOB.SCROLL_WHEEL', 1);
+    near(m.c.freq, (f + 10) * 1e-6, 1e-12);
+    run(m, 'AMPL FREQ');
+    assert.equal(m.cexp, m.c.freq < 1e-3 ? -6 : -4, '重開頻率選單仍使用合法預設位權');
+    const before = m.c.freq;
+    m.turn('AFG.KNOB.SCROLL_WHEEL', 1);
+    near(m.c.freq, before + 10 ** m.cexp, 1e-12);
+  }
+  const m = fresh();
+  run(m, 'FREQ 1 F1 RIGHT');
+  assert.equal(m.cexp, -6, '往右也不超過最低解析度');
+  assert.equal(m.turn('AFG.KNOB.SCROLL_WHEEL', -1).kind, 'reject');
+  assert.equal(m.c.freq, 1e-6, '逆時針低於頻率下限被拒絕');
+});
+
 test('F04：Ramp 2 MHz 拒絕；10 Vpp 時 25 MHz 拒絕；Preset 後 25 MHz 接受', () => {
   const m = fresh();
   run(m, 'WAVE F4');

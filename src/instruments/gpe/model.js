@@ -257,7 +257,7 @@ export class GpeModel {
       return { ch, v: fmtFixed(e.vs, 2), a: e.is == null ? '---' : fmtFixed(e.is, 3), mode: null, set: !!rb };
     }
     const o = rb[ch];
-    return { ch, v: fmtFixed(o.v, 2), a: fmtFixed(o.i, 3), mode: o.cc ? 'CC' : 'CV', set: false };
+    return { ch, v: fmtFixed(o.v, 2), a: fmtFixed(o.i, 3), mode: o.rb ? 'RB' : o.cc ? 'CC' : 'CV', set: false };
   }
 
   lcdState(show = 'auto') {
@@ -289,7 +289,7 @@ export class GpeModel {
       ['負載', SCENARIOS.find((s) => s.id === this.load).label],
     ];
     const rb = this.readback();
-    if (rb) for (const c of [1, 2, 3, 4]) rows.push([`CH${c} 讀回`, `${fmtFixed(rb[c].v, 2)} V／${fmtFixed(rb[c].i, 3)} A（${rb[c].cc ? 'CC' : 'CV'}）`]);
+    if (rb) for (const c of [1, 2, 3, 4]) rows.push([`CH${c} 讀回`, `${fmtFixed(rb[c].v, 2)} V／${fmtFixed(rb[c].i, 3)} A（${rb[c].rb ? '逆灌，失去穩壓' : rb[c].cc ? 'CC' : 'CV'}）`]);
     return rows;
   }
 

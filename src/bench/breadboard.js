@@ -2,7 +2,8 @@
 // 這裡只管「插在哪裡、哪些孔相連」，不算電壓：電路計算讀 netlist(bbWires)。
 //   孔 id：主區 '{列}{欄}'（a1～j30）；電源軌 'T+{欄}'、'T-{欄}'（上方兩條）、'B+{欄}'、'B-{欄}'（下方兩條），欄 1～30。
 //   原始組（沒有跳線時相連的孔）：a–e 同一欄一組＝'{欄}U'、f–j 同一欄一組＝'{欄}L'；四條電源軌各自整條一組＝'T+'、'T-'、'B+'、'B-'。
-//   元件 { id, kind: 'R'|'C'|'W', a, b, value }：兩腳插在孔 a、b；R 的 value 單位 Ω、C 單位 F，W（跳線）沒有 value。
+//   元件 { id, stateId, kind: 'R'|'C'|'W', a, b, value }：id 是面板編號，stateId 是不重用的元件生命週期識別碼；
+//   兩腳插在孔 a、b；R 的 value 單位 Ω、C 單位 F，W（跳線）沒有 value。
 //   一個孔只能插一樣東西（元件腳、跳線端或儀器導線）；儀器導線插在哪個孔由外部的 bbWires（導線 id → 孔 id）記錄。
 import { LEADS } from './circuit.js';
 
@@ -73,6 +74,8 @@ export function occupantName(o) {
 }
 
 const validValue = (v) => typeof v === 'number' && Number.isFinite(v) && v > 0;
+// 清空、刪除或換一塊板後仍不重用：新插上的 C1 不能承接已拿掉的 C1 電荷。
+let nextStateId = 1;
 
 export class Breadboard {
   constructor() { this.parts = []; }
@@ -112,6 +115,7 @@ export class Breadboard {
       part.value = value ?? DEFAULT_VALUE[kind];
       if (!validValue(part.value)) return { ok: false, why: `${KIND_NAME[kind]}的值要是正數。` };
     }
+    part.stateId = `bb-part-${nextStateId++}`;
     this.parts.push(part);
     return { ok: true, part };
   }
@@ -163,7 +167,7 @@ export class Breadboard {
       if (x !== y) { if (rank(x) < rank(y)) parent[y] = x; else parent[x] = y; } // 根＝排序最前的組名
     }
     const groupOf = (h) => { const g = holeGroup(h); return g ? find(g) : null; };
-    const elements = this.parts.filter((p) => p.kind !== 'W').map((p) => ({ id: p.id, kind: p.kind, a: groupOf(p.a), b: groupOf(p.b), value: p.value }));
+    const elements = this.parts.filter((p) => p.kind !== 'W').map((p) => ({ id: p.id, stateId: p.stateId, kind: p.kind, a: groupOf(p.a), b: groupOf(p.b), value: p.value }));
     const leads = {};
     for (const [id, h] of Object.entries(bbWires)) { const n = groupOf(h); if (n) leads[id] = n; }
     const nodes = [...new Set([...elements.flatMap((e) => [e.a, e.b]), ...Object.values(leads)])].sort((x, y) => rank(x) - rank(y));

@@ -208,7 +208,7 @@ export class AfgModel {
 
   defaultCursor(hl) {
     const spec = CURSOR[hl];
-    if (hl === 'FREQ') return spec.def(this.c);
+    if (hl === 'FREQ') return Math.min(spec.max, Math.max(spec.min, spec.def(this.c)));
     return spec.def(hl === 'AMPL' ? this.c.unit : this.c.offUnit);
   }
 
@@ -280,7 +280,7 @@ export class AfgModel {
     const err = this.check(this.candidate({ freq: f }));
     if (err) return { kind: 'reject', text: `頻率 ${x} ${unitText} 被拒絕：${err}。原值保留。` };
     this.c.freq = f;
-    this.cexp = CURSOR.FREQ.def(this.c);
+    this.cexp = this.defaultCursor('FREQ');
     return null;
   }
 

@@ -766,6 +766,71 @@ test('Single：先關輸出並按 Single 等待，再開輸出 → 擷取到電�
   near(recAt(m, 1, -Math.log(2) * tau - 3e-3), 0, 0.01, '改變之前：0 V（輸出關）');
 });
 
+test('Single：10 µs/div 與 5 ns/div 都能擷取 100 kΩ／10 µF 慢充電，搜尋不被畫面時基截短（R3）', () => {
+  for (const scale of [10e-6, 5e-9]) {
+    const { m, bench, afg, change, clock } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 100e3, C: 10e-6, output: false });
+    Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
+    m.sIdx = SDIV.indexOf(scale); m.mpos = 0;
+    m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.05 };
+    run(m, 'SINGLE');
+    assert.equal(m.trigStatus(), 'Ready');
+    let calls = 0;
+    m.setBenchSource(() => {
+      const fx = bench.tdsInput(), s = fx.sig[1], abs = s.abs;
+      s.abs = (t) => { calls++; return abs(t); };
+      return fx;
+    });
+    change(() => { afg.ch[0].output = true; }, 1);
+    const t0 = clock.t;
+    assert.equal(m.trigStatus(), 'Acq. Complete');
+    assert.ok(m.rec.abs0 - t0 > 0.65 && m.rec.abs0 - t0 < 0.75, `交越在約 0.7 s：${m.rec.abs0 - t0}`);
+    near(bench.vcAt(m.rec.abs0), 0.5, 1e-7, '完整搜尋找到實際交越');
+    near(recAt(m, 1, 0), 0.5, 1e-6, '放大畫面仍對在 0.5 V');
+    assert.ok(calls < 45000, `慢暫態的完整搜尋有固定工作量上限：${calls}`);
+    change(() => {}, 1);
+    assert.equal(m.trigStatus(), 'Acq. Complete');
+  }
+});
+
+test('Single：完整搜尋保留遠離改變瞬間的 CR 窄脈衝（τ 比表格間隔還短）', () => {
+  const { m, bench, afg, change, clock } = benchWith({ wave: 'SQUARE', R: 100, C: 0.001e-6, output: false });
+  change(() => { bench.topo = 'CR'; }, 0);
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.05), pos: 0 });
+  m.sIdx = SDIV.indexOf(5e-9); m.mpos = 0;
+  m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.12 };
+  run(m, 'SINGLE');
+  change(() => { afg.ch[0].output = true; }, 1.0001);
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  assert.ok(m.rec.abs0 - clock.t > 0.0008 && m.rec.abs0 - clock.t < 0.001, '首次超過 1.2 V 的正向尖峰在下一個週期邊緣');
+  near(recAt(m, 1, -2e-9), 0, 1e-4, '窄脈衝之前為 0 V');
+  assert.ok(recAt(m, 1, 2e-9) > 1.25, '含 50 Ω 源阻抗的窄脈衝峰值約 1.33 V，沒有因搜尋區間放大而漏掉');
+});
+
+test('Single：未知訊號的搜尋超過單次預算時保留進度，之後更新能完成且不提早使用穩態', () => {
+  const m = new TdsModel();
+  let changedAt = 9, now = 10, calls = 0;
+  m.setBenchSource(() => ({
+    sig: [{ table: new Float64Array(4).fill(1), period: 1, at: () => 1,
+      abs: (t) => { calls++; return changedAt === 11 && t >= 11 + 10e-6 ? 1 : 0; } }, null],
+    probe: [1, 1], changedAt, now, tView: now, tau: 0.01,
+  }));
+  m.setScenario('BENCH');
+  Object.assign(m.ch[0], { probe: 1, vIdx: VDIV.indexOf(0.2) });
+  m.sIdx = SDIV.indexOf(5e-9); m.mpos = 0;
+  m.trig = { ...m.trig, slope: 'R', mode: 'NORMAL', level: 0.5 };
+  run(m, 'SINGLE');
+  changedAt = now = 11; calls = 0; m.inputChanged();
+  assert.equal(m.trigStatus(), 'Ready');
+  assert.ok(calls <= 40055, `第一批搜尋工作量：${calls}`);
+  assert.ok(m.changeSearch.waiting);
+  for (let j = 0; j < 20 && m.run === 'single'; j++) {
+    calls = 0; now += 0.1; m.inputChanged();
+    assert.ok(calls <= 42555, `續查工作量（含採集 2500 點）：${calls}`);
+  }
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  near(m.rec.abs0, 11 + 10e-6, 1e-12, '從保留的進度找到原始交越');
+});
+
 test('慢時基（Scan）看得到大 RC 的充電曲線：紀錄前段低、後段高，不是整條平移', () => {
   const { m, afg, change } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 100e3, C: 10e-6, output: false }); // 電容沒充電
   Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
