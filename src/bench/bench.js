@@ -431,7 +431,9 @@ export class Bench {
     const f = (k, t) => {
       const c = b.gpe[k], { v, i } = chanAt(seg, k, t), m = seg.modes[k];
       if (m === 'CV') return Math.max(i - c.ilim * (1 + 1e-9), -1e-6 - i); // > 0：該切換了
-      if (m === 'CC') return v - c.v * (1 + 1e-9);
+      // 事件排在物理交界本身；工作點判斷的相對容忍不可拿來延後充電，
+      // 否則高設定電壓的幾十 nV 超調會在 CV 下被誤判成逆灌電流。
+      if (m === 'CC') return v - c.v;
       return c.v * (1 - 1e-9) - v;
     };
     let best = null;

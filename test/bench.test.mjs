@@ -443,27 +443,31 @@ test('47 nF 直接跨 GPE 5 V／1 mA：100 µs 仍以 CC 充到 2.127 V，約 23
   near(s.b.vcAt(s.now()), 5, 1e-7, '已轉 CV');
 });
 
-test('47 nF 無任何儀器負載直接接 GPE：1 mA／1 A 初值精確為 0，只由 CC 轉 CV，不會數值超調誤判逆灌', () => {
-  for (const current of [0.001, 1]) {
-    const s = bbSetup([['C', 'a5', 'a10', 47e-9]], { 'GPE.CH1+': 'b5', 'GPE.CH1-': 'b10', 'GPE.GND': 'c10' });
-    s.gpe.vset[1] = 500; s.gpe.iset[1] = current * 1000; s.b.solution(); s.adv(1);
+test('無儀器負載的 1 nF～10 µF 接 GPE 5／32 V、1 mA／1 A：初值為 0，CC 轉 CV 不超設定或誤判逆灌', () => {
+  for (const voltage of [5, 32]) for (const current of [0.001, 1]) for (const capacitance of [1e-9, 47e-9, 1e-6, 10e-6]) {
+    const s = bbSetup([['C', 'a5', 'a10', capacitance]], { 'GPE.CH1+': 'b5', 'GPE.CH1-': 'b10', 'GPE.GND': 'c10' });
+    s.gpe.vset[1] = voltage * 100; s.gpe.iset[1] = current * 1000; s.b.solution(); s.adv(1);
     s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
-    const t0 = s.now(), crossing = 5 * 47e-9 / current;
-    near(s.b.vcAt(t0), 0, 0, `${current} A 未充電初值`);
+    const t0 = s.now(), crossing = voltage * capacitance / current;
+    near(s.b.vcAt(t0), 0, 0, `${voltage} V／${current} A／${capacitance} F 未充電初值`);
     const node = s.b.cur.built.leadNode['GPE.CH1+'];
     near(s.b.snapshot().dcNow[node], 0, 0, 'snapshot 也使用有限初值');
     assert.deepEqual(s.b.segs.filter((g) => g.from >= t0).map((g) => g.modes[0]), ['CC', 'CV']);
+    for (const segment of s.b.segs.filter((g) => g.from >= t0)) assert.ok(segment.initial.capInitial[0] <= voltage, '每個模式交界都不超過設定電壓');
     for (const fraction of [0.1, 0.5, 0.99, 1.02]) {
       s.adv(t0 + fraction * crossing - s.now());
       const elapsed = s.now() - t0, r = s.b.gpeInput()[1];
-      const expected = fraction < 1 ? current / 1e-12 * -Math.expm1(-1e-12 * elapsed / 47e-9) : 5;
+      const expected = fraction < 1 ? current / 1e-12 * -Math.expm1(-1e-12 * elapsed / capacitance) : voltage;
       near(s.b.vcAt(s.now()), expected, 1e-8, '實際時間的限流充電電压');
       assert.equal(r.cc, fraction < 1); assert.equal(r.rb, false);
+      assert.ok(s.b.vcAt(s.now()) <= voltage, '充電電容不超過設定電壓');
+      if (r.cc) near(r.i, current, 0, 'CC 正好以設定電流充電');
+      else assert.ok(r.i >= 0 && r.i <= current, 'CV 讀回電流在合法範圍');
       near(s.b.snapshot().dcNow[node], s.b.vcAt(s.now()), 1e-12, 'snapshot 與真實電容電壓一致');
       assert.ok(!s.b.snapshot().warn.some((w) => w.includes('灌入')));
     }
     s.adv(1.5);
-    near(s.b.vcAt(s.now()), 5, 1e-8, '充飽後保持 5 V');
+    near(s.b.vcAt(s.now()), voltage, 1e-8, '充飽後保持設定電壓');
     assert.equal(s.b.gpeInput()[1].rb, false);
   }
 });
