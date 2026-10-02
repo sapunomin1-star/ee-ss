@@ -98,6 +98,8 @@ svg.bench-svg { display: block; width: 100%; height: auto; user-select: none; ba
 .side ul.warn .w-ok { color: var(--ok); }
 .side .btns { display: flex; gap: 6px; margin-top: 8px; }
 .side .btns button { flex: 1; padding: 5px; border-radius: 6px; border: 1px solid var(--line); background: #f4f6f8; }
+.side .btns button:disabled { cursor: default; opacity: .45; }
+.side .wiring-history { padding: 0 8px 4px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 8px; background: #f4f6f8; }
 
 /* ---- 實驗台：麵包板 ---- */
 .side .board-sw { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; padding: 6px 10px; border-radius: 8px; background: #f4f6f8; border: 1px solid var(--line); }

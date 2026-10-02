@@ -15,7 +15,8 @@ const END = {
   'TDS.CH1.GND': { x: 648, y: 108, color: '#222', label: 'CH1 接地夾' },
   'TDS.CH2.TIP': { x: 648, y: 170, color: '#1e9bd7', label: 'CH2 尖端' },
   'TDS.CH2.GND': { x: 648, y: 208, color: '#222', label: 'CH2 接地夾' },
-  'DMM.HI': { x: 352, y: 470, color: '#d32f2f', label: 'HI（紅）' },
+  'DMM.HI': { x: 352, y: 450, color: '#d32f2f', label: 'HI（V Ω）' },
+  'DMM.I': { x: 352, y: 490, color: '#d32f2f', label: 'I（電流）' },
   'DMM.LO': { x: 352, y: 530, color: '#222', label: 'LO（黑）' },
 };
 const LEFT_SIDE = (id) => !id.startsWith('TDS');
@@ -103,7 +104,7 @@ export function benchSvg(bench, models) {
     <text x="30" y="394" font-size="14" font-weight="700" fill="#fff" style="text-anchor:start">34460A 測試線</text>
     ${mini(dmm, 26, 406, 230, 152, [480, 318], 'dmm', '34460A')}
     <text x="30" y="579" font-size="11.5" fill="#dfe3e6" style="text-anchor:start">${dmm.scenarios.get() === 'bench' ? '來源：實驗台接線' : '來源：單機情境（非接線）'}</text>
-    <text x="30" y="600" font-size="11.5" fill="#dfe3e6" style="text-anchor:start">紅＝HI（V Ω）、黑＝LO</text>
+    <text x="30" y="600" font-size="11.5" fill="#dfe3e6" style="text-anchor:start">HI＝V Ω、I＝電流，共用 LO</text>
     <rect x="400" y="316" width="240" height="284" rx="10" fill="#f3ead6" stroke="#b39b6a"/>
     <text x="520" y="340" font-size="13" font-weight="700" class="blk">RC 電路板</text>
     ${top}${side}
@@ -135,7 +136,7 @@ export function benchSide(bench, models, hints) {
   const warn = sol.warn.length ? sol.warn.map((w) => `<li class="w-${w.level}">${esc(w.text)}</li>`).join('') : '<li class="w-ok">接線沒有問題。</li>';
   return `
     <h2>實驗台（接線）<small>AFG → RC → 示波器＋電表</small></h2>
-    <section><h3>怎麼接線</h3><p class="howto">① 點左右兩側的導線端（變藍）→ ② 點電路板上的 A／B／G 就接上。已接好的導線端選取後再點一次＝拔掉。三台的小螢幕點一下就切到該台面板操作。</p></section>
+    <section><h3>怎麼接線</h3><p class="howto">① 點左右兩側的導線端（變藍）→ ② 點電路板上的 A／B／G 就接上。已接好的導線端選取後再點一次＝拔掉。三台的小螢幕點一下就切到該台面板操作。</p><p class="muted">電流要用 I、LO 串接。固定板的 R／C 內部連線不能拆開，請到麵包板斷開迴路後串入電表；把 I、LO 並接在元件兩端會形成低阻旁路。</p></section>
     <section><h3>電路</h3>
       <label class="fld">接法 <select name="topo"><option value="RC"${bench.topo === 'RC' ? ' selected' : ''}>R 在上：B 點＝電容電壓（低通）</option><option value="CR"${bench.topo === 'CR' ? ' selected' : ''}>C 在上：B 點＝電阻電壓（高通）</option></select></label>
       <label class="fld">R <select name="R">${opt(R_OPTIONS, bench.R, fmtR)}</select></label>

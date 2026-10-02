@@ -34,6 +34,12 @@ export const BB_DEMO = {
     parts: [['W', 'B+18', 'j18'], ['R', 'i18', 'i22', 1000], ['R', 'h22', 'h26', 1000], ['W', 'j26', 'B-26']],
     wires: { 'GPE.CH1+': 'B+29', 'GPE.CH1-': 'B-29', 'DMM.HI': 'g22', 'DMM.LO': 'g26' },
   },
+  current: {
+    name: '串接電流',
+    desc: '示範「串接電流」：GPE CH1＋經 R1 1 kΩ 到 I 3A，再由電表 LO 回到 GPE CH1−；原回路由電表分流支路補上。已切換 DCI，設定 GPE 電壓並打開 Output 即可量測；自行選電流功能可用 Shift→DCV。不能把 I–LO 並接在電源兩端；HI 是獨立電壓端，此示範不使用。',
+    parts: [['R', 'B+18', 'j18', 1000]],
+    wires: { 'GPE.CH1+': 'B+29', 'GPE.CH1-': 'B-29', 'DMM.I': 'i18', 'DMM.LO': 'B-26' },
+  },
 };
 
 // 解析孔 id：{ rail, col } 或 { row, col }；不是合法的孔回傳 null

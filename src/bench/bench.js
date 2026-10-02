@@ -6,6 +6,8 @@
 //   電表積分窗、示波器單次擷取往前看的部分，都照「當時那一段」的電路算：已完成的讀值不會被後來的操作改掉。
 import { stats, LEADS, NODES, M } from './circuit.js';
 import { solveNet, ohmsNet, R_GPE } from './net.js';
+import { hybridSeg } from './hybrid.js';
+import { APERTURE } from '../instruments/dmm/model.js';
 
 export const R_OPTIONS = [100, 470, 1000, 2200, 4700, 10000, 47000, 100000];
 export const C_OPTIONS = [0.001e-6, 0.01e-6, 0.047e-6, 0.1e-6, 0.47e-6, 1e-6, 10e-6];
@@ -27,6 +29,7 @@ export const DEMO = {
 // ---- 某一段的暫態：各慢模態的偏移 amp_m·e^(−λ_m·(t−t0))（t0 之前視為不衰減）----
 const decay = (g, t) => g.sol.lam.map((l) => Math.exp(-l * Math.max(0, t - g.t0)));
 function devNode(g, node, t) {
+  if (g.sol.actualNodeAt) return g.sol.actualNodeAt(node, t) - g.sol.nodeAt(node, t);
   if (!g.amp.length || node == null || node === 'E') return 0;
   const w = g.sol.modeW(node), d = decay(g, t);
   let v = 0;
@@ -52,12 +55,14 @@ function devDeltaInt(g, w, t1, t2) {
   return sum;
 }
 const devDeltaNode = (g, node, t) => g.sol.modeW(node).reduce((sum, w, m) => sum + w * (g.amp[m] || 0) * Math.expm1(-g.sol.lam[m] * Math.max(0, t - g.t0)), 0);
-const nodeIn = (g, node, t) => node == null || node === 'E' ? 0 : g.initial && g.sol.modeW(node).some((w) => w !== 0)
+const nodeIn = (g, node, t) => node == null || node === 'E' ? 0 : g.sol.actualNodeAt ? g.sol.actualNodeAt(node, t) : g.initial && g.sol.modeW(node).some((w) => w !== 0)
   ? g.initial.nodeAt(node) + g.sol.nodeChange(node, t, g.t0) + devDeltaNode(g, node, t) : g.sol.nodeAt(node, t);
-const frozenMean = (g, node, t) => nodeIn(g, node, t) + g.sol.meanChangeOver(node, 'E', 0, g.sol.period, t);
+const frozenMean = (g, node, t) => g.sol.actualMeanOver ? g.sol.actualMeanOver(node, 'E', t, t + g.sol.period)
+  : nodeIn(g, node, t) + g.sol.meanChangeOver(node, 'E', 0, g.sol.period, t);
 const expDiff = (a, b) => a <= b ? Math.exp(-a) * -Math.expm1(-(b - a)) : Math.exp(-b) * Math.expm1(-(a - b));
 // 某一段各電容在 t 的電壓 { 元件生命週期識別碼: V }
 function capsAt(g, t) {
+  if (g.sol.capActual) { const voltages = g.sol.capActual(t); return Object.fromEntries(g.sol.capKeys.map((id, k) => [id, voltages[k]])); }
   const ss = g.sol.capSS(t), out = {};
   g.sol.capKeys.forEach((id, k) => {
     let v = ss[k];
@@ -79,8 +84,8 @@ function chanAt(g, k, t) {
   return { v, i: m === 'CC' ? c.ilim : m === 'RB' ? 0 : (c.v - v) / R_GPE };
 }
 const nextMode = (c, m, { v, i }) => m === 'CV'
-  ? (i > c.ilim * (1 + 1e-9) ? 'CC' : i < -1e-6 ? 'RB' : m)
-  : m === 'CC' ? (v > c.v * (1 + 1e-9) ? 'CV' : m) : v < c.v * (1 - 1e-9) ? 'CV' : m;
+  ? (i > c.ilim + 1e-8 * Math.max(1, c.ilim) ? 'CC' : i < -1e-6 ? 'RB' : m)
+  : m === 'CC' ? (v > c.v - c.ilim * R_GPE + 1e-9 ? 'CV' : m) : v < c.v * (1 - 1e-9) ? 'CV' : m;
 // 幾路電源互相影響時，同時更新所有模式可能在幾組不合法模式間循環。
 // 先試快速迭代，遇到循環再有限枚舉（最多四路，3⁴＝81 組），逐路驗證。
 function resolveModes(channels, initial, t, candidate) {
@@ -175,12 +180,14 @@ export class Bench {
   // 目前板子的導線位置（固定 RC 板＝接點 A／B／G；麵包板＝孔）
   leadMap() { return this.board === 'bb' ? this.bbWires : this.wires; }
 
-  // 接上的儀器輸入電阻：探棒尖端對大地（依探棒開關），電表 HI–LO（依功能：DCV 10 MΩ、ACV 1 MΩ）。a、b＝導線 id
+  // 接上的儀器負載：探棒對大地、電壓端 HI–LO、電流端 I–LO 分流。a、b＝導線 id。
   loadLeads() {
     const L = [], W = this.leadMap();
     [0, 1].forEach((i) => { if (W[`TDS.CH${i + 1}.TIP`]) L.push({ a: `TDS.CH${i + 1}.TIP`, b: null, r: PROBE_R[this.probeX[i]] }); });
     const z = this.dmm?.inputZ?.();
     if (z && W['DMM.HI'] && W['DMM.LO']) L.push({ a: 'DMM.HI', b: 'DMM.LO', r: z });
+    const shunt = this.dmm?.currentShunt?.();
+    if (shunt && W['DMM.I'] && W['DMM.LO']) L.push({ a: 'DMM.I', b: 'DMM.LO', r: shunt, current: true });
     return L;
   }
 
@@ -260,8 +267,18 @@ export class Bench {
         gpe.push({ id: `GPE${k + 1}`, ch: k + 1, pos, neg, v: c.v, ilim: c.ilim });
       });
     }
-    // 儀器輸入電阻
-    const loads = this.loadLeads().map((L) => ({ a: leadNode[L.a], b: L.b ? leadNode[L.b] : 'E', r: L.r })).filter((L) => L.a && L.b && L.a !== L.b);
+    // 電流端確實形成一條負載支路；量測的是該支路電流，並非拿 HI 電壓除板上電阻。
+    const instrumentLoads = this.loadLeads().map((L) => ({ a: leadNode[L.a], b: L.b ? leadNode[L.b] : 'E', r: L.r, ...(L.current ? { current: true } : {}) }));
+    const current = instrumentLoads.find((L) => L.current) ?? null;
+    const loads = instrumentLoads.filter((L) => L.a && L.b && L.a !== L.b);
+    if (current) {
+      const { a, b, r } = current, same = (x, y) => x === a && y === b || x === b && y === a;
+      warn.push({ level: 'info', text: `電表 I–LO 保留 ${Number(r.toPrecision(5))} Ω 等效分流負載（以原廠負擔電壓上限推算的教學近似，非原廠內阻）；切其他功能或關機仍導通，不模擬保險絲熔斷。` });
+      if (a === b) warn.push({ level: 'bad', text: '電表 I 與 LO 接在同一電氣節點，沒有串入回路；讀到 0 A 不能代表原回路沒有電流。' });
+      else if (gpe.some((s) => same(s.pos, s.neg)) || afg.some((s) => same(s.node, 'E'))) {
+        warn.push({ level: 'bad', text: '電表 I–LO 直接並接在電源兩端，形成低阻負載：電流表應先拆開回路再串入。沒有模擬保險絲熔斷，不能把限流或讀值當成安全接法。' });
+      } else if (elements.some((e) => same(e.a, e.b))) warn.push({ level: 'bad', text: '電表 I–LO 與元件並聯，量到的是分流支路而非該元件電流，並會旁路原元件；量電流應拆開回路再串入。' });
+    }
     // 通電範圍：和有輸出的電源（AFG、GPE）以元件、儀器輸入電阻或電源本身相連的接點（量電阻時要避開）
     const cp = new Map(), cf = (x) => { if (!cp.has(x)) cp.set(x, x); let y = x; while (cp.get(y) !== y) y = cp.get(y); cp.set(x, y); return y; };
     const cu = (a, b) => { if (a != null && b != null) cp.set(cf(a), cf(b)); };
@@ -269,7 +286,7 @@ export class Bench {
     afg.forEach((s) => cu(s.node, 'E')); gpe.forEach((s) => cu(s.pos, s.neg));
     const live = new Set([...afg.map((s) => cf(s.node)), ...gpe.map((s) => cf(s.pos))]);
     const powered = (x) => x != null && live.has(cf(x));
-    return { net: { nodes: netNodes, elements, loads, afg }, gpe, leadNode, warn, find: node, powered };
+    return { net: { nodes: netNodes, elements, loads, afg }, gpe, leadNode, current, warn, find: node, powered };
   }
 
   // 一段電路狀態：從 t0 起，GPE 各路用 modes（CV／CC／RB）。模式依「t0 當下」的狀態決定（含電容電壓），
@@ -430,10 +447,10 @@ export class Bench {
     const span = 40 / Math.min(...seg.sol.lam), N = 240;
     const f = (k, t) => {
       const c = b.gpe[k], { v, i } = chanAt(seg, k, t), m = seg.modes[k];
-      if (m === 'CV') return Math.max(i - c.ilim * (1 + 1e-9), -1e-6 - i); // > 0：該切換了
-      // 事件排在物理交界本身；工作點判斷的相對容忍不可拿來延後充電，
-      // 否則高設定電壓的幾十 nV 超調會在 CV 下被誤判成逆灌電流。
-      if (m === 'CC') return v - c.v;
+      if (m === 'CV') return Math.max(i - c.ilim - 1e-8 * Math.max(1, c.ilim), -1e-6 - i); // > 0：該切換了
+      // 事件排在物理交界本身，CC→CV 時兩側電流都等於 Ilim；
+      // 模式合法性的容忍不可拿來延後充電。
+      if (m === 'CC') return v - (c.v - c.ilim * R_GPE);
       return c.v * (1 - 1e-9) - v;
     };
     let best = null;
@@ -446,8 +463,10 @@ export class Bench {
         if (fb > 0) {
           let lo = ta, hi = tb;
           for (let r = 0; r < 60; r++) { const mid = (lo + hi) / 2; if (f(k, mid) > 0) hi = mid; else lo = mid; }
-          // 用最後合法的一側切換，避免絕對時間的 1 ULP 超調被下一段誤當逆灌。
-          if (!best || lo < best.t) best = { t: lo, k };
+          // CC→CV 的交界是 Vset−Ilim·R_GPE；取第一個跨過交界的
+          // 可表示時間，CV 初值的電流才不會因大絕對時間的一 ULP 超限。
+          const crossing = seg.modes[k] === 'CC' ? hi : lo;
+          if (!best || crossing < best.t) best = { t: crossing, k };
           return;
         }
         ta = tb; fa = fb;
@@ -470,12 +489,10 @@ export class Bench {
       this.segs = this.segs.filter((g) => g.from <= t || g.from === -Infinity);
       if (prev) prev.to = t;
       const built = this.build(), groups = periodicGroups(built);
-      if (groups.dynamic.length) {
-        // 有動態狀態的混合電源需要完整的混合系統求解，目前的有限暫態事件
-        // 排程不能保證無限週期的保護切換；接線結果必須明確標示這個限制。
-        built.warn.push({ level: 'bad', text: '目前不支援 AFG 與 GPE 共同驅動含電容電路的週期限流／逆灌切換：波形及 GPE CV／CC 讀回僅為近似，請關閉其中一台輸出後再量測。' });
-      }
-      let seg = this.withPeriodicGroups(this.makeSeg(built, before, t, null), groups);
+      const commonFrequency = built.net.afg.every((s) => Math.abs(s.p.freq - built.net.afg[0].p.freq) <= 1e-9 * s.p.freq);
+      if (groups.dynamic.length && !commonFrequency) built.warn.push({ level: 'bad', text: '目前不支援不同頻率 AFG 與 GPE 共同驅動含電容的週期保護：本輪僅支援單一或同頻率 AFG，波形及保護讀回僅為近似。' });
+      const initial = this.makeSeg(built, before, t, null);
+      let seg = groups.dynamic.length && commonFrequency ? hybridSeg(initial, () => this.now()) : this.withPeriodicGroups(initial, groups);
       if (!prev) seg.from = -Infinity;
       this.segs.push(seg);
       for (let ev = 0; ev < 8; ev++) { // 依序排出之後的模式切換（例：CC 充電 → CV）
@@ -499,6 +516,7 @@ export class Bench {
     this.solution();
     const g = this.segAt(t), id = g.sol.caps[0];
     if (id == null) return 0;
+    if (g.sol.capActual) return g.sol.capActual(t)[0] - g.sol.capSS(t)[0];
     const d = decay(g, t);
     return (g.sol.capD[0] || []).reduce((s2, w, m) => s2 + w * (g.amp[m] || 0) * d[m], 0);
   }
@@ -514,6 +532,7 @@ export class Bench {
     this.solution();
     if (this.segs.some((g) => g.from > t)) return true;
     const g = this.segAt(t);
+    if (g.sol.actualNodeAt) return g.sol.names.some((x) => Math.abs(devNode(g, x, t)) > 1e-6);
     if (!g.amp.some((a) => Math.abs(a) > 1e-9)) return false;
     return g.sol.names.some((x) => Math.abs(devNode(g, x, t)) > 1e-6);
   }
@@ -535,7 +554,8 @@ export class Bench {
   }
 
   // 示波器：每通道探棒尖端的波形（接點對大地）；尖端沒接＝沒有訊號。
-  //   table／at：週期穩態＋「看的時刻」tView 的暫態偏移（連續採集用；at 在取樣點之間照解析式，窄脈衝不失真）；
+  //   table／at：週期穩態＋tView 暫態偏移；混合週期保護直接用週期穩態。
+  //     連續採集用；at 在取樣點之間照解析式，窄脈衝不失真。
   //   abs(t)：絕對時間 t 的實際電壓（含暫態與歷史）：單次擷取、暫態中的採集用。
   tdsInput() {
     this.solution();
@@ -543,8 +563,10 @@ export class Bench {
     const sig = [0, 1].map((i) => {
       const lead = `TDS.CH${i + 1}.TIP`, node = g.built.leadNode[lead];
       if (!node) return null;
-      const off = devNode(g, node, tView);
-      const atView = nodeIn(g, node, tView), at = (t) => atView + sol.nodeChange(node, t, tView);
+      // Hybrid 的連續採集 at 是週期穩態；實際暫態由 abs 提供。
+      // 不必先求 tView 的實際狀態，且舊歷史段相對此 at 的偏移應為零。
+      const hybrid = !!sol.actualNodeAt, off = hybrid ? 0 : devNode(g, node, tView);
+      const atView = hybrid ? 0 : nodeIn(g, node, tView), at = hybrid ? (t) => sol.nodeAt(node, t) : (t) => atView + sol.nodeChange(node, t, tView);
       const abs = (t) => { const h = this.segAt(t); return nodeIn(h, h.built.leadNode[lead], t); };
       // abs(t) 相對連續採集的 at(t) 的保守範圍：每個模態分別取兩端
       // 最大／最小值，避免多模態互相抵消後讓觸發搜尋跳過真正的交越。
@@ -554,6 +576,10 @@ export class Bench {
           const x = Math.max(a, s.from), y = Math.min(b, s.to);
           if (y < x) continue;
           const n = s.built.leadNode[lead];
+          if (s.sol.actualRange) {
+            const [low, high] = s.sol.actualRange(n, x, y), wave = sol.stats(node, 'E');
+            min = Math.min(min, low - wave.mean - wave.peakAc); max = Math.max(max, high - wave.mean + wave.peakAc); continue;
+          }
           const same = s.sol === sol && n === node;
           let low = same ? 0 : -off, high = same ? 0 : -off;
           if (!same) {
@@ -578,37 +604,66 @@ export class Bench {
     return { sig, probe: [...this.probeX], now, tView, changedAt: this.changeT, tau: sol.tauMax };
   }
 
-  // 電表：HI−LO 的電壓。dc＝整週期平均（含目前暫態）、meanOver(t1,t2)＝時間窗平均（DCV 積分用）、
+  // 電表：HI−LO 電壓，以及真正串入電路的 I−LO 分流電流。dc＝整週期平均（含目前暫態）、meanOver(t1,t2)＝時間窗平均（DCV/DCI 積分用）、
   // ac＝交流有效值、peak／peakAc＝瞬間最大值／交流峰值（自動量程看峰值）、freq＝訊號頻率、now＝目前時間。
   // 電阻只在電路沒通電時量（C 在直流下視為開路）。
   dmmInput() {
     const W = this.leadMap();
-    if (!W['DMM.HI'] || !W['DMM.LO']) return { v: null, ohm: null, why: '電表的 HI、LO 測試線要兩條都接上電路。' };
     this.solution();
-    const t = this.now(), g = this.segAt(t), sol = g.sol, hi = g.built.leadNode['DMM.HI'], lo = g.built.leadNode['DMM.LO'];
-    const w = sol.stats(hi, lo), dc = frozenMean(g, hi, t) - frozenMean(g, lo, t);
-    // 積分窗 [t1, t2]：每一小段照「當時」的電路與測試線位置算（當時測試線沒接好就當 0 V）
-    const meanOver = (t1, t2) => {
+    const t = this.now();
+    // 每段照當時測試線位置、量程負載及保護模式算；未接好的時間按零計，不能用新分流電阻改寫舊讀值。
+    const meanOver = (isCurrent, t1, t2) => {
+      if (!(t2 > t1)) return 0;
       let sum = 0;
       for (const s of this.segs) {
-        const a = Math.max(t1, s.from), b = Math.min(t2, s.to), h = s.built.leadNode['DMM.HI'], l = s.built.leadNode['DMM.LO'];
+        const a = Math.max(t1, s.from), b = Math.min(t2, s.to), h = s.built.leadNode[isCurrent ? 'DMM.I' : 'DMM.HI'], l = s.built.leadNode['DMM.LO'];
         if (!(b > a) || !h || !l) continue;
+        const divisor = isCurrent ? s.built.current?.r : 1;
+        if (!divisor) continue;
+        if (s.sol.actualMeanOver) { sum += s.sol.actualMeanOver(h, l, a, b) * (b - a) / divisor; continue; }
         const wh = h === 'E' ? s.sol.lam.map(() => 0) : s.sol.modeW(h), wl = l === 'E' ? s.sol.lam.map(() => 0) : s.sol.modeW(l);
         const initial = nodeIn(s, h, s.t0) - nodeIn(s, l, s.t0);
-        sum += (initial + s.sol.meanChangeOver(h, l, a, b, s.t0)) * (b - a) + devDeltaInt(s, wh.map((x, m) => x - wl[m]), a, b);
+        sum += ((initial + s.sol.meanChangeOver(h, l, a, b, s.t0)) * (b - a) + devDeltaInt(s, wh.map((x, m) => x - wl[m]), a, b)) / divisor;
       }
       return sum / (t2 - t1);
     };
-    const v = {
-      dc, ac: w.acRms, peak: Math.abs(dc) + w.peakAc, peakAc: w.peakAc,
-      freq: sol.periodic ? 1 / sol.period : 0, now: t, meanOver,
+    const signal = (isCurrent) => {
+      const s = this.segAt(t), h = s.built.leadNode[isCurrent ? 'DMM.I' : 'DMM.HI'], l = s.built.leadNode['DMM.LO'];
+      const divisor = isCurrent ? s.built.current?.r : 1;
+      if (!h || !l || !divisor) return null;
+      const w = s.sol.stats(h, l), dc = (frozenMean(s, h, t) - frozenMean(s, l, t)) / divisor;
+      return { dc, ac: w.acRms / divisor, peak: Math.abs(dc) + w.peakAc / divisor, peakAc: w.peakAc / divisor,
+        freq: s.sol.periodic ? 1 / s.sol.period : 0, now: t, meanOver: (a, b) => meanOver(isCurrent, a, b) };
     };
+    // Auto 量程和分流電阻互相影響。只用純 idx/電路解算有限迭代，不呼叫 DMM.rangeIdx 或 reading。
+    // 降檔需低於下一候選檔的 80% 容量，避免不同負載在邊界往返切檔（教學遲滯）。
+    const meter = this.dmm;
+    if (meter?.on && meter.fx?.bench && meter.f.kind === 'I' && meter.st.auto && W['DMM.I'] && W['DMM.LO']) {
+      const seen = new Set();
+      for (let n = 0; n < 8; n++) {
+        const i = signal(true); if (!i) break;
+        const tr = Math.floor(t / APERTURE) * APERTURE;
+        const old = meter.st.idx, x = meter.f.part === 'ac' ? i.ac : Math.max(Math.abs(i.dc), Math.abs(i.meanOver(tr - APERTURE, tr))), pk = meter.f.part === 'ac' ? i.peakAc : 0;
+        let wanted = meter.f.ranges.findIndex((r) => x <= r.limit * (1 + 1e-12) && pk <= (meter.f.part === 'ac' ? 3 * r.v : Infinity) * (1 + 1e-12));
+        if (wanted < 0) wanted = meter.f.ranges.length - 1;
+        if (wanted < old) {
+          const r = meter.f.ranges[wanted];
+          if (x > r.limit * 0.8 || pk > 3 * r.v * 0.8) break;
+        }
+        if (wanted === old) break;
+        if (seen.has(wanted)) { meter.st.idx = Math.max(old, wanted, ...seen); this.solution(); break; }
+        seen.add(old); meter.st.idx = wanted; this.solution();
+      }
+    }
+    const g = this.segAt(t), hi = g.built.leadNode['DMM.HI'], lo = g.built.leadNode['DMM.LO'], v = signal(false), i = signal(true);
     // 只有和通電中的電源連在一起的迴路不能量；完全獨立、沒通電的迴路照常量
     const powered = g.built.powered(hi) || g.built.powered(lo);
     let ohm = null, whyR = '';
-    if (powered) whyR = '電表接的這個迴路通電中，不能量電阻：先關 AFG 的 OUTPUT（或拔掉紅夾）、GPE 的 Output。';
+    if (!hi || !lo) whyR = '電表的 HI、LO 測試線要兩條都接上電路。';
+    else if (powered) whyR = '電表接的這個迴路通電中，不能量電阻：先關 AFG 的 OUTPUT（或拔掉紅夾）、GPE 的 Output。';
     else ohm = ohmsNet(g.built.net, hi, lo);
-    return { v, ohm, why: '', whyR, whyI: '實驗台目前只支援電壓（DCV、ACV）與電阻量測；量電流要把電表串進電路，還沒有提供。' };
+    return { v, i, ohm, why: '', whyV: v ? '' : '電壓量測要將 HI、LO 兩條測試線接上（I 3A 不是電壓端）。', whyR,
+      whyI: i ? '' : '電流量測要拆開原回路，將 I 3A、LO 兩條測試線串入；HI 不能代替 I 端。' };
   }
 
   // GPE 四路讀回（實驗台）：接上兩條導線的通道＝電路實際的端電壓、電流與 CV／CC；沒接成迴路＝開路（設定電壓、0 A）
@@ -622,7 +677,7 @@ export class Bench {
       if (j < 0) { out[k + 1] = { v: c.v, i: 0, cc: false }; return; }
       const { v, i } = chanAt(g, j, t); // 含暫態：例如限流充電時顯示 CC 與上升中的端電壓
       const mode = g.modeAt ? g.modeAt(t)[j] : g.modes[j];
-      out[k + 1] = { v: Math.max(0, v), i: Math.max(0, Math.min(i, c.ilim)), cc: mode === 'CC', rb: mode === 'RB' };
+      out[k + 1] = { v: Math.max(0, v), i: Math.max(0, i), cc: mode === 'CC', rb: mode === 'RB' };
     });
     return out;
   }
