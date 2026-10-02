@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import { TdsModel, SDIV, VDIV } from '../src/instruments/tds/model.js';
 import { Bench, DEMO } from '../src/bench/bench.js';
 import { stats as waveStats } from '../src/bench/circuit.js';
+import { createInstruments } from '../src/instruments/index.js';
+import { captureSession, validateSession } from '../src/core/session.js';
 
 const K = {
   AUTOSET: 'TDS.KEY.AUTOSET', DEFAULT: 'TDS.KEY.DEFAULT_SETUP', RUN: 'TDS.KEY.RUN_STOP', SINGLE: 'TDS.KEY.SINGLE',
@@ -84,6 +86,18 @@ test('BENCH AutoSet 恰好兩週期：RC／CR 正弦與方波的 Freq、Period�
     turn(m, 'HS', 2); // 縮到不足一週期：不得用邊界外資料捏造量測
     assert.ok(10 * m.sdiv * freq < 1);
     for (const type of ['FREQ', 'PERIOD', 'CYCRMS']) assert.equal(m.measure(0, type).value, null, type);
+  }
+});
+
+test('BENCH AutoSet 的低頻超出最大時基時仍可採集、顯示，邊界選檔正確', () => {
+  for (const [freq, scale, tooSlow] of [[0.001, 50, true], [0.003999, 50, true], [0.004, 50, false], [0.008, 25, false]]) {
+    const { m } = freshBench('SINE', freq);
+    const hint = m.press(K.AUTOSET);
+    assert.equal(m.sdiv, scale, `${freq} Hz 的 AutoSet 時基`);
+    assert.equal(hint.text.includes('訊號太慢'), tooSlow);
+    assert.ok(Number.isFinite(m.rec.dt));
+    assert.ok(m.rec.v.filter(Boolean).every((arr) => arr.every(Number.isFinite)), '採集值不可為 NaN');
+    assert.doesNotThrow(() => m.lcd());
   }
 });
 
@@ -330,6 +344,29 @@ test('AutoSet 恢復案例：S2 的 CH1 Position +5 div → 歸零並選 500 mV/
   assert.equal(m.ch[1].pos, 0);
   near(m.vdiv(1), 0.5);
   assert.ok(stats(m).max / m.vdiv(0) <= 2 + 1e-9);
+});
+
+test('AutoSet 選檔也遵守候選刻度的 Position 限制，正常操作後的存檔可載入', () => {
+  for (const sign of [-1, 1]) {
+    const models = createInstruments(), m = models.tds;
+    const bench = new Bench(models.afg, models.dmm, models.gpe);
+    bench.now = () => 100; bench.probeX = [1, 10];
+    Object.assign(models.afg.ch[0], { emfVpp: 0.002, emfOffset: sign * 9.998, load50: false, output: true });
+    for (const [lead, node] of Object.entries({ 'AFG.CH1+': 'A', 'AFG.CH1-': 'G', 'TDS.CH1.TIP': 'A', 'TDS.CH1.GND': 'G' })) bench.connect(lead, node);
+    m.setBenchSource(() => bench.tdsInput()); m.setScenario('BENCH');
+    m.setProbe(0, 0); turn(m, 'V1', -2); // 1×／0.5 V/div，Position 的合法範圍為 ±90 div。
+    for (let j = 0; j < 1250; j++) m.knob(K.P1, -sign);
+    m.tick();
+    assert.equal(m.ch[0].pos, -sign * 50);
+    assert.doesNotThrow(() => validateSession(captureSession(models, bench)), 'AutoSet 前的配置合法');
+    const hint = m.press(K.AUTOSET);
+    // 原先只檢查畫面是否放得下：會選 0.2 V/div 並保留 ±50 div，卻超過該檔的 ±9 div。
+    assert.equal(m.ch[0].pos, 0, '無合法候選檔位時使用已有的歸零後備規則');
+    near(m.vdiv(0), 5);
+    assert.ok(hint.text.includes('位置先歸零'));
+    assert.ok(Math.abs(m.ch[0].pos) <= m.posLimit(0));
+    assert.doesNotThrow(() => validateSession(captureSession(models, bench)), 'AutoSet 後存檔仍可通過嚴格驗證');
+  }
 });
 
 test('AutoSet 只調一次：之後幅度 ×5 時 V/div 不變、量測標 ?；Undo Autoset 回到先前設定', () => {
@@ -1019,6 +1056,35 @@ test('Normal：直流階躍只穿越一次 → 擷取暫態並保留；週期訊
   change(() => {}, 0.1);
   change(() => {}, 1);
   assert.ok(m.acqN > n + 1);
+});
+
+test('Normal 恢復採集只等新事件：Stop、關開機、Single 中止都不補抓停止期間的交越', () => {
+  for (const action of ['stop', 'power', 'single-stop']) {
+    const { m, afg, change, clock } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 1000, C: 10e-6, output: false });
+    Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
+    m.sIdx = SDIV.indexOf(5e-3); m.mpos = 0;
+    m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.05 };
+    m.tick();
+    if (action === 'single-stop') m.press(K.SINGLE);
+    const key = action === 'power' ? K.POWER : K.RUN;
+    m.press(key);
+    const n = m.acqN, old = m.rec;
+    change(() => { afg.ch[0].output = true; }, 1);
+    change(() => {}, 1); // RC 早已越過 0.5 V，此時約 1 V，沒有新上升沿。
+    m.press(key);
+    assert.equal(m.acqN, n, `${action} 恢復時不可補抓已錯過的交越`);
+    assert.equal(m.rec, action === 'power' ? null : old, `${action} 保留或清除舊紀錄`);
+    assert.equal(m.armedAt, null, `${action} 清除舊 Single 起點`);
+    assert.equal(m.changeSearch.cursor, clock.t, `${action} 從恢復時刻開始搜尋`);
+    change(() => { afg.ch[0].emfOffset = 0; }, 1);
+    change(() => {}, 1); // 輸出保持接通並設 0 V，經 1 kΩ 放電，再製造新的上升沿。
+    change(() => { afg.ch[0].emfOffset = 1; }, 1);
+    const eventAt = clock.t;
+    change(() => {}, 0.02);
+    assert.equal(m.acqN, n + 1, `${action} 恢復後的新交越仍可擷取`);
+    assert.ok(m.rec.abs0 >= eventAt && m.rec.abs0 <= clock.t, `${action} 使用新事件時刻`);
+    near(recAt(m, 1, 0), 0.5, 0.02, `${action} 新交越仍對準位準`);
+  }
 });
 
 test('Single／Normal：改變的那一瞬間就跳過觸發線（開輸出的階躍 0 → 0.952 V）也要擷取，觸發點＝改變時刻', () => {

@@ -76,14 +76,11 @@ export function renderLcd(m) {
   s += channelBlock(m, 0, 3) + channelBlock(m, 1, 132);
   // 編輯框：有參數高亮時顯示（輸入中的數字，或目前值＋單位與游標底線）
   if (m.hl) {
-    const c = m.c;
-    const [val, unit, mult] = paramText(m, c, m.hl);
+    const { text, unit, mult } = m.editParts();
     s += '<rect x="22" y="202" width="214" height="30" rx="2" fill="#f7fbff" stroke="#d00000" stroke-width="1.2"/>';
     if (m.buf) {
       s += T(128, 223, `${m.buf}_`, { size: 16, fill: '#d00000', anchor: 'middle', weight: 700 });
     } else {
-      // 頻率編輯框顯示到 1 μHz（手冊 p.61：1.000000000 kHz）
-      const text = m.hl === 'FREQ' ? fmtFixed(c.freq / mult, Math.round(Math.log10(mult)) + 6) : val;
       const k = Math.round(m.cexp - Math.log10(mult));
       const idx = cursorIndex(text, k);
       const cw = 9.4;

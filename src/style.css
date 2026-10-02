@@ -15,8 +15,9 @@ button { font: inherit; cursor: pointer; }
 .tabs button small { display: block; font-size: 11px; color: #9fb0c1; }
 .tabs button[aria-selected="true"] { background: #fff; color: #1f2a36; border-color: #fff; }
 .tabs button[aria-selected="true"] small { color: #52606d; }
-.tools { display: flex; gap: 4px; }
+.tools { display: flex; gap: 4px; flex-wrap: wrap; }
 .tools button { background: #2d3b4a; color: #fff; border: 1px solid #3e4f61; border-radius: 6px; padding: 5px 10px; }
+.save-status { flex-basis: 100%; color: #b8c8d8; font-size: 12px; }
 
 .stage { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; padding: 12px; align-items: start; }
 @media (max-width: 1000px) { .stage { grid-template-columns: 1fr; } }

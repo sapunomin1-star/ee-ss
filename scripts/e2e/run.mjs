@@ -10,9 +10,11 @@ import { run as benchAudit } from './bench-audit.mjs';
 import { run as breadboard } from './breadboard.mjs';
 import { run as breadboardMeasure } from './breadboard-measure.mjs';
 import { run as review20261002 } from './review-20261002.mjs';
+import { run as homeSession } from './home-session.mjs';
+import { run as homeInstruments } from './home-instruments.mjs';
 
 let fail = 0, pass = 0;
-for (const r of [afg, tds, gpe, dmm, i06, bench, benchRecovery, benchAudit, breadboard, breadboardMeasure, review20261002]) {
+for (const r of [afg, tds, gpe, dmm, i06, bench, benchRecovery, benchAudit, breadboard, breadboardMeasure, review20261002, homeSession, homeInstruments]) {
   const T = await r();
   T.print();
   fail += T.fail; pass += T.pass;

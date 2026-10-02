@@ -7,12 +7,15 @@ import { LEADS } from './bench/circuit.js';
 import { benchSvg, benchSide } from './bench/view.js';
 import { Breadboard, BB_DEMO, DEFAULT_VALUE, KIND_NAME, holeGroup, groupName, occupantName } from './bench/breadboard.js';
 import { bbSvg, bbSide, boardSwitch } from './bench/bb-view.js';
+import { captureSession, restoreSession } from './core/session.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const KNOB_DEG = 15;         // 每一格旋轉的視覺角度
 const DRAG_PX_PER_STEP = 9;  // 拖曳多少像素算一格（不接受滑鼠滾輪，避免誤改值）
 const HINT_KIND = { out: '未納入', approx: '近似', reject: '已拒絕', info: '說明', ok: '完成' };
 const BENCH = 'bench';
+const SESSION_KEY = 'ee-ss.session.v1';
+const MAX_SESSION_BYTES = 1024 * 1024;
 const LIVE_MS = 200; // 讀值隨時間變（電表積分窗、電容充放電）時的畫面更新間隔
 const RC_HELP = '點一個導線端（變藍），再點電路板上的 A／B／G 接上；已接好的導線端選取後再點一次＝拔掉。';
 const BB_HELP = '右邊選工具（電阻／電容／跳線）後點兩個孔擺上；點導線端（變藍）再點孔＝接線；滑鼠移到孔上會標出所有相連的孔。';
@@ -39,6 +42,9 @@ export function startApp(root) {
   const hints = [];
   let cur = ids[0];
   let zoom = 1;
+  let saveTimer = null;
+  let saveFailed = false;
+  let gpeTimed = false;
 
   root.innerHTML = `
     <header class="top">
@@ -46,8 +52,12 @@ export function startApp(root) {
       <nav class="tabs" role="tablist">${ids.map((id) => `<button role="tab" data-tab="${id}">${esc(models[id].title)}<small>${esc(models[id].subtitle)}</small></button>`).join('')}<button role="tab" data-tab="${BENCH}" class="tab-bench">實驗台<small>接線：RC 板／麵包板</small></button></nav>
       <div class="tools">
         <button data-zoom="-1" title="縮小">－</button><button data-zoom="0" title="符合視窗">符合</button><button data-zoom="1" title="放大">＋</button>
+        <button data-session="export" title="把接線、元件與四台儀器設定下載成實驗檔">匯出實驗</button>
+        <button data-session="import" title="載入實驗檔；載入後重新開始模擬">載入實驗</button>
+        <input class="session-file" type="file" accept=".json,application/json" aria-label="選擇實驗檔" hidden>
         <button data-act="reset-all" title="四台都回到開機重設狀態（接線保留）">全部重設</button>
       </div>
+      <div class="save-status" role="status" title="保存接線、元件與儀器設定；重新開啟時重新開始模擬，不保存電容電荷或已擷取波形。">接線與設定會自動保存在此瀏覽器</div>
     </header>
     <main class="stage">
       <section class="bench"><div class="panel-host"></div><div class="hintbar" aria-live="polite"></div></section>
@@ -56,6 +66,66 @@ export function startApp(root) {
   const host = root.querySelector('.panel-host');
   const hintbar = root.querySelector('.hintbar');
   const side = root.querySelector('.side');
+  const saveStatus = root.querySelector('.save-status');
+  const sessionFile = root.querySelector('.session-file');
+
+  function saveSession() {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(captureSession(models, bench, { tab: cur, zoom })));
+      saveStatus.textContent = '接線與設定已自動保存 · 重開時重新開始模擬';
+      saveFailed = false;
+    } catch {
+      saveStatus.textContent = '此瀏覽器無法自動保存 · 請用「匯出實驗」存檔';
+      saveFailed = true;
+    }
+  }
+
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    if (!saveFailed) saveStatus.textContent = '正在保存接線與設定…';
+    saveTimer = setTimeout(saveSession, 200);
+  }
+
+  function loadSession(data) {
+    const view = restoreSession(data, models, bench); // 完整驗證通過後才替換現況
+    cur = view.tab;
+    zoom = view.zoom;
+    benchKey = bench.key();
+    Object.assign(bbUi, { tool: 'select', first: null, sel: null, hover: null });
+    Object.keys(knobAngle).forEach((id) => delete knobAngle[id]);
+    hints.length = 0;
+  }
+
+  function exportSession() {
+    const data = JSON.stringify(captureSession(models, bench, { tab: cur, zoom }), null, 2);
+    const url = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ee-ss-實驗.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    hint({ kind: 'ok', text: '已匯出接線、元件與四台儀器設定。載入後會重新開始模擬，不保留電容電荷或已擷取波形。' });
+  }
+
+  sessionFile.addEventListener('change', async () => {
+    const file = sessionFile.files?.[0];
+    sessionFile.value = ''; // 同一個檔案也可以再次載入
+    if (!file) return;
+    try {
+      if (file.size > MAX_SESSION_BYTES) throw new Error('實驗檔超過 1 MB。');
+      const text = await file.text();
+      let data;
+      try { data = JSON.parse(text); } catch { throw new Error('實驗檔不是有效的 JSON。'); }
+      loadSession(data);
+      mountPanel();
+      hint({ kind: 'ok', text: '已載入實驗接線與設定；模擬重新開始，電容從 0 V 開始。' });
+    } catch (e) {
+      hint({ kind: 'reject', text: `沒有載入實驗：${e.message} 目前接線與設定保留。` });
+    }
+  });
+  window.addEventListener('pagehide', saveSession);
 
   function hint(h) {
     if (!h) return;
@@ -81,8 +151,10 @@ export function startApp(root) {
   //   示波器＝電容還在充放電、電路剛改，或實際觸發搜尋尚有待查區間；電表＝接在實驗台上就畫
   setInterval(() => {
     const t = bench.now(), tr = bench.transientActive(t);
+    const timed = models.gpe.isOn() && (models.gpe.bootLeft() > 0 || models.gpe.setViewLeft() > 0);
     // GPE：限流充電暫態或 AFG 的週期保護切換時，端電壓／電流／模式都會變。
-    const live = { tds: tr || t - bench.changedAt() < 1 || models.tds.needsTriggerPoll?.(), dmm: models.dmm.isLive?.(), gpe: models.gpe.isOn() && models.gpe.scenarios.get() === 'bench' && bench.gpeReadbackActive(t) };
+    const live = { tds: tr || t - bench.changedAt() < 1 || models.tds.needsTriggerPoll?.(), dmm: models.dmm.isLive?.(), gpe: timed || gpeTimed || (models.gpe.isOn() && models.gpe.scenarios.get() === 'bench' && bench.gpeReadbackActive(t)) };
+    gpeTimed = timed; // 逾時後再更新一次，側欄和 LCD 一起結束 Set View／開機畫面
     if (live.tds) models.tds.inputChanged?.();
     if (cur === BENCH) {
       host.querySelectorAll('svg[data-mini]').forEach((el) => { const id = el.dataset.mini, m = models[id]; if (live[id] && m.isOn()) el.innerHTML = m.lcd(); });
@@ -117,6 +189,7 @@ export function startApp(root) {
 
   function refresh() {
     syncBench();
+    scheduleSave();
     if (cur === BENCH) return renderBench();
     const m = models[cur];
     const svg = host.querySelector('svg.panel');
@@ -429,7 +502,10 @@ export function startApp(root) {
     const tab = e.target.closest('[data-tab]');
     if (tab) { cur = tab.dataset.tab; mountPanel(); return; }
     const z = e.target.closest('[data-zoom]');
-    if (z) { const d = Number(z.dataset.zoom); zoom = d === 0 ? 1 : Math.min(2.5, Math.max(1, zoom + d * 0.25)); applyZoom(); return; }
+    if (z) { const d = Number(z.dataset.zoom); zoom = d === 0 ? 1 : Math.min(2.5, Math.max(1, zoom + d * 0.25)); applyZoom(); scheduleSave(); return; }
+    const session = e.target.closest('[data-session]');
+    if (session?.dataset.session === 'export') { exportSession(); return; }
+    if (session?.dataset.session === 'import') { sessionFile.click(); return; }
     const a = e.target.closest('[data-act]');
     if (a?.dataset.act === 'reset-all') { ids.forEach((id) => models[id].reset()); hint({ kind: 'info', text: '四台都已回到開機重設狀態（模擬器定義，非校機開機記憶）；實驗台的接線保留。' }); refresh(); }
     if (a?.dataset.act === 'reset-one') {
@@ -485,5 +561,14 @@ export function startApp(root) {
     }),
   });
 
+  let restored = false, restoreError = null;
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (raw) { loadSession(JSON.parse(raw)); restored = true; }
+  } catch (e) {
+    restoreError = e.message;
+  }
   mountPanel();
+  if (restored) hint({ kind: 'info', text: '已還原上次的接線與儀器設定；模擬重新開始，電容從 0 V 開始。' });
+  if (restoreError) hint({ kind: 'info', text: '未能還原上次實驗，已開啟預設配置；仍可用「載入實驗」開啟匯出的檔案。' });
 }
