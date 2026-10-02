@@ -443,6 +443,45 @@ test('47 nF 直接跨 GPE 5 V／1 mA：100 µs 仍以 CC 充到 2.127 V，約 23
   near(s.b.vcAt(s.now()), 5, 1e-7, '已轉 CV');
 });
 
+test('47 nF 無任何儀器負載直接接 GPE：1 mA／1 A 初值精確為 0，只由 CC 轉 CV，不會數值超調誤判逆灌', () => {
+  for (const current of [0.001, 1]) {
+    const s = bbSetup([['C', 'a5', 'a10', 47e-9]], { 'GPE.CH1+': 'b5', 'GPE.CH1-': 'b10', 'GPE.GND': 'c10' });
+    s.gpe.vset[1] = 500; s.gpe.iset[1] = current * 1000; s.b.solution(); s.adv(1);
+    s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
+    const t0 = s.now(), crossing = 5 * 47e-9 / current;
+    near(s.b.vcAt(t0), 0, 0, `${current} A 未充電初值`);
+    const node = s.b.cur.built.leadNode['GPE.CH1+'];
+    near(s.b.snapshot().dcNow[node], 0, 0, 'snapshot 也使用有限初值');
+    assert.deepEqual(s.b.segs.filter((g) => g.from >= t0).map((g) => g.modes[0]), ['CC', 'CV']);
+    for (const fraction of [0.1, 0.5, 0.99, 1.02]) {
+      s.adv(t0 + fraction * crossing - s.now());
+      const elapsed = s.now() - t0, r = s.b.gpeInput()[1];
+      const expected = fraction < 1 ? current / 1e-12 * -Math.expm1(-1e-12 * elapsed / 47e-9) : 5;
+      near(s.b.vcAt(s.now()), expected, 1e-8, '實際時間的限流充電電压');
+      assert.equal(r.cc, fraction < 1); assert.equal(r.rb, false);
+      near(s.b.snapshot().dcNow[node], s.b.vcAt(s.now()), 1e-12, 'snapshot 與真實電容電壓一致');
+      assert.ok(!s.b.snapshot().warn.some((w) => w.includes('灌入')));
+    }
+    s.adv(1.5);
+    near(s.b.vcAt(s.now()), 5, 1e-8, '充飽後保持 5 V');
+    assert.equal(s.b.gpeInput()[1].rb, false);
+  }
+});
+
+test('超高阻抗電容 CC 充電的 DC 積分以有限初值及 expm1 計算，不把巨大穩態相消誤差寫入讀值', () => {
+  const dmm = { inputZ: () => 1e12 }, s = bbSetup([['C', 'a5', 'a10', 47e-9]], {
+    'GPE.CH1+': 'b5', 'GPE.CH1-': 'b10', 'GPE.GND': 'c10', 'DMM.HI': 'd5', 'DMM.LO': 'd10',
+  });
+  s.b.dmm = dmm; s.gpe.vset[1] = 500; s.gpe.iset[1] = 1000; s.b.solution();
+  s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
+  const t0 = s.now(); s.adv(100e-9);
+  const input = s.b.dmmInput().v, elapsed = s.now() - t0;
+  near(input.dc, elapsed / 47e-9, 1e-10, '當下的有限電壓');
+  near(input.meanOver(t0, s.now()), elapsed / (2 * 47e-9), 1e-10, '線性充電窗平均約為終值一半');
+  near(input.ac, 0, 0, '純直流 CC 沒有捨入產生的交流');
+  near(input.peak, input.dc, 1e-10, '自動量程峰值依有限實際電壓');
+});
+
 function periodicSupply(C = 0) {
   const s = bbSetup(C ? [['C', 'a5', 'a10', C]] : [], { ...sharedSupplyWires, 'AFG.CH1+': 'd5', 'AFG.CH1-': 'd10' });
   s.afg.ch[0] = sine(10, 1000, 5); s.gpe.vset[1] = 500; s.gpe.iset[1] = 10;
@@ -490,6 +529,73 @@ test('GPE／AFG 無電容的受限波形：週期統計、負時間與大絕對�
 test('含電容的 AFG／GPE 共同驅動會明確顯示週期保護切換未支援，避免把近似 CV 誤當保護有效', () => {
   const s = periodicSupply(47e-9);
   assert.ok(s.b.snapshot().warn.some((w) => w.includes('目前不支援') && w.includes('週期限流')));
+});
+
+test('共用大地的獨立 AFG RC 迴路，不影響另一組無電容 AFG／GPE 的週期限流或 RC 暫態', () => {
+  const parts = [['R', 'a15', 'a20', 1000], ['C', 'b20', 'b25', 1e-6]];
+  const wires = { 'AFG.CH2+': 'c15', 'AFG.CH2-': 'c25', 'TDS.CH2.TIP': 'c20' };
+  const s = periodicSupply(), reference = bbSetup(parts, wires);
+  for (const [kind, a, b, value] of parts) s.b.bb.add(kind, a, b, value, s.b.bbWires);
+  for (const [lead, hole] of Object.entries(wires)) s.b.bb.plug(s.b.bbWires, lead, hole);
+  s.afg.ch[1] = sine(2, 1000, 1); reference.afg.ch[1] = sine(2, 1000, 1);
+  s.b.solution(); reference.b.solution();
+  assert.ok(!s.b.snapshot().warn.some((w) => w.includes('目前不支援')), '獨立 RC 不應觸發混合電源限制');
+  const t0 = s.now();
+  near(s.b.vcAt(t0), 0, 1e-12, '獨立電容仍從 0 V 開始');
+  for (const dt of [0.25e-3, 0.75e-3, 10.00025]) {
+    s.adv(t0 + dt - s.now()); reference.adv(t0 + dt - reference.now());
+    const r = s.b.gpeInput()[1];
+    assert.equal(r.rb, dt !== 0.75e-3); assert.equal(r.cc, dt === 0.75e-3);
+    near(s.b.vcAt(s.now()), reference.b.vcAt(reference.now()), 1e-10, 'RC 充電不受其他迴路模式切換影響');
+    near(s.b.tdsInput().sig[1].abs(s.now()), reference.b.tdsInput().sig[1].abs(reference.now()), 1e-10, '獨立 RC 的示波器波形');
+  }
+  const sg = s.b.cur, rg = reference.b.cur, node = sg.built.leadNode['TDS.CH2.TIP'], refNode = rg.built.leadNode['TDS.CH2.TIP'];
+  near(sg.sol.stats(node, 'E').acRms, rg.sol.stats(refNode, 'E').acRms, 1e-12, '獨立 RC 的非線性區間積分仍使用原解析解');
+  near(sg.sol.meanOver(node, 'E', 12.0001, 12.0012), rg.sol.meanOver(refNode, 'E', 12.0001, 12.0012), 1e-10, '獨立 RC 的穩態平均');
+});
+
+test('P2-1 空腳 47 nF 不影響無電容 AFG／GPE：正負峰與 10 秒後 GPE／TDS／DMM 仍正確', () => {
+  const s = periodicSupply(), reference = periodicSupply();
+  s.b.bb.add('C', 'a20', 'a25', 47e-9, s.b.bbWires);
+  for (const fixture of [s, reference]) {
+    fixture.b.bb.plug(fixture.b.bbWires, 'DMM.HI', 'e5');
+    fixture.b.bb.plug(fixture.b.bbWires, 'DMM.LO', 'e10');
+    fixture.b.solution();
+  }
+  assert.ok(!s.b.snapshot().warn.some((w) => w.includes('目前不支援')), '完全空腳電容不應限制其他迴路');
+  near(s.b.vcAt(s.now()), 0, 0, '空腳电容沒有憑空取得電荷');
+  const t0 = s.now(), conductance = 2 / 10e6;
+  for (const elapsed of [0, 10]) for (const phase of [0.25e-3, 0.75e-3]) {
+    const t = t0 + elapsed + phase;
+    s.adv(t - s.now()); reference.adv(t - reference.now());
+    const r = s.b.gpeInput()[1], positive = phase === 0.25e-3;
+    assert.equal(r.rb, positive); assert.equal(r.cc, !positive);
+    near(r.i, positive ? 0 : 0.01, 0, '逆灌時 0 A，負峰限流 10 mA');
+    near(r.v, positive ? 10 / (1 + 50 * conductance) : 0.01 / (1 / 50 + conductance), 1e-8, '計入探棒與電表的峰值電壓');
+    near(s.b.tdsInput().sig[0].abs(t), r.v, 1e-10, 'TDS 實際波形跟著 RB／CC');
+    near(s.b.dmmInput().v.dc, reference.b.dmmInput().v.dc, 1e-11, 'DMM 週期平均與無空腳電容相同');
+    near(s.dmm.view().value, reference.dmm.view().value, 1e-10, 'DMM 已完成積分窗的實際讀值');
+    assert.equal(s.b.gpeReadbackActive(), true, '沒有電容暫態時仍須更新 GPE 的週期讀回');
+    assert.ok(!s.b.snapshot().warn.some((w) => w.includes('目前不支援')));
+  }
+});
+
+test('GPE2 獨立 47 nF 充電與 GPE1／AFG 週期限流並存，仍排出 GPE2 CC→CV 事件', () => {
+  const s = periodicSupply();
+  s.b.bb.add('C', 'a20', 'a25', 47e-9, s.b.bbWires);
+  for (const [lead, hole] of Object.entries({ 'GPE.CH2+': 'b20', 'GPE.CH2-': 'b25', 'TDS.CH2.TIP': 'c20', 'TDS.CH2.GND': 'c25' })) s.b.bb.plug(s.b.bbWires, lead, hole);
+  s.gpe.vset[2] = 500; s.gpe.iset[2] = 1; s.b.solution();
+  const t0 = s.now();
+  s.adv(100e-6);
+  assert.equal(s.b.gpeInput()[1].rb, true); assert.equal(s.b.gpeInput()[2].cc, true);
+  near(s.b.vcAt(s.now()), 2.127433244, 1e-8, '獨立 GPE2 100 µs 限流充電');
+  assert.ok(s.b.segs.some((g) => g.from > t0 && g.modes[1] === 'CV'), '仍排出獨立通道的充電完成事件');
+  s.adv(150e-6);
+  assert.equal(s.b.gpeInput()[1].rb, true); assert.equal(s.b.gpeInput()[2].cc, false);
+  near(s.b.vcAt(s.now()), 5, 1e-7, 'GPE2 到 5 V 後轉 CV');
+  s.adv(0.5e-3);
+  assert.equal(s.b.gpeInput()[1].cc, true); assert.equal(s.b.gpeInput()[2].cc, false);
+  assert.ok(!s.b.snapshot().warn.some((w) => w.includes('目前不支援')));
 });
 
 test('多路 GPE 模式迭代循環時，枚舉找到合法工作點；無關 AFG 不會使端電壓暴增到 1000 V', () => {

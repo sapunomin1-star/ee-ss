@@ -55,6 +55,19 @@ test('GPE 限流判斷保留 sub-ns CV 模態時，47 nF 的初始 0 V 不會被
   near((5 - initialV) / R_GPE, 500, 1e-8, 'CV 要求 500 A，必須改用 CC');
 });
 
+test('CC 無負載的巨大 DC 模態與有限初值分開，純 DC 工作點不沿週期格漂移', () => {
+  const s = solveNet({ nodes: ['P'], elements: [{ id: 'C', kind: 'C', a: 'P', b: 'E', value: 47e-9 }],
+    dc: [{ id: 'GPE1', pos: 'P', neg: 'E', i: 1, mode: 'CC' }] }, { retainFastModes: true });
+  const initial = s.initialStateFromCaps([0], 11);
+  near(initial.nodeAt('P'), 0, 0, '有限節點初值'); near(initial.capInitial[0], 0, 0, '有限電容初值');
+  for (const t of [11, 11.0000001, 11.0000002397, 12.5]) {
+    near(s.nodeChange('P', t, 11), 0, 0, '純 DC 的週期變化精確為零');
+    near(s.nodeAt('P', t), s.nodeAt('P', 11), 0, '巨大穩態沒有逐格漂移');
+  }
+  near(s.stats('P', 'E').acRms, 0, 0, '巨大 DC 不產生假 AC RMS');
+  near(s.meanChangeOver('P', 'E', 11, 11.0000001, 11), 0, 0, '巨大 DC 不污染有限的變化積分');
+});
+
 test('CC：輸出電流超過限流 → 定電流，端電壓＝I×R', () => {
   const net = { nodes: ['P', 'N'], elements: [{ id: 'R1', kind: 'R', a: 'P', b: 'N', value: 10 }], dc: [{ id: 'GPE1', pos: 'P', neg: 'N', i: 0.1, mode: 'CC' }] };
   const s = solveNet(net);

@@ -33,24 +33,41 @@ function devNode(g, node, t) {
   for (let m = 0; m < w.length; m++) v += w[m] * g.amp[m] * d[m];
   return v;
 }
-// Σ_m w_m·amp_m·∫e^(−λ_m(t−t0))dt over [t1, t2]
-function devInt(g, w, t1, t2) {
+// Σ_m w_m·amp_m·∫(e^(−λ_m(t−t0))−1)dt over [t1, t2]
+function devDeltaInt(g, w, t1, t2) {
   if (!g.amp.length || !(t2 > t1)) return 0;
   let sum = 0;
   g.sol.lam.forEach((l, m) => {
     if (!w[m] || !g.amp[m]) return;
-    const before = Math.max(0, Math.min(t2, g.t0) - Math.min(t1, g.t0));
     const a = Math.max(t1, g.t0), b = Math.max(t2, g.t0);
-    const after = l > 0 ? (Math.exp(-l * (a - g.t0)) - Math.exp(-l * (b - g.t0))) / l : b - a;
-    sum += w[m] * g.amp[m] * (before + after);
+    const dt = b - a, z = l * dt;
+    // (1−e^−z)/z−1＝−z/2＋z²/6−…，小 z 不做兩個接近 1 的數相減。
+    let delta;
+    if (z < 0.2) {
+      let term = -z / 2; delta = term;
+      for (let j = 3; j < 25; j++) { term *= -z / j; delta += term; }
+    } else delta = -Math.expm1(-z) / z - 1;
+    sum += w[m] * g.amp[m] * dt * (Math.expm1(-l * (a - g.t0)) + Math.exp(-l * (a - g.t0)) * delta);
   });
   return sum;
 }
-const nodeIn = (g, node, t) => (node == null ? 0 : node === 'E' ? 0 : g.sol.nodeAt(node, t) + devNode(g, node, t));
+const devDeltaNode = (g, node, t) => g.sol.modeW(node).reduce((sum, w, m) => sum + w * (g.amp[m] || 0) * Math.expm1(-g.sol.lam[m] * Math.max(0, t - g.t0)), 0);
+const nodeIn = (g, node, t) => node == null || node === 'E' ? 0 : g.initial && g.sol.modeW(node).some((w) => w !== 0)
+  ? g.initial.nodeAt(node) + g.sol.nodeChange(node, t, g.t0) + devDeltaNode(g, node, t) : g.sol.nodeAt(node, t);
+const frozenMean = (g, node, t) => nodeIn(g, node, t) + g.sol.meanChangeOver(node, 'E', 0, g.sol.period, t);
+const expDiff = (a, b) => a <= b ? Math.exp(-a) * -Math.expm1(-(b - a)) : Math.exp(-b) * Math.expm1(-(a - b));
 // 某一段各電容在 t 的電壓 { 元件生命週期識別碼: V }
 function capsAt(g, t) {
-  const ss = g.sol.capSS(t), d = decay(g, t), out = {};
-  g.sol.capKeys.forEach((id, k) => { let v = ss[k]; g.sol.capD[k]?.forEach((w, m) => { v += w * (g.amp[m] || 0) * d[m]; }); out[id] = v; });
+  const ss = g.sol.capSS(t), out = {};
+  g.sol.capKeys.forEach((id, k) => {
+    let v = ss[k];
+    if (g.initial && g.sol.capD[k].some((w) => w !== 0)) {
+      const c = g.sol.capIdx[k];
+      v = g.initial.capInitial[k] + g.sol.nodeChange(g.sol.names[c.a], t, g.t0) - g.sol.nodeChange(g.sol.names[c.b], t, g.t0);
+      g.sol.capD[k].forEach((w, m) => { v += w * (g.amp[m] || 0) * Math.expm1(-g.sol.lam[m] * Math.max(0, t - g.t0)); });
+    }
+    out[id] = v;
+  });
   return out;
 }
 
@@ -86,6 +103,31 @@ function resolveModes(channels, initial, t, candidate) {
   g.modesUnsupported = true;
   return g;
 }
+// 共用大地不會把獨立迴路併成一組；只有非接地節點之間的元件或
+// 浮接電源才建立耦合。只把 AFG／GPE 真正共用的含電容組列為限制。
+function periodicGroups(built) {
+  const parent = new Map(built.net.nodes.map((n) => [n, n]));
+  const find = (n) => {
+    if (n == null || n === 'E' || !parent.has(n)) return null;
+    const p = parent.get(n); if (p !== n) parent.set(n, find(p)); return parent.get(n);
+  };
+  const join = (a, b) => { const x = find(a), y = find(b); if (x != null && y != null) parent.set(x, y); };
+  built.net.elements.forEach((e) => join(e.a, e.b));
+  (built.net.loads || []).forEach((e) => join(e.a, e.b));
+  built.gpe.forEach((c) => join(c.pos, c.neg));
+  const afg = new Set((built.net.afg || []).map((s) => find(s.node)));
+  const caps = new Set(built.net.elements.filter((e) => e.kind === 'C' && e.a !== e.b).map((e) => find(e.a) ?? find(e.b)));
+  const indices = [], dynamic = [];
+  built.gpe.forEach((c, k) => {
+    const group = find(c.pos) ?? find(c.neg);
+    if (group == null || !afg.has(group)) return;
+    (caps.has(group) ? dynamic : indices).push(k);
+  });
+  const groups = new Set(indices.map((k) => find(built.gpe[k].pos) ?? find(built.gpe[k].neg)));
+  return { indices, dynamic, nodes: new Set(built.net.nodes.filter((n) => groups.has(find(n)))) };
+}
+const QUAD8 = [[0.1834346424956498, 0.362683783378362], [0.525532409916329, 0.3137066458778873],
+  [0.7966664774136267, 0.2223810344533745], [0.9602898564975363, 0.1012285362903763]].flatMap(([u, w]) => [[-u, w], [u, w]]);
 
 export class Bench {
   // dmm：查電表目前的輸入電阻（依功能不同）；gpe：直流電源的設定（麵包板用）；沒有就不計
@@ -238,7 +280,8 @@ export class Bench {
       const key = modes.join('|');
       if (variants.has(key)) return variants.get(key);
       const sol = solveNet({ ...built.net, dc: built.gpe.map((c, k) => ({ id: c.id, pos: c.pos, neg: c.neg, v: c.v, i: c.ilim, mode: modes[k] })) }, { retainFastModes: built.gpe.length > 0 });
-      const seg = { sol, built, modes: [...modes], t0, from: t0, to: Infinity, amp: sol.modalFromCaps(sol.capKeys.map((id) => caps[id] ?? 0), t0) }; // 新插上的電容從 0 V 開始
+      const initial = sol.initialStateFromCaps(sol.capKeys.map((id) => caps[id] ?? 0), t0);
+      const seg = { sol, built, modes: [...modes], t0, from: t0, to: Infinity, initial, amp: initial.amp }; // 新插上的電容從 0 V 開始
       variants.set(key, seg); return seg;
     };
     const seg = resolveModes(built.gpe, hint || built.gpe.map(() => 'CV'), t0, candidate);
@@ -328,16 +371,62 @@ export class Bench {
     built.gpe.forEach((c, k) => {
       if (intervals.some((s) => s.g.modes[k] === 'RB')) warn.push({ level: 'bad', text: `GPE CH${c.ch} 在 AFG 週期中被其他電源灌入：電源不能吸收電流，逆灌時輸出開路（RB）。` });
     });
-    const sol = { ...seg.sol, nodeAt, table, stats: (hi, lo) => pair(hi, lo).stats, meanOver, warn };
+    const nodeChange = (n, t, t0) => nodeAt(n, t) - nodeAt(n, t0);
+    const meanChangeOver = (hi, lo, a, b, t0) => meanOver(hi, lo, a, b) - (nodeAt(hi, t0) - nodeAt(lo, t0));
+    const sol = { ...seg.sol, nodeAt, nodeChange, table, stats: (hi, lo) => pair(hi, lo).stats, meanOver, meanChangeOver, warn };
     if (this.board !== 'bb') sol.v = Object.fromEntries(NODES.map((x) => [x, table(built.find(x))]));
     const modeAt = (t) => locate(t).interval.g.modes;
     return { ...seg, sol, modeAt, get modes() { return modeAt(thisBench.now()); } };
   }
 
+  // 限流的代數迴路可以與獨立 RC 迴路並存。保留完整解的電容模態，
+  // 只替換真正共用 AFG 的無電容組；其他 GPE 的充電事件照常排程。
+  withPeriodicGroups(seg, groups) {
+    if (!groups.indices.length || !seg.sol.periodic) return seg;
+    if (!seg.sol.caps.length) {
+      const g = this.periodicSeg(seg);
+      g.periodicIndices = seg.built.gpe.map((_, k) => k); return g;
+    }
+    const { built } = seg, nodes = groups.nodes, attached = (e) => nodes.has(e.a) || nodes.has(e.b);
+    const subset = { ...built, net: { ...built.net, nodes: [...nodes], elements: built.net.elements.filter(attached),
+      loads: (built.net.loads || []).filter(attached), afg: (built.net.afg || []).filter((s) => nodes.has(s.node)) },
+    gpe: groups.indices.map((k) => built.gpe[k]), warn: [] };
+    const periodic = this.periodicSeg(this.makeSeg(subset, {}, seg.t0, null)), base = seg.sol;
+    const source = (n) => nodes.has(n) ? periodic.sol : base;
+    const nodeAt = (n, t) => source(n).nodeAt(n, t), table = (n) => source(n).table(n);
+    const meanOver = (hi, lo, a, b) => source(hi).meanOver(hi, 'E', a, b) - source(lo).meanOver(lo, 'E', a, b);
+    const pairs = new Map();
+    const stats = (hi, lo) => {
+      if (hi == null || hi === 'E') return source(lo).stats(hi, lo);
+      if (lo == null || lo === 'E' || source(hi) === source(lo)) return source(hi).stats(hi, lo);
+      const key = `${hi}|${lo}`; if (pairs.has(key)) return pairs.get(key);
+      const T = base.period, h = T / M, mean = meanOver(hi, lo, 0, T), cuts = new Set([0, h]);
+      base.lam.forEach((l) => { if (l * h >= 0.5) for (const c of [0.5, 1, 2, 4, 8, 16, 32]) if (c / l < h) cuts.add(c / l); });
+      const ordered = [...cuts].sort((a, b) => a - b), f = (t) => nodeAt(hi, t) - nodeAt(lo, t);
+      let square = 0, peak = 0, peakAc = 0;
+      for (let k = 0; k < M; k++) {
+        const v0 = f(k * h); peak = Math.max(peak, Math.abs(v0)); peakAc = Math.max(peakAc, Math.abs(v0 - mean));
+        for (let j = 1; j < ordered.length; j++) {
+          const a = k * h + ordered[j - 1], half = (ordered[j] - ordered[j - 1]) / 2;
+          for (const [u, w] of QUAD8) { const v = f(a + (u + 1) * half) - mean; square += w * half * v * v; }
+        }
+      }
+      const value = { mean, acRms: Math.sqrt(square / T), peak, peakAc }; pairs.set(key, value); return value;
+    };
+    const modes = [...seg.modes], modeAt = (t) => {
+      const out = [...modes], active = periodic.modeAt(t);
+      groups.indices.forEach((k, j) => { out[k] = active[j]; }); return out;
+    };
+    const nodeChange = (n, t, t0) => source(n).nodeChange(n, t, t0);
+    const meanChangeOver = (hi, lo, a, b, t0) => source(hi).meanChangeOver(hi, 'E', a, b, t0) - source(lo).meanChangeOver(lo, 'E', a, b, t0);
+    const sol = { ...base, nodeAt, nodeChange, table, meanOver, meanChangeOver, stats, warn: [...base.warn, ...periodic.sol.warn] }, thisBench = this;
+    return { ...seg, sol, modeAt, periodicIndices: groups.indices, get modes() { return modeAt(thisBench.now()); } };
+  }
+
   // 這一段之後第一次模式切換（CC 的端電壓升到設定值→CV；CV 電流超過限流→CC、變成負的→RB；RB 端電壓降回設定→CV）
   nextEvent(seg) {
     const b = seg.built;
-    if (!b.gpe.length || seg.modeAt || !seg.sol.lam.length || !seg.amp.some((a) => Math.abs(a) > 1e-12)) return null;
+    if (!b.gpe.length || !seg.sol.lam.length || !seg.amp.some((a) => Math.abs(a) > 1e-12)) return null;
     const span = 40 / Math.min(...seg.sol.lam), N = 240;
     const f = (k, t) => {
       const c = b.gpe[k], { v, i } = chanAt(seg, k, t), m = seg.modes[k];
@@ -347,6 +436,7 @@ export class Bench {
     };
     let best = null;
     b.gpe.forEach((c, k) => {
+      if (seg.periodicIndices?.includes(k)) return;
       let ta = seg.t0, fa = f(k, ta + 1e-12);
       if (fa > 0) return;
       for (let j = 1; j <= N; j++) {
@@ -354,7 +444,8 @@ export class Bench {
         if (fb > 0) {
           let lo = ta, hi = tb;
           for (let r = 0; r < 60; r++) { const mid = (lo + hi) / 2; if (f(k, mid) > 0) hi = mid; else lo = mid; }
-          if (!best || hi < best.t) best = { t: hi, k };
+          // 用最後合法的一側切換，避免絕對時間的 1 ULP 超調被下一段誤當逆灌。
+          if (!best || lo < best.t) best = { t: lo, k };
           return;
         }
         ta = tb; fa = fb;
@@ -376,22 +467,20 @@ export class Bench {
       // 之前排好但還沒到的模式切換作廢
       this.segs = this.segs.filter((g) => g.from <= t || g.from === -Infinity);
       if (prev) prev.to = t;
-      const built = this.build();
-      let seg = this.makeSeg(built, before, t, null);
-      if (built.gpe.length && seg.sol.periodic && !seg.sol.caps.length) seg = this.periodicSeg(seg);
-      else if (seg.sol.periodic && seg.sol.caps.length && built.gpe.some((c) => seg.sol.stats(c.pos, c.neg).acRms > 1e-12)) {
+      const built = this.build(), groups = periodicGroups(built);
+      if (groups.dynamic.length) {
         // 有動態狀態的混合電源需要完整的混合系統求解，目前的有限暫態事件
         // 排程不能保證無限週期的保護切換；接線結果必須明確標示這個限制。
         built.warn.push({ level: 'bad', text: '目前不支援 AFG 與 GPE 共同驅動含電容電路的週期限流／逆灌切換：波形及 GPE CV／CC 讀回僅為近似，請關閉其中一台輸出後再量測。' });
-        seg.sol.warn = [...seg.sol.warn, built.warn.at(-1)];
       }
+      let seg = this.withPeriodicGroups(this.makeSeg(built, before, t, null), groups);
       if (!prev) seg.from = -Infinity;
       this.segs.push(seg);
       for (let ev = 0; ev < 8; ev++) { // 依序排出之後的模式切換（例：CC 充電 → CV）
         const nx = this.nextEvent(seg);
         if (!nx) break;
         seg.to = nx.t;
-        seg = this.makeSeg(built, capsAt(seg, nx.t), nx.t, nx.modes);
+        seg = this.withPeriodicGroups(this.makeSeg(built, capsAt(seg, nx.t), nx.t, nx.modes), groups);
         this.segs.push(seg);
       }
       // 保留已發生的電路變更，讓慢時基與任意水平位置的預觸發查詢
@@ -453,6 +542,7 @@ export class Bench {
       const lead = `TDS.CH${i + 1}.TIP`, node = g.built.leadNode[lead];
       if (!node) return null;
       const off = devNode(g, node, tView);
+      const atView = nodeIn(g, node, tView), at = (t) => atView + sol.nodeChange(node, t, tView);
       const abs = (t) => { const h = this.segAt(t); return nodeIn(h, h.built.leadNode[lead], t); };
       // abs(t) 相對連續採集的 at(t) 的保守範圍：每個模態分別取兩端
       // 最大／最小值，避免多模態互相抵消後讓觸發搜尋跳過真正的交越。
@@ -462,15 +552,18 @@ export class Bench {
           const x = Math.max(a, s.from), y = Math.min(b, s.to);
           if (y < x) continue;
           const n = s.built.leadNode[lead];
-          let low = -off, high = -off;
-          if (s.sol !== sol || n !== node) {
+          const same = s.sol === sol && n === node;
+          let low = same ? 0 : -off, high = same ? 0 : -off;
+          if (!same) {
             const sw = s.sol.stats(n, 'E'), gw = sol.stats(node, 'E');
             low += sw.mean - gw.mean - sw.peakAc - gw.peakAc;
             high += sw.mean - gw.mean + sw.peakAc + gw.peakAc;
           }
           const w = s.sol.modeW(n);
           s.sol.lam.forEach((l, m) => {
-            const c = w[m] * (s.amp[m] || 0), va = c * Math.exp(-l * Math.max(0, x - s.t0)), vb = c * Math.exp(-l * Math.max(0, y - s.t0));
+            const c = w[m] * (s.amp[m] || 0), view = l * Math.max(0, tView - s.t0);
+            const va = c * (same ? expDiff(l * Math.max(0, x - s.t0), view) : Math.exp(-l * Math.max(0, x - s.t0)));
+            const vb = c * (same ? expDiff(l * Math.max(0, y - s.t0), view) : Math.exp(-l * Math.max(0, y - s.t0)));
             low += Math.min(va, vb); high += Math.max(va, vb);
           });
           min = Math.min(min, low); max = Math.max(max, high);
@@ -478,8 +571,7 @@ export class Bench {
         return min === Infinity ? [0, 0] : [min, max];
       };
       if (node === 'E') return { table: new Float64Array(M), period: sol.period, at: () => 0, abs, transientRange };
-      const tb = sol.table(node);
-      return { table: Float64Array.from(tb, (x) => x + off), period: sol.period, at: (t) => sol.nodeAt(node, t) + off, abs, transientRange };
+      return { table: Float64Array.from({ length: M }, (_, k) => at(k * sol.period / M)), period: sol.period, at, abs, transientRange };
     });
     return { sig, probe: [...this.probeX], now, tView, changedAt: this.changeT, tau: sol.tauMax };
   }
@@ -492,7 +584,7 @@ export class Bench {
     if (!W['DMM.HI'] || !W['DMM.LO']) return { v: null, ohm: null, why: '電表的 HI、LO 測試線要兩條都接上電路。' };
     this.solution();
     const t = this.now(), g = this.segAt(t), sol = g.sol, hi = g.built.leadNode['DMM.HI'], lo = g.built.leadNode['DMM.LO'];
-    const w = sol.stats(hi, lo), off = devNode(g, hi, t) - devNode(g, lo, t);
+    const w = sol.stats(hi, lo), dc = frozenMean(g, hi, t) - frozenMean(g, lo, t);
     // 積分窗 [t1, t2]：每一小段照「當時」的電路與測試線位置算（當時測試線沒接好就當 0 V）
     const meanOver = (t1, t2) => {
       let sum = 0;
@@ -500,12 +592,13 @@ export class Bench {
         const a = Math.max(t1, s.from), b = Math.min(t2, s.to), h = s.built.leadNode['DMM.HI'], l = s.built.leadNode['DMM.LO'];
         if (!(b > a) || !h || !l) continue;
         const wh = h === 'E' ? s.sol.lam.map(() => 0) : s.sol.modeW(h), wl = l === 'E' ? s.sol.lam.map(() => 0) : s.sol.modeW(l);
-        sum += s.sol.meanOver(h, l, a, b) * (b - a) + devInt(s, wh.map((x, m) => x - wl[m]), a, b);
+        const initial = nodeIn(s, h, s.t0) - nodeIn(s, l, s.t0);
+        sum += (initial + s.sol.meanChangeOver(h, l, a, b, s.t0)) * (b - a) + devDeltaInt(s, wh.map((x, m) => x - wl[m]), a, b);
       }
       return sum / (t2 - t1);
     };
     const v = {
-      dc: w.mean + off, ac: w.acRms, peak: w.peak + Math.abs(off), peakAc: w.peakAc,
+      dc, ac: w.acRms, peak: Math.abs(dc) + w.peakAc, peakAc: w.peakAc,
       freq: sol.periodic ? 1 / sol.period : 0, now: t, meanOver,
     };
     // 只有和通電中的電源連在一起的迴路不能量；完全獨立、沒通電的迴路照常量
@@ -541,7 +634,7 @@ export class Bench {
     const res = (x) => (this.board === 'bb' ? x : g.built.find(x));
     const pp = Object.fromEntries(names.map((n) => [n, res(n) === 'E' ? 0 : stats(sol.table(res(n))).pp]));
     const ssMean = Object.fromEntries(names.map((n) => [n, res(n) === 'E' ? 0 : sol.stats(res(n), 'E').mean]));
-    const dcNow = Object.fromEntries(names.map((n) => [n, ssMean[n] + devNode(g, res(n), t)]));
+    const dcNow = Object.fromEntries(names.map((n) => [n, frozenMean(g, res(n), t)]));
     return {
       board: this.board, topo: this.topo, R: this.R, C: this.C, wires: { ...this.wires }, bbWires: { ...this.bbWires }, probeX: [...this.probeX], sel: this.sel,
       period: sol.period, tau: sol.tauMax, modes: sol.lam.map((l) => 1 / l), pp, ssMean, dcNow, dev: d,

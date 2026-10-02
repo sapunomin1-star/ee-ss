@@ -63,7 +63,13 @@ export async function run() {
     await ui.press('TDS.KEY.SINGLE');
     T.ok((await ui.snap('tds')).status === 'Ready', 'Output OFF 時 Single 等待觸發');
     await ui.tab('afg'); await afg('KEY.OUTPUT');
-    await ui.tab('tds'); await sleep(1500);
+    await ui.tab('tds');
+    const immediate = await ui.snap('tds'), actualNow = await p.evaluate(() => performance.now() / 1000);
+    T.ok(immediate.status === 'Ready' || immediate.rec?.abs0 <= actualNow, '開輸出後 Single 不預先擷取尚未發生的交越');
+    await ui.press('TDS.KEY.MEASURE');
+    const afterMenu = await ui.snap('tds'), menuNow = await p.evaluate(() => performance.now() / 1000);
+    T.ok(afterMenu.status === 'Ready' || afterMenu.rec?.abs0 <= menuNow, '等待交越時切換 MEASURE 選單也不能擷取未來事件');
+    await sleep(1500);
     const captured = await ui.snap('tds');
     T.ok(captured.status === 'Acq. Complete' && captured.rec?.triggered, '慢充電越過 0.5 V：快時基 Single 完成採集');
     await ui.shot('review-20261002-slow-single');
@@ -100,7 +106,9 @@ export async function run() {
         return e ? { v: Number(e.dataset.v), mode: e.dataset.mode } : { v: NaN, mode: 'missing', count: els.length };
       }));
     }
-    T.ok(Math.max(...readings.map((r) => r.v)) > 7 && Math.min(...readings.map((r) => r.v)) < 2 && readings.some((r) => r.mode === 'CC') && readings.some((r) => r.mode === 'RB'),
+    // LCD 更新動畫偶爾會讓取樣落在暫時隱藏的一幀；至少六筆實際可見讀值仍須跨越兩種保護模式及電壓範圍。
+    const visible = readings.filter((r) => Number.isFinite(r.v));
+    T.ok(visible.length >= 6 && Math.max(...visible.map((r) => r.v)) > 7 && Math.min(...visible.map((r) => r.v)) < 2 && visible.some((r) => r.mode === 'CC') && visible.some((r) => r.mode === 'RB'),
       `無電容 AFG／GPE：未操作時 LCD 自己更新端電壓與 CC／逆灌（${JSON.stringify(readings)}）`);
     await ui.shot('review-20261002-periodic-gpe');
     T.ok(ui.errors.length === 0, `沒有瀏覽器程式錯誤${ui.errors.length ? `：${ui.errors.join('; ')}` : ''}`);

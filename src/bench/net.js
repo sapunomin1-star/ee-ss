@@ -187,12 +187,13 @@ export function solveNet(net, { retainFastModes = false } = {}) {
   const ed = afg.map((s, j) => Float64Array.from({ length: M }, (_, k) => (s.p.wave === 'SQUARE' ? 0 : (e[j][k + 1] - e[j][k]) / h)));
   const R = slow.length, lamS = slow.map((m) => lam[m]), PhiS = slow.map((m) => Phi[m]);
   const beta = slow.map((m, si) => rAfg.map((x) => x.beta[si])), kappa = slow.map((m, si) => rDc.beta[si]);
-  // 每個慢模態：區間起點 y、區間內 a＝p0−λy、b＝p1
-  const Y0 = [], Aco = [], Bco = [];
+  // 直流模態固定點與 AFG 的有限週期響應分開：CC 只靠 GMIN 放電時，
+  // kappa/λ 可達 10¹² V；不能把這個巨大常數沿 4000 格反覆累積捨入。
+  const Y0 = [], Aco = [], Bco = [], dcModal = lamS.map((l, si) => l > 0 ? kappa[si] / l : 0);
   slow.forEach((m, si) => {
     const l = lamS[si], E1 = Math.exp(-l * h), f1 = h * phi(1, l * h), f2 = h * h * phi(2, l * h);
     const p0 = new Float64Array(M), p1 = new Float64Array(M);
-    for (let k = 0; k < M; k++) { let a = kappa[si], b = 0; afg.forEach((_, j) => { a += beta[si][j] * e[j][k]; b += beta[si][j] * ed[j][k]; }); p0[k] = a; p1[k] = b; }
+    for (let k = 0; k < M; k++) { let a = 0, b = 0; afg.forEach((_, j) => { a += beta[si][j] * e[j][k]; b += beta[si][j] * ed[j][k]; }); p0[k] = a; p1[k] = b; }
     const y = new Float64Array(M + 1);
     const run = (y0) => { y[0] = y0; for (let k = 0; k < M; k++) y[k + 1] = y[k] * E1 + p0[k] * f1 + p1[k] * f2; return y[M]; };
     const b0 = run(0), cyc = -Math.expm1(-l * T);
@@ -203,9 +204,9 @@ export function solveNet(net, { retainFastModes = false } = {}) {
   });
 
   // ---- 節點的區間係數：A（起點值）、B（輸入的一次項）；模態權重＝PhiS[si][i] ----
-  const Aof = (w, wsrc, wdc) => Float64Array.from({ length: M }, (_, k) => { // w：各慢模態權重；wsrc：各 AFG 權重；wdc：直流
+  const Aof = (w, wsrc, wdc, includeDC = true) => Float64Array.from({ length: M }, (_, k) => { // w：各慢模態權重；wsrc：各 AFG 權重；wdc：直流
     let v = wdc;
-    for (let si = 0; si < R; si++) v += w[si] * Y0[si][k];
+    for (let si = 0; si < R; si++) v += w[si] * (Y0[si][k] + (includeDC ? dcModal[si] : 0));
     for (let j = 0; j < afg.length; j++) v += wsrc[j] * e[j][k];
     return v;
   });
@@ -231,19 +232,27 @@ export function solveNet(net, { retainFastModes = false } = {}) {
   const bCache = new Map();
   const Bnode = (x) => { if (!bCache.has(x)) { const W = nodeW(x); bCache.set(x, W ? Bof(W.wsrc) : new Float64Array(M)); } return bCache.get(x); };
   const nodeAtFast = (x, t) => { const W = nodeW(x); if (!W) return 0; const [k, s] = locate(t); return valAt(W, table(x), Bnode(x), k, s); };
+  const acTables = new Map();
+  const nodeAcAt = (x, t) => {
+    const W = nodeW(x); if (!W) return 0;
+    if (!acTables.has(x)) acTables.set(x, Aof(W.w, W.wsrc, 0, false));
+    const [k, s] = locate(t); return valAt(W, acTables.get(x), Bnode(x), k, s);
+  };
+  const nodeChange = (x, t, t0) => nodeAcAt(x, t) - nodeAcAt(x, t0);
 
   // HI−LO 的統計與時間窗平均（每組只算一次）
   const memo = new Map();
-  const pair = (hi, lo) => {
-    const key = `${hi}|${lo}`;
+  const pair = (hi, lo, acOnly = false) => {
+    const key = `${hi}|${lo}|${acOnly}`;
     if (memo.has(key)) return memo.get(key);
     const Wh = nodeW(hi), Wl = nodeW(lo), zero = { w: PhiS.map(() => 0), wsrc: afg.map(() => 0), wdc: 0 };
     const a = Wh || zero, b = Wl || zero;
-    const W = { w: a.w.map((x, i) => x - b.w[i]), wsrc: a.wsrc.map((x, i) => x - b.wsrc[i]), wdc: a.wdc - b.wdc };
-    const A = Aof(W.w, W.wsrc, W.wdc), B = Bof(W.wsrc);
+    const W = { w: a.w.map((x, i) => x - b.w[i]), wsrc: a.wsrc.map((x, i) => x - b.wsrc[i]), wdc: acOnly ? 0 : a.wdc - b.wdc };
+    const dcBaseline = acOnly ? 0 : W.w.reduce((sum, w, si) => sum + w * dcModal[si], W.wdc);
+    const A = Aof(W.w, W.wsrc, 0, false), B = Bof(W.wsrc);
     const pre = new Float64Array(M + 1);
     for (let k = 0; k < M; k++) pre[k + 1] = pre[k] + intAt(W, A, B, k, h);
-    const mean = pre[M] / T;
+    const meanAc = pre[M] / T, mean = dcBaseline + meanAc;
     // 平方積分：每個「銳利」模態（λh ≥ 0.5）都在區間開頭分級切段（0.5／λ…32／λ），各段 8 點 Gauss–Legendre；
     //   只看最快的一個會漏掉較慢的尖峰（兩個時間常數差很多時）
     const cutSet = new Set([0, h]);
@@ -253,33 +262,33 @@ export function solveNet(net, { retainFastModes = false } = {}) {
     for (let k = 0; k < M; k++) {
       for (let c = 0; c + 1 < cuts.length; c++) {
         const s0 = cuts[c], s1 = cuts[c + 1], half = (s1 - s0) / 2;
-        for (const [u, wgt] of GL8) { const v = valAt(W, A, B, k, s0 + (u + 1) * half) - mean; S += wgt * half * v * v; }
+        for (const [u, wgt] of GL8) { const v = valAt(W, A, B, k, s0 + (u + 1) * half) - meanAc; S += wgt * half * v * v; }
       }
-      const v0 = A[k];
+      const v0 = dcBaseline + A[k];
       if (Math.abs(v0) > peak) peak = Math.abs(v0);
-      if (Math.abs(v0 - mean) > peakAc) peakAc = Math.abs(v0 - mean);
+      if (Math.abs(A[k] - meanAc) > peakAc) peakAc = Math.abs(A[k] - meanAc);
     }
-    const res = { W, A, B, pre, stats: { mean, acRms: Math.sqrt(Math.max(0, S / T)), peak, peakAc } };
+    const res = { W, A, B, pre, dcBaseline, stats: { mean, acRms: Math.sqrt(Math.max(0, S / T)), peak, peakAc } };
     memo.set(key, res);
     return res;
   };
   const stats = (hi, lo) => pair(hi, lo).stats;
-  const meanOver = (hi, lo, t1, t2) => {
-    const d = pair(hi, lo);
+  const meanOver = (hi, lo, t1, t2, acOnly = false) => {
+    const d = pair(hi, lo, acOnly);
     if (!(t2 > t1)) return d.stats.mean;
     const part = (t) => { const [k, s] = locate(t); return d.pre[k] + intAt(d.W, d.A, d.B, k, s); };
     const nn = Math.floor(t2 / T) - Math.floor(t1 / T);
-    return (nn * d.pre[M] + part(t2) - part(t1)) / (t2 - t1);
+    return d.dcBaseline + (nn * d.pre[M] + part(t2) - part(t1)) / (t2 - t1);
   };
+  const meanChangeOver = (hi, lo, t1, t2, t0) => meanOver(hi, lo, t1, t2, true) - (nodeAcAt(hi, t0) - nodeAcAt(lo, t0));
 
   // ---- 暫態用：電容電壓、模態對電容的影響、節點權重 ----
   const capSS = (t) => caps.map((c) => (c.a >= 0 ? nodeAtFast(names[c.a], t) : 0) - (c.b >= 0 ? nodeAtFast(names[c.b], t) : 0));
   const D = caps.map((c) => lamS.map((_, si) => (c.a >= 0 ? PhiS[si][c.a] : 0) - (c.b >= 0 ? PhiS[si][c.b] : 0)));
   // 給定各電容改變前一刻的電壓，求慢模態的偏移量 a。電路一接上，被導線直接連在一起的電容瞬間重新分配電荷：
   //   每個節點上的電荷守恆 ⇔ 以電容量加權的最小平方 min Σ C_k·(v_k − 原電壓_k)²（例：5 V 的 1 µF 並上 0 V 的 10 µF → 0.455 V）
-  const modalFromCaps = (target, t) => {
+  const projectCaps = (rhs) => {
     if (!R) return [];
-    const ss = capSS(t), rhs = caps.map((_, k) => target[k] - ss[k]);
     const N = zeros(R, R), bb = new Float64Array(R);
     for (let k = 0; k < caps.length; k++) { const c = caps[k].C; for (let i = 0; i < R; i++) { bb[i] += c * D[k][i] * rhs[k]; for (let j = 0; j < R; j++) N[i][j] += c * D[k][i] * D[k][j]; } }
     let tr = 0; for (let i = 0; i < R; i++) tr += N[i][i];
@@ -287,6 +296,22 @@ export function solveNet(net, { retainFastModes = false } = {}) {
     return Array.from(cholSolve(cholesky(N), bb));
   };
   const modeW = (x) => { const i = at(x); return i < 0 ? lamS.map(() => 0) : PhiS.map((p) => p[i]); };
+  const initialStateFromCaps = (target, t) => {
+    const [k, s] = locate(t);
+    const algAt = (x) => {
+      const W = nodeW(x); if (!W) return 0;
+      return W.wdc + W.wsrc.reduce((sum, w, j) => sum + w * (e[j][k] + ed[j][k] * s), 0);
+    };
+    const algCaps = caps.map((c) => algAt(names[c.a]) - algAt(names[c.b]));
+    // 先投影有限的目標電荷，再扣掉巨大穩態；初值本身不用兩個巨大數相減。
+    const y = projectCaps(target.map((v, i) => v - algCaps[i]));
+    const steady = lamS.map((l, si) => dcModal[si] + Y0[si][k] + Aco[si][k] * s * phi(1, l * s) + Bco[si][k] * s * s * phi(2, l * s));
+    const amp = y.map((v, i) => v - steady[i]);
+    const nodeAt = (x) => algAt(x) + modeW(x).reduce((sum, w, i) => sum + w * y[i], 0);
+    const capInitial = caps.map((_, j) => algCaps[j] + D[j].reduce((sum, w, i) => sum + w * y[i], 0));
+    return { amp, nodeAt, capInitial };
+  };
+  const modalFromCaps = (target, t) => initialStateFromCaps(target, t).amp;
 
   // 直流工作點（週期平均）；瞬間的 GPE 讀回與模式判斷另用 nodeAt。
   const dcOut = (net.dc || []).map((s) => {
@@ -296,7 +321,7 @@ export function solveNet(net, { retainFastModes = false } = {}) {
 
   return {
     names, periodic, period: T, h, M, lam: lamS, caps: caps.map((c) => c.id), capKeys: caps.map((c) => c.key), capIdx: caps,
-    table, nodeAt: nodeAtFast, stats, meanOver, capSS, modalFromCaps, modeW, dcOut, capD: D,
+    table, nodeAt: nodeAtFast, nodeChange, stats, meanOver, meanChangeOver, capSS, modalFromCaps, initialStateFromCaps, modeW, dcOut, capD: D,
     tauMax: lamS.length ? 1 / Math.min(...lamS) : 0,
   };
 }
