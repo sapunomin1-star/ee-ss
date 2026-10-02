@@ -186,6 +186,7 @@ export function solveNet(net, { retainFastModes = false } = {}) {
   const e = afg.map((s) => Float64Array.from({ length: M + 1 }, (_, k) => emf(s.p, k * h)));
   const ed = afg.map((s, j) => Float64Array.from({ length: M }, (_, k) => (s.p.wave === 'SQUARE' ? 0 : (e[j][k + 1] - e[j][k]) / h)));
   const R = slow.length, lamS = slow.map((m) => lam[m]), PhiS = slow.map((m) => Phi[m]);
+  const nodeModes = names.map((_, i) => PhiS.map((p) => p[i])), zeroModes = lamS.map(() => 0);
   const beta = slow.map((m, si) => rAfg.map((x) => x.beta[si])), kappa = slow.map((m, si) => rDc.beta[si]);
   // 直流模態固定點與 AFG 的有限週期響應分開：CC 只靠 GMIN 放電時，
   // kappa/λ 可達 10¹² V；不能把這個巨大常數沿 4000 格反覆累積捨入。
@@ -211,7 +212,8 @@ export function solveNet(net, { retainFastModes = false } = {}) {
     return v;
   });
   const Bof = (wsrc) => Float64Array.from({ length: M }, (_, k) => { let v = 0; for (let j = 0; j < afg.length; j++) v += wsrc[j] * ed[j][k]; return v; });
-  const nodeW = (x) => { const i = at(x); return i < 0 ? null : { w: PhiS.map((p) => p[i]), wsrc: hAfg.map((v) => v[i]), wdc: hDc[i] }; };
+  const nodeWeights = new Map();
+  const nodeW = (x) => { const i = at(x); if (i < 0) return null; if (!nodeWeights.has(x)) nodeWeights.set(x, { w: nodeModes[i], wsrc: hAfg.map((v) => v[i]), wdc: hDc[i] }); return nodeWeights.get(x); };
   const tables = new Map();
   const table = (x) => {
     if (!tables.has(x)) { const W = nodeW(x); tables.set(x, W ? Aof(W.w, W.wsrc, W.wdc) : new Float64Array(M)); }
@@ -287,15 +289,14 @@ export function solveNet(net, { retainFastModes = false } = {}) {
   const D = caps.map((c) => lamS.map((_, si) => (c.a >= 0 ? PhiS[si][c.a] : 0) - (c.b >= 0 ? PhiS[si][c.b] : 0)));
   // 給定各電容改變前一刻的電壓，求慢模態的偏移量 a。電路一接上，被導線直接連在一起的電容瞬間重新分配電荷：
   //   每個節點上的電荷守恆 ⇔ 以電容量加權的最小平方 min Σ C_k·(v_k − 原電壓_k)²（例：5 V 的 1 µF 並上 0 V 的 10 µF → 0.455 V）
-  const projectCaps = (rhs) => {
-    if (!R) return [];
-    const N = zeros(R, R), bb = new Float64Array(R);
-    for (let k = 0; k < caps.length; k++) { const c = caps[k].C; for (let i = 0; i < R; i++) { bb[i] += c * D[k][i] * rhs[k]; for (let j = 0; j < R; j++) N[i][j] += c * D[k][i] * D[k][j]; } }
-    let tr = 0; for (let i = 0; i < R; i++) tr += N[i][i];
-    for (let i = 0; i < R; i++) N[i][i] += 1e-24 * (tr || 1);
-    return Array.from(cholSolve(cholesky(N), bb));
-  };
-  const modeW = (x) => { const i = at(x); return i < 0 ? lamS.map(() => 0) : PhiS.map((p) => p[i]); };
+  const normal = zeros(R, R);
+  for (let k = 0; k < caps.length; k++) for (let i = 0; i < R; i++) for (let j = 0; j < R; j++) normal[i][j] += caps[k].C * D[k][i] * D[k][j];
+  const trace = normal.reduce((s, row, i) => s + row[i], 0);
+  for (let i = 0; i < R; i++) normal[i][i] += 1e-24 * (trace || 1);
+  const normalL = cholesky(normal);
+  const capProjection = caps.map((c, k) => cholSolve(normalL, D[k].map((w) => w * c.C)));
+  const projectCaps = (rhs) => lamS.map((_, m) => capProjection.reduce((s, column, k) => s + column[m] * rhs[k], 0));
+  const modeW = (x) => { const i = at(x); return i < 0 ? zeroModes : nodeModes[i]; };
   const initialStateFromCaps = (target, t) => {
     const [k, s] = locate(t);
     const algAt = (x) => {
@@ -312,6 +313,108 @@ export function solveNet(net, { retainFastModes = false } = {}) {
     return { amp, nodeAt, capInitial };
   };
   const modalFromCaps = (target, t) => initialStateFromCaps(target, t).amp;
+  // Proven amplitude bound about the mean, including the interpolation error
+  // of the sine drive. Modal triangle bounds may be loose, but cannot miss a
+  // narrow steady-state extremum between the 4000 tabulated sample points.
+  const acBound = (hi, lo = 'E') => {
+    const a = nodeW(hi), b = nodeW(lo), wa = a?.w || lamS.map(() => 0), wb = b?.w || lamS.map(() => 0);
+    let bound = 0;
+    afg.forEach(({ p }, j) => {
+      const amplitude = p.emfVpp / 2;
+      bound += Math.abs((a?.wsrc[j] || 0) - (b?.wsrc[j] || 0)) * amplitude;
+      lamS.forEach((l, m) => {
+        const response = p.wave === 'SINE' ? 1 / Math.hypot(l, 2 * Math.PI / T) + (l > 0 ? (2 * Math.PI / M) ** 2 / (8 * l) : T * (2 * Math.PI / M) ** 2 / 8)
+          : p.wave === 'SQUARE' ? (l > 0 ? Math.tanh(l * T / 4) / l : T / 4) : Math.min(l > 0 ? 1 / l : Infinity, T);
+        bound += Math.abs((wa[m] - wb[m]) * beta[m][j]) * amplitude * response;
+      });
+    });
+    return bound;
+  };
+
+  // Finite-state propagation for the hybrid CV/CC/RB solver. A step never
+  // crosses an AFG corner; the modal response and its integral are analytic.
+  // Unlike a steady-state subtraction this remains accurate for a CC source
+  // whose GMIN-only equilibrium can be trillions of volts.
+  const driveCuts = new Set([0, T]);
+  afg.forEach(({ p }) => {
+    if (p.wave === 'SINE') for (let k = 1; k < M; k++) driveCuts.add(k * h);
+    else driveCuts.add(T * (p.wave === 'SQUARE' ? 0.5 : Math.min(Math.max(p.sym / 100, 1e-9), 1 - 1e-9)));
+  });
+  const drive = (t0, t1) => afg.map(({ p }, j) => {
+    const mid = (t0 + t1) / 2;
+    if (p.wave === 'SQUARE') return [emf(p, mid), 0];
+    if (p.wave === 'RAMP') {
+      const ph = mid / T, corner = Math.min(Math.max(p.sym / 100, 1e-9), 1 - 1e-9);
+      const slope = ph < corner ? p.emfVpp / (corner * T) : -p.emfVpp / ((1 - corner) * T);
+      return [emf(p, mid) + slope * (t0 - mid), slope];
+    }
+    const k = Math.max(0, Math.min(M - 1, Math.floor(mid / h)));
+    return [e[j][k] + ed[j][k] * (t0 - k * h), ed[j][k]];
+  });
+  const capProject = (target) => projectCaps(target);
+  const capsFromCoordinates = (y) => D.map((w) => w.reduce((s, x, m) => s + x * y[m], 0));
+  const projectColumns = capProjection;
+  const linearStep = (target, t0, t1) => {
+    const input = drive(t0, t1), alg0 = new Float64Array(n), alg1 = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      alg0[i] = hDc[i];
+      input.forEach(([v, slope], j) => { alg0[i] += hAfg[j][i] * v; alg1[i] += hAfg[j][i] * slope; });
+    }
+    const av = (c, x) => (c.a >= 0 ? x[c.a] : 0) - (c.b >= 0 ? x[c.b] : 0);
+    const y = projectCaps(target.map((v, k) => v - av(caps[k], alg0)));
+    const a = lamS.map((l, m) => kappa[m] + input.reduce((s, [v], j) => s + beta[m][j] * v, 0) - l * y[m]);
+    const b = lamS.map((_, m) => input.reduce((s, [, slope], j) => s + beta[m][j] * slope, 0));
+    const nodeAt = (node, dt) => {
+      const i = at(node), w = modeW(node); if (i < 0) return 0;
+      let value = alg0[i] + alg1[i] * dt;
+      w.forEach((x, m) => { value += x * (y[m] + a[m] * dt * phi(1, lamS[m] * dt) + b[m] * dt * dt * phi(2, lamS[m] * dt)); });
+      return value;
+    };
+    const nodeIntegral = (node, dt) => {
+      const i = at(node), w = modeW(node); if (i < 0) return 0;
+      let value = alg0[i] * dt + alg1[i] * dt * dt / 2;
+      w.forEach((x, m) => { value += x * (y[m] * dt + a[m] * dt * dt * phi(2, lamS[m] * dt) + b[m] * dt * dt * dt * phi(3, lamS[m] * dt)); });
+      return value;
+    };
+    const nodeDerivative = (node, dt) => {
+      const i = at(node), w = modeW(node); if (i < 0) return 0;
+      return alg1[i] + w.reduce((s, x, m) => s + x * (a[m] * Math.exp(-lamS[m] * dt) + b[m] * dt * phi(1, lamS[m] * dt)), 0);
+    };
+    const nodeIntegralBetween = (node, start, end) => {
+      const i = at(node), w = modeW(node); if (i < 0) return 0;
+      const dt = end - start;
+      let value = nodeAt(node, start) * dt + alg1[i] * dt * dt / 2;
+      w.forEach((x, m) => {
+        const slope = a[m] * Math.exp(-lamS[m] * start) + b[m] * start * phi(1, lamS[m] * start);
+        value += x * (slope * dt * dt * phi(2, lamS[m] * dt) + b[m] * dt * dt * dt * phi(3, lamS[m] * dt));
+      });
+      return value;
+    };
+    const capAt = (dt) => caps.map((c) => nodeAt(names[c.a], dt) - nodeAt(names[c.b], dt));
+    const capTransition = (dt) => D.map((row) => projectColumns.map((column) => row.reduce((s, w, m) => s + w * Math.exp(-lamS[m] * dt) * column[m], 0)));
+    const integralGradient = (node, dt) => modeW(node).map((w, m) => w * dt * phi(1, lamS[m] * dt));
+    return { nodeAt, nodeIntegral, nodeIntegralBetween, nodeDerivative, capAt, capTransition, integralGradient, projectColumns, lam: lamS };
+  };
+  const periodFlow = (target) => {
+    const alg = (node) => { const W = nodeW(node); return W ? W.wdc + W.wsrc.reduce((s, w, j) => s + w * e[j][0], 0) : 0; };
+    const algCaps = caps.map((c) => alg(names[c.a]) - alg(names[c.b]));
+    const y = projectCaps(target.map((v, k) => v - algCaps[k]));
+    const after = y.map((v, m) => v + (kappa[m] - lamS[m] * v) * T * phi(1, lamS[m] * T) + Y0[m][0] * -Math.expm1(-lamS[m] * T));
+    const capEnd = D.map((row, k) => algCaps[k] + row.reduce((s, w, m) => s + w * after[m], 0));
+    const capTransition = D.map((row) => projectColumns.map((col) => row.reduce((s, w, m) => s + w * Math.exp(-lamS[m] * T) * col[m], 0)));
+    const nodeIntegral = (node, duration = T) => {
+      const W = nodeW(node); if (!W) return 0;
+      if (!(duration > 0)) return 0;
+      return meanOver(node, 'E', 0, duration, true) * duration + W.wdc * duration + W.w.reduce((s, w, m) => s + w * ((y[m] - Y0[m][0]) * duration * phi(1, lamS[m] * duration) + kappa[m] * duration * duration * phi(2, lamS[m] * duration)), 0);
+    };
+    const nodeAt = (node, duration) => {
+      const W = nodeW(node); if (!W) return 0;
+      const initial = alg(node) + W.w.reduce((s, w, m) => s + w * y[m], 0);
+      return initial + nodeChange(node, duration, 0) + W.w.reduce((s, w, m) => s + w * ((y[m] - Y0[m][0]) * Math.expm1(-lamS[m] * duration) + kappa[m] * duration * phi(1, lamS[m] * duration)), 0);
+    };
+    const integralGradient = (node) => modeW(node).map((w, m) => w * T * phi(1, lamS[m] * T));
+    return { caps: capEnd, capTransition, nodeAt, nodeIntegral, integralGradient, projectColumns };
+  };
 
   // 直流工作點（週期平均）；瞬間的 GPE 讀回與模式判斷另用 nodeAt。
   const dcOut = (net.dc || []).map((s) => {
@@ -322,6 +425,7 @@ export function solveNet(net, { retainFastModes = false } = {}) {
   return {
     names, periodic, period: T, h, M, lam: lamS, caps: caps.map((c) => c.id), capKeys: caps.map((c) => c.key), capIdx: caps,
     table, nodeAt: nodeAtFast, nodeChange, stats, meanOver, meanChangeOver, capSS, modalFromCaps, initialStateFromCaps, modeW, dcOut, capD: D,
+    driveCuts: [...driveCuts].sort((a, b) => a - b), linearStep, periodFlow, capProject, capsFromCoordinates, acBound,
     tauMax: lamS.length ? 1 / Math.min(...lamS) : 0,
   };
 }

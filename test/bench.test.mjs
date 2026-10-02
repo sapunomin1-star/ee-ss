@@ -437,7 +437,7 @@ test('47 nF 直接跨 GPE 5 V／1 mA：100 µs 仍以 CC 充到 2.127 V，約 23
   assert.equal(r.cc, true); near(r.i, 0.001, 1e-12, '1 mA 限流');
   const sw = s.b.segs.find((g) => g.from > t0 && g.modes[0] === 'CV');
   assert.ok(sw);
-  near(sw.from - t0, -10e6 * 47e-9 * Math.log1p(-5 / (0.001 * 10e6)), 1e-8, '轉 CV 時刻');
+  near(sw.from - t0, -10e6 * 47e-9 * Math.log1p(-(5 - 0.001 * 0.01) / (0.001 * 10e6)), 1e-8, 'CV 內阻 0.01 Ω 的電流等於 1 mA 時轉 CV');
   s.adv(150e-6);
   assert.equal(s.b.gpeInput()[1].cc, false);
   near(s.b.vcAt(s.now()), 5, 1e-7, '已轉 CV');
@@ -449,6 +449,9 @@ test('無儀器負載的 1 nF～10 µF 接 GPE 5／32 V、1 mA／1 A：初值為
     s.gpe.vset[1] = voltage * 100; s.gpe.iset[1] = current * 1000; s.b.solution(); s.adv(1);
     s.gpe.press('GPE.KEY.OUTPUT_ON_OFF'); s.b.solution();
     const t0 = s.now(), crossing = voltage * capacitance / current;
+    const limitV = voltage - current * .01;
+    const protectionTime = -capacitance / 1e-12 * Math.log1p(-1e-12 * limitV / current);
+    const cvTarget = voltage / (1 + .01 * 1e-12), cvTau = capacitance / (100 + 1e-12);
     near(s.b.vcAt(t0), 0, 0, `${voltage} V／${current} A／${capacitance} F 未充電初值`);
     const node = s.b.cur.built.leadNode['GPE.CH1+'];
     near(s.b.snapshot().dcNow[node], 0, 0, 'snapshot 也使用有限初值');
@@ -457,7 +460,8 @@ test('無儀器負載的 1 nF～10 µF 接 GPE 5／32 V、1 mA／1 A：初值為
     for (const fraction of [0.1, 0.5, 0.99, 1.02]) {
       s.adv(t0 + fraction * crossing - s.now());
       const elapsed = s.now() - t0, r = s.b.gpeInput()[1];
-      const expected = fraction < 1 ? current / 1e-12 * -Math.expm1(-1e-12 * elapsed / capacitance) : voltage;
+      const expected = elapsed < protectionTime ? current / 1e-12 * -Math.expm1(-1e-12 * elapsed / capacitance)
+        : cvTarget + (limitV - cvTarget) * Math.exp(-(elapsed - protectionTime) / cvTau);
       near(s.b.vcAt(s.now()), expected, 1e-8, '實際時間的限流充電電压');
       assert.equal(r.cc, fraction < 1); assert.equal(r.rb, false);
       assert.ok(s.b.vcAt(s.now()) <= voltage, '充電電容不超過設定電壓');
@@ -494,7 +498,7 @@ function periodicSupply(C = 0) {
 }
 
 test('同節點 AFG 0～10 V／GPE 5 V 10 mA：正峰 RB、負峰 CC，10 秒後與示波器波形仍遵守限制', () => {
-  const s = periodicSupply(), t0 = s.now();
+  const s = periodicSupply(), t0 = s.now(), historyCount = s.b.segs.length;
   for (const elapsed of [0, 10]) {
     s.adv(t0 + elapsed + 0.25e-3 - s.now());
     let r = s.b.gpeInput()[1];
@@ -508,7 +512,7 @@ test('同節點 AFG 0～10 V／GPE 5 V 10 mA：正峰 RB、負峰 CC，10 秒後
     near(s.b.tdsInput().sig[0].abs(s.now()), r.v, 1e-10, '示波器實際 CC 波形');
   }
   assert.ok(s.b.snapshot().warn.some((w) => w.includes('灌入')));
-  assert.ok(s.b.segs.length <= 2, '週期切換不會產生無限事件歷史');
+  assert.equal(s.b.segs.length, historyCount, '10 秒週期切換不新增操作歷史');
 });
 
 test('GPE／AFG 無電容的受限波形：週期統計、負時間與大絕對時間的積分一致', () => {
@@ -530,9 +534,15 @@ test('GPE／AFG 無電容的受限波形：週期統計、負時間與大絕對�
   for (const [a, b] of [[-0.1e-3, 0.1e-3], [12.0002, 12.0008]]) near(sol.meanOver(node, 'E', a, b), numericalMean(a, b), 2e-6, '部分週期跨模式積分');
 });
 
-test('含電容的 AFG／GPE 共同驅動會明確顯示週期保護切換未支援，避免把近似 CV 誤當保護有效', () => {
+test('含電容的 AFG／GPE 共同驅動：週期求解收斂且保護切換有效', () => {
   const s = periodicSupply(47e-9);
-  assert.ok(s.b.snapshot().warn.some((w) => w.includes('目前不支援') && w.includes('週期限流')));
+  assert.equal(s.b.solution().hybrid.converged, true);
+  assert.ok(!s.b.snapshot().warn.some((w) => w.includes('目前不支援')));
+  const t0 = s.now(); s.adv(10.00025);
+  assert.equal(s.b.gpeInput()[1].rb, true);
+  s.adv(.0005); assert.equal(s.b.gpeInput()[1].cc, true);
+  near(s.b.gpeInput()[1].i, .01, 0, '負峰保有 10 mA 限流');
+  near(s.b.tdsInput().sig[0].abs(s.now()), s.b.gpeInput()[1].v, 1e-10, '示波器與保護讀回一致');
 });
 
 test('共用大地的獨立 AFG RC 迴路，不影響另一組無電容 AFG／GPE 的週期限流或 RC 暫態', () => {

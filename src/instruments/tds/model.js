@@ -262,6 +262,7 @@ export class TdsModel {
     this.seed = 20260930;
     this.acqN = 0;
     this.changeSearch = null;
+    this.armedAt = null;
     this.scen = bench ? 'BENCH' : 'S1';
     this.fx = bench ? this.benchFx() : SCEN.S1;
     this.ch = [0, 1].map(() => ({ on: false, coupling: 'DC', bw: false, vIdx: 5, pos: 0, probe: 10 }));
@@ -293,7 +294,7 @@ export class TdsModel {
   base(i) { return VDIV[this.ch[i].vIdx]; } // BNC 伏特／格
   vdiv(i) { return this.base(i) * this.ch[i].probe; } // 顯示的 V/div
   levelV() { return this.trig.level * this.ch[this.trig.src].probe; } // 顯示的觸發位準
-  posLimit(i) { const b = this.base(i); return (b <= 0.2 + 1e-12 ? 1.8 : 45) / b; } // 以格數表示（GAP-TDS-11）
+  posLimit(i, b = this.base(i)) { return (b <= 0.2 + 1e-12 ? 1.8 : 45) / b; } // 以格數表示（GAP-TDS-11）；b 可供 AutoSet 檢查候選檔位
   isScan() { return this.run === 'run' && this.trig.mode === 'AUTO' && this.sdiv >= 0.1 - 1e-12; }
   rand() { // mulberry32：固定種子，測試可重現
     let t = (this.seed = (this.seed + 0x6d2b79f5) | 0);
@@ -637,6 +638,9 @@ export class TdsModel {
   }
 
   power() {
+    // 關機期間沒有採集：不能在重新開機後續查關機前尚未處理的觸發歷史。
+    this.changeSearch = null;
+    this.armedAt = null;
     if (this.on) { this.on = false; return { kind: 'approx', text: '模擬電源關閉：畫面熄滅（實機電源鍵在機殼頂部，照片看不到）。' }; }
     this.on = true;
     if (this.scen === 'BENCH') this.fx = this.benchFx();
@@ -658,6 +662,9 @@ export class TdsModel {
       case 'TDS.KEY.AUTOSET': return this.autoset();
       case 'TDS.KEY.DEFAULT_SETUP': return this.defaultSetup();
       case 'TDS.KEY.RUN_STOP':
+        // 每次恢復從現在開始等待；Stop 期間錯過的邊緣不補抓。
+        this.changeSearch = null;
+        this.armedAt = null;
         if (this.run === 'stop') { this.run = 'run'; this.complete = false; return null; }
         this.run = 'stop'; this.complete = false; this.frames = null;
         return null;
@@ -829,12 +836,17 @@ export class TdsModel {
       if (!has[i]) return;
       const c = this.ch[i], hi = P[i].m + P[i].a, lo = P[i].m - P[i].a;
       // 在目前位置下，讓整個波形落在 ±4 div 內的最小檔；都不行就先把位置歸零（後備規則）
-      const fit = (pos) => VDIV.findIndex((b) => pos + hi / b <= 4 + 1e-9 && pos + lo / b >= -4 - 1e-9);
+      const fit = (pos) => VDIV.findIndex((b) => Math.abs(pos) <= this.posLimit(i, b) + 1e-9
+        && pos + hi / b <= 4 + 1e-9 && pos + lo / b >= -4 - 1e-9);
       let k = fit(c.pos);
       if (k < 0 && c.pos !== 0) { c.pos = 0; k = fit(0); notes.push(`CH${i + 1} 位置先歸零再選刻度（後備規則）`); }
       c.vIdx = k < 0 ? VDIV.length - 1 : k;
     });
-    if (periodic.length) this.sIdx = SDIV.findIndex((s) => 10 * s * P[src].f >= 2 - 1e-9); // 至少 2 個完整週期的最快檔
+    if (periodic.length) {
+      const k = SDIV.findIndex((s) => 10 * s * P[src].f >= 2 - 1e-9); // 至少 2 個完整週期的最快檔
+      this.sIdx = k < 0 ? SDIV.length - 1 : k;
+      if (k < 0) notes.push('訊號太慢，已選最大時基 50 s/div；畫面仍不足兩個週期，請手動調整或使用游標');
+    }
     this.mpos = 0;
     this.trig = { src, slope: 'R', mode: 'AUTO', coup: 'DC', level: 0 };
     this.setTo50();

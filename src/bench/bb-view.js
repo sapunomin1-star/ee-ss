@@ -28,8 +28,9 @@ const END = {
   'TDS.CH1.GND': { x: 670, y: 80, color: BLK, label: 'CH1 接地夾', pill: 'R' },
   'TDS.CH2.TIP': { x: 670, y: 122, color: '#1e9bd7', label: 'CH2 尖端', pill: 'R' },
   'TDS.CH2.GND': { x: 670, y: 158, color: BLK, label: 'CH2 接地夾', pill: 'R' },
-  'DMM.HI': { x: 330, y: 572, color: RED, label: 'HI（紅）', pill: 'L' },
-  'DMM.LO': { x: 330, y: 612, color: BLK, label: 'LO（黑）', pill: 'L' },
+  'DMM.HI': { x: 330, y: 552, color: RED, label: 'HI（V Ω）', pill: 'L' },
+  'DMM.I': { x: 330, y: 588, color: RED, label: 'I（電流）', pill: 'L' },
+  'DMM.LO': { x: 330, y: 624, color: BLK, label: 'LO（黑）', pill: 'L' },
 };
 // GPE 輸出端子排成一列（同一路的＋、−靠在一起），上方標路數
 const GPE_X = [380, 474, 568, 662];
@@ -195,6 +196,7 @@ export function bbSide(bench, ui, hints) {
       ${on.length && on.length < Object.keys(LEADS).length ? `<p class="muted">其餘 ${Object.keys(LEADS).length - on.length} 條未接。</p>` : ''}</section>
     <section><h3>示範與清空</h3>
       <div class="btns"><button data-bb="demo-rc">示範「RC 低通」</button><button data-bb="demo-gpe">示範「GPE 分壓」</button></div>
+      <div class="btns"><button data-bb="demo-current">示範「串接電流」</button></div>
       <div class="btns"><button data-bb="clear">清空麵包板</button></div>
       <p class="muted">示範會先清空麵包板再擺上完整接線。</p></section>
     <section><h3>練習提示</h3><ul class="practice">
@@ -203,6 +205,7 @@ export function bbSide(bench, ui, hints) {
       <li>元件兩隻腳要插在不同組：同一欄的 a–e 是一組、f–j 是另一組；兩腳插在同一組或同一條電源軌等於被短路。跨過中間溝槽（例如 e9–f9）是兩組，可以這樣插。</li>
       <li>跳線把兩個孔所在的組連成同一個節點，例如把電源軌接到某一欄。</li>
       <li>量電壓：電表 HI、LO 並聯在要量的元件兩端（插在元件兩腳所在的欄）。</li>
+      <li>量電流：先斷開迴路，再把 I、LO 串入缺口，電表選 DCI 或 ACI。I→LO 為正電流；I 端有低阻分流器，不能像電壓測試線並接在電源或元件兩端。</li>
       <li>AFG 黑夾、示波器接地夾都是地，要接到同一個地（例如藍色−軌）。</li>
     </ul></section>
     <section><h3>最近提示</h3><ul class="log">${hints || '<li class="empty">（還沒有）</li>'}</ul></section>`;

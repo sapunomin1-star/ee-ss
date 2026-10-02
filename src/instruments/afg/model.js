@@ -208,15 +208,35 @@ export class AfgModel {
 
   defaultCursor(hl) {
     const spec = CURSOR[hl];
-    if (hl === 'FREQ') return Math.min(spec.max, Math.max(spec.min, spec.def(this.c)));
-    return spec.def(hl === 'AMPL' ? this.c.unit : this.c.offUnit);
+    const preferred = hl === 'FREQ' ? spec.def(this.c) : spec.def(hl === 'AMPL' ? this.c.unit : this.c.offUnit);
+    const [lo, hi] = this.cursorRange(hl);
+    return Math.min(hi, Math.max(lo, preferred));
   }
 
-  cursorRange() {
-    const spec = CURSOR[this.hl];
-    if (this.hl === 'FREQ') return [spec.min, spec.max];
-    const u = this.hl === 'AMPL' ? this.c.unit : this.c.offUnit;
-    return [spec.min(u), spec.max(u)];
+  // 編輯框與游標共用格式：位權只能落在畫面實際顯示的數字上（GAP-AFG-04）。
+  editParts(hl = this.hl, c = this.c) {
+    if (hl === 'FREQ') {
+      const p = freqParts(c.freq);
+      return { text: fmtFixed(c.freq / p.mult, Math.round(Math.log10(p.mult)) + 6), unit: p.unit, mult: p.mult };
+    }
+    if (hl === 'AMPL') return { text: fmtAmpl(this.refVpp(c), c.unit, c.wave), unit: UNIT_TEXT[c.unit], mult: c.unit.startsWith('M') ? 1e-3 : 1 };
+    if (hl === 'OFFSET') return { text: fmtOffset(this.refOffset(c), c.offUnit), unit: UNIT_TEXT[c.offUnit], mult: c.offUnit === 'MVDC' ? 1e-3 : 1 };
+    return { text: fmtFixed(c.sym, 1), unit: '%', mult: 1 };
+  }
+
+  cursorRange(hl = this.hl) {
+    const spec = CURSOR[hl], u = hl === 'AMPL' ? this.c.unit : this.c.offUnit;
+    const lo = hl === 'FREQ' ? spec.min : spec.min(u), hi = hl === 'FREQ' ? spec.max : spec.max(u);
+    const { text, mult } = this.editParts(hl);
+    const [ip, fp = ''] = text.replace(/^-/, '').split('.');
+    const unitExp = Math.round(Math.log10(mult));
+    return [Math.max(lo, unitExp - fp.length), Math.min(hi, unitExp + ip.length - 1)];
+  }
+
+  syncCursor() {
+    if (!this.hl) return;
+    const [lo, hi] = this.cursorRange();
+    this.cexp = Math.min(hi, Math.max(lo, this.cexp));
   }
 
   moveCursor(delta) {
@@ -235,7 +255,7 @@ export class AfgModel {
       case 'WAVE': return this.pickWave(i);
       case 'SQUARE': return { kind: 'out', text: 'Duty 本輪固定 50%，未納入練習（按了不會改變狀態）。' };
       case 'RAMP':
-        if (i === 0) { this.discard(); this.hl = 'SYM'; this.cexp = CURSOR.SYM.def(); return null; }
+        if (i === 0) { this.discard(); this.hl = 'SYM'; this.cexp = this.defaultCursor('SYM'); return null; }
         return this.commitSym();
       case 'FREQ': return this.commitFreq(FREQ_UNITS[i][1], FREQ_UNITS[i][0]);
       case 'AMPL': return this.amplUnitKey(AMPL_UNITS[i]);
@@ -261,6 +281,7 @@ export class AfgModel {
     c.wave = w;
     this.menu = w === 'RAMP' ? 'RAMP' : w === 'SQUARE' ? 'SQUARE' : 'WAVE';
     if (this.hl === 'SYM') this.hl = null;
+    this.syncCursor();
     return msg;
   }
 
@@ -293,7 +314,7 @@ export class AfgModel {
     if (this.hl !== 'AMPL') return null;
     if (!this.buf) { // 只換顯示單位：物理幅度不變、不重新判定（GAP-AFG-11）
       c.unit = unit;
-      this.cexp = CURSOR.AMPL.def();
+      this.cexp = this.defaultCursor('AMPL');
       return null;
     }
     const raw = this.buf;
@@ -305,14 +326,14 @@ export class AfgModel {
     if (err) return { kind: 'reject', text: `${raw} ${UNIT_TEXT[unit]} 被拒絕：${err}。已提交值與顯示單位不變。` };
     c.emfVpp = c.load50 ? vpp * 2 : vpp; // ③ 保存未捨入值
     c.unit = unit;
-    this.cexp = CURSOR.AMPL.def();
+    this.cexp = this.defaultCursor('AMPL');
     return unit === 'VPP' ? null : { kind: 'info', text: `${raw} ${UNIT_TEXT[unit]} ≈ ${vpp.toPrecision(7)} Vpp（${WAVE_NAME[c.wave]}，${c.load50 ? '50 Ω' : 'High Z'} 參照）。` };
   }
 
   offsetUnitKey(unit) {
     const c = this.c;
     if (this.hl !== 'OFFSET') return null;
-    if (!this.buf) { c.offUnit = unit; this.cexp = CURSOR.OFFSET.def(); return null; }
+    if (!this.buf) { c.offUnit = unit; this.cexp = this.defaultCursor('OFFSET'); return null; }
     const raw = this.buf;
     const x = this.parseBuf();
     if (x == null) return { kind: 'reject', text: `「${raw}」不是有效數字，Offset 保留原值。` };
@@ -323,7 +344,7 @@ export class AfgModel {
     if (err) return { kind: 'reject', text: `Offset ${raw} ${UNIT_TEXT[unit]} 被拒絕：${err}。原值保留。` };
     c.emfOffset = c.load50 ? off * 2 : off;
     c.offUnit = unit;
-    this.cexp = CURSOR.OFFSET.def();
+    this.cexp = this.defaultCursor('OFFSET');
     return null;
   }
 
@@ -333,6 +354,7 @@ export class AfgModel {
     const x = this.parseBuf();
     if (x == null || x < 0 || x > 100) return { kind: 'reject', text: `SYM ${raw}% 超出 0%–100%，原值保留。` };
     this.c.sym = Math.round(x * 10) / 10;
+    this.syncCursor();
     return null;
   }
 
@@ -342,6 +364,7 @@ export class AfgModel {
     c.load50 = to50; // EMF 不變，參照值自動 ×2／÷2（AFG-F10）
     let text = `CH${this.sel + 1} Load 改為 ${to50 ? '50 Ω' : 'High Z'}：顯示值${to50 ? '減半' : '加倍'}，實際輸出（EMF）不變。`;
     if (!to50 && c.unit === 'DBM') { c.unit = 'VPP'; text += ' dBm 在 High Z 不能用，單位改為 VPP。'; }
+    this.syncCursor();
     return { kind: 'info', text };
   }
 
@@ -350,6 +373,7 @@ export class AfgModel {
     if (!this.on) return null;
     if (!this.hl) return null; // 沒有參數高亮時旋鈕不作用（GAP-AFG-15）
     const d = this.discard();
+    this.syncCursor();
     const w = 10 ** this.cexp;
     const c = this.c;
     if (this.hl === 'FREQ') {
@@ -374,6 +398,7 @@ export class AfgModel {
       if (s < 0 || s > 100) return { kind: 'reject', text: '這一步不生效：SYM 範圍 0%–100%。' };
       c.sym = s;
     }
+    this.syncCursor();
     return d;
   }
 

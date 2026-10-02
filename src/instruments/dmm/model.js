@@ -16,6 +16,9 @@ function range(v, base, over = 1.2) {
   return { v, mult, p, int: String(n).length, label: `${n}${p}${base}`, limit: v * over };
 }
 const I_RANGES = [1e-4, 1e-3, 1e-2, 0.1, 1].map((v) => range(v, 'A')).concat(range(3, 'A', 1));
+// D-DMM p.11／12 只列負擔電壓「上限」，沒有實際 shunt 電阻。
+// 教學近似：用上限÷滿刻度作保守等效負載；不能解讀成原廠內阻或精準負擔電壓。
+export const CURRENT_SHUNT = [0.011 / 1e-4, 0.11 / 1e-3, 0.05 / 1e-2, 0.5 / 0.1, 0.7, 2 / 3];
 
 // 功能：LCD 功能名與單位字樣只有 DCV 見於 datasheet 產品照，其餘比照 DCV（GAP-DMM-09，近似）
 export const FUNCS = {
@@ -41,7 +44,7 @@ export const D1 = [
   { id: 'open', kind: 'R', ohm: Infinity, label: '開路', desc: '電阻類（測試線之間沒有接東西），接 Input HI／LO。' },
   { id: 'dci', kind: 'I', dc: 0.01234, ac: 0, label: 'DC 12.34 mA', desc: '電流類，串在 I 3A／LO。' },
   { id: 'aci', kind: 'I', dc: 0, ac: 0.005, label: 'AC 5.000 mArms（1 kHz 純正弦）', desc: '電流類，串在 I 3A／LO。' },
-  { id: 'bench', bench: true, label: '實驗台接線', desc: '測試線接在「實驗台」分頁的電路上：HI、LO 接在哪裡就量哪裡（電壓、電阻）。' },
+  { id: 'bench', bench: true, label: '實驗台接線', desc: '電壓／電阻接 HI–LO；電流需拆開原回路，將 I 3A–LO 串入。I–LO 分流會實際改變電路負載。' },
 ];
 const TERM = { V: 'Input HI／LO', R: 'Input HI／LO', I: 'I 3A／LO' };
 const CAT = { V: '電壓類', R: '電阻類', I: '電流類' };
@@ -98,6 +101,8 @@ export class DmmModel {
       '量程：Range 切 Auto／手動（進手動鎖定目前檔）；+／− 在手動逐檔升降，到端點停住；S1 軟鍵＝Range。Auto 選能容納讀值的最小檔（≤ 1.2×量程），換檔門檻手冊未取得，近似。',
       '超量程：手動量程太小時讀值欄顯示「-------」中性記號（原廠字樣未取得）；導通 > 1.2 kΩ 顯示 OPEN、≤ 10 Ω 出現 ·)) 導通指示。',
       'Null：有讀值時按 Null，以當下讀值為基準、之後顯示差值；再按一次關閉。每個功能各自保存 Null（按下即取基準、切功能保留皆為近似）。',
+      '實驗台電流：拆開回路，將 I 3A–LO 串入；正電流由 I 流向 LO。HI 是獨立電壓端，不能用 HI 量電流。I–LO 以負擔電壓上限推算的等效分流負載作教學近似，量程會改變電路；Auto 降檔採 80% 遲滯。',
+      'I–LO 接上後在關機或其他功能仍保留分流（教學假設）；沒有模擬保險絲熔斷，直接並接電源會形成低阻負載，超過 3 A 的接法必須拆除。',
       '電源 ⏻：關機後按鍵無作用；開機回到模擬器預設 DCV、Auto、Null 關（非原廠開機記憶）；測試情境不受影響。',
       'LCD 字樣近似清單：DC Voltage、VDC／mVDC、Auto 1V、Auto Trigger 與 DCV 軟鍵列來自 datasheet 產品照（p.3–4）；AC Voltage、DC Current、AC Current、2-Wire Ohms、Continuity、VAC／ADC／AAC、Manual、Null、OPEN 為推論字樣。',
     ];
@@ -127,14 +132,15 @@ export class DmmModel {
   // 目前功能看得到的物理量；null＝未提供相容測試輸入。AC 功能只取交流成分、DC 功能只取直流成分（DMM-F03）
   input() {
     const fx = this.fx, f = this.f;
-    if (fx.bench) { // 實驗台：由電路算出 HI−LO（J 階段）
+    if (fx.bench) { // 實驗台：HI−LO 電壓或真正串入電路的 I−LO 分流電流
       const b = this.benchSource?.();
       if (!b) return null;
-      if (f.kind === 'V') {
-        if (!b.v) return null;
-        if (f.part === 'ac') return b.v.ac;
-        const tr = Math.floor(b.v.now / APERTURE) * APERTURE; // 最近一次讀值的積分窗 [tr−10 PLC, tr]
-        return b.v.meanOver(tr - APERTURE, tr);
+      if (f.kind === 'V' || f.kind === 'I') {
+        const signal = f.kind === 'I' ? b.i : b.v;
+        if (!signal) return null;
+        if (f.part === 'ac') return signal.ac;
+        const tr = Math.floor(signal.now / APERTURE) * APERTURE; // 最近一次讀值的積分窗 [tr−10 PLC, tr]
+        return signal.meanOver(tr - APERTURE, tr);
       }
       if (f.kind === 'R') return b.ohm;
       return null;
@@ -148,15 +154,20 @@ export class DmmModel {
   peakIn() {
     const fx = this.fx, f = this.f;
     if (f.kind === 'R') return 0;
-    if (fx.bench) { const v = this.benchSource?.()?.v; return v ? (f.part === 'ac' ? v.peakAc : v.peak) : 0; }
+    if (fx.bench) { const b = this.benchSource?.(), v = f.kind === 'I' ? b?.i : b?.v; return v ? (f.part === 'ac' ? v.peakAc : v.peak) : 0; }
     if (fx.kind !== f.kind) return 0;
     return f.part === 'ac' ? Math.abs(fx.ac) * Math.SQRT2 : Math.abs(fx.dc);
   }
 
   rangeIdx() {
     const x = this.input();
+    // 電流 Auto 的分流電阻也會改變電路：Bench 已有限迭代取得同一個實體檔位。
+    if (this.fx.bench && this.f.kind === 'I') return this.st.idx;
     return this.st.auto && x != null ? pickRange(this.f, x, this.peakIn()) : this.st.idx;
   }
+
+  // I–LO 不隨切 DCV 或關機悄悄開路。非電流功能保留 DCI 檔（教學假設，非手冊確認）。
+  currentShunt() { return CURRENT_SHUNT[this.per[this.fn === 'ACI' ? 'ACI' : 'DCI'].idx]; }
 
   // 接在電路上的輸入電阻（實驗台負載用）：DCV 10 MΩ（Input Z 預設 10M；>10 GΩ 選項未納入）、
   // ACV 1 MΩ（D-DMM p.21；並聯 < 100 pF 未計入）；其他功能或關機不計
@@ -172,12 +183,13 @@ export class DmmModel {
   // 實驗台 ACV 的適用條件（D-DMM p.11 頻率 3 Hz–300 kHz、p.21 峰值因數最大 10:1）：超出時真機讀值不準，
   // 模擬器仍顯示理想有效值，只在儀器外標示
   specNotes() {
-    if (!this.on || !this.fx.bench || this.fn !== 'ACV') return [];
-    const v = this.benchSource?.()?.v;
+    if (!this.on || !this.fx.bench || !['ACV', 'ACI'].includes(this.fn)) return [];
+    const b = this.benchSource?.(), v = this.fn === 'ACI' ? b?.i : b?.v;
     if (!v || !(v.ac > 1e-9)) return [];
     const out = [];
     const hz = (x) => (x >= 1e6 ? `${Number((x / 1e6).toPrecision(4))} MHz` : x >= 1e3 ? `${Number((x / 1e3).toPrecision(4))} kHz` : `${Number(x.toPrecision(4))} Hz`);
-    if (v.freq > 0 && (v.freq < 3 || v.freq > 300e3)) out.push(`訊號 ${hz(v.freq)} 超出 ACV 規格 3 Hz–300 kHz，真機讀值不準`);
+    const max = this.fn === 'ACI' ? 5e3 : 300e3;
+    if (v.freq > 0 && (v.freq < 3 || v.freq > max)) out.push(`訊號 ${hz(v.freq)} 超出 ${this.fn} 規格 3 Hz–${hz(max)}，真機讀值不準`);
     const cf = v.peakAc / v.ac;
     if (cf > 10) out.push(`峰值因數 ${cf.toFixed(0)} 超過規格上限 10，真機讀值不準`);
     return out;
@@ -253,7 +265,7 @@ export class DmmModel {
     const fx = D1.find((d) => d.id === id);
     if (!fx) return null;
     this.fixture = id;
-    const head = fx.bench ? '改用實驗台接線：讀值來自實驗台上的電路（HI、LO 接在哪裡就量哪裡）。'
+    const head = fx.bench ? '改用實驗台接線：電壓／電阻接 HI–LO；電流將 I 3A–LO 串入回路。'
       : fx.kind ? `單機測試情境：${fx.label}，接在 ${TERM[fx.kind]}。` : '已拔除測試輸入。';
     if (!this.on) return { kind: 'info', text: `${head}電表電源關閉中，開機後才有讀值。` };
     this.settle();
@@ -264,6 +276,8 @@ export class DmmModel {
 
   // 讀值狀態的儀器外說明（不相容／超量程／開路）；正常讀值回 null
   readingHint() {
+    const danger = this.currentWarning();
+    if (danger) return { kind: 'reject', text: danger };
     const rd = this.reading();
     const label = this.f.ranges[this.rangeIdx()].label;
     if (rd.state === 'none') return { kind: 'info', text: `未提供相容測試輸入：${this.compatNote()}LCD 讀值欄留空。` };
@@ -278,7 +292,12 @@ export class DmmModel {
     return null;
   }
 
-  // 實驗台：外殼注入電路來源（回傳 { v:{dc,ac}|null, ohm|null, why, whyR, whyI }）
+  currentWarning() {
+    const i = this.fx.bench ? this.benchSource?.()?.i : null;
+    return i && Math.hypot(i.dc, i.ac) > 3 * (1 + 1e-12) ? 'I–LO 的總有效電流（含 DC 成分）超過 3 A 額定輸入，必須拆除錯接或降低電源；沒有模擬保險絲熔斷，讀值不能表示此接法安全。' : '';
+  }
+
+  // 實驗台：外殼注入電路來源（回傳 { v:{dc,ac}|null, i:{dc,ac}|null, ohm|null, why, whyR, whyI }）
   setBenchSource(fn) { this.benchSource = fn; }
 
   compatNote() {
@@ -288,6 +307,7 @@ export class DmmModel {
       if (b.why) return b.why;
       if (this.f.kind === 'R') return b.whyR || '';
       if (this.f.kind === 'I') return b.whyI || '';
+      if (this.f.kind === 'V') return b.whyV || '';
       return '';
     }
     if (!fx.kind) return '目前沒有接測試情境。';
@@ -397,8 +417,10 @@ export class DmmModel {
 
   status() {
     const fx = this.fx;
-    const scen = ['測試情境', fx.bench ? '實驗台接線（HI−LO）' : fx.kind ? `${fx.label}（${TERM[fx.kind]}）` : '未接（在下方選 D1 情境）'];
-    if (!this.on) return [['電源', '關：LCD 暗、按鍵無作用（按 ⏻ 開機）'], scen];
+    const scen = ['測試情境', fx.bench ? '實驗台接線（電壓 HI−LO；電流 I 3A−LO）' : fx.kind ? `${fx.label}（${TERM[fx.kind]}）` : '未接（在下方選 D1 情境）'];
+    const shunt = fx.bench && this.benchSource?.()?.i ? ['電流端負載', `${Number(this.currentShunt().toPrecision(5))} Ω（負擔上限等效近似；關機／其他功能仍導通，不模擬熔絲）`] : null;
+    const danger = this.currentWarning();
+    if (!this.on) return [['電源', '關：LCD 暗、按鍵無作用（按 ⏻ 開機）'], scen, ...(shunt ? [shunt] : []), ...(danger ? [['錯接／超限', danger]] : [])];
     const f = this.f, st = this.st, r = f.ranges[this.rangeIdx()], rd = this.reading(), v = this.view();
     const read = rd.state === 'value'
       ? `${v.text} ${v.unit}${this.fn === 'CONT' ? `（＝${plain(rd.shown, 'Ω')}）` : ''}${rd.beep ? '；≤ 10 Ω 導通，LCD 顯示 ·)) 指示' : ''}`
@@ -416,8 +438,10 @@ export class DmmModel {
       scen,
     ];
     const spec = this.specNotes();
+    if (shunt) rows.push(shunt);
+    if (danger) rows.push(['錯接／超限', danger]);
     if (spec.length) rows.push(['規格外', `${spec.join('；')}（這裡顯示理想有效值）`]);
-    if (this.fx.bench && this.fn === 'DCV' && rd.state === 'value') rows.push(['積分', 'DCV 每筆讀值是 10 PLC（1/6 秒）內的平均：波形比這個慢，讀值會跟著起伏']);
+    if (this.fx.bench && ['DCV', 'DCI'].includes(this.fn) && rd.state === 'value') rows.push(['積分', `${this.fn} 每筆讀值是 10 PLC（1/6 秒）內的平均：波形比這個慢，讀值會跟著起伏`]);
     if (this.fx.bench && this.inputZ()) rows.push(['輸入電阻', `${this.fn === 'DCV' ? '10 MΩ' : '1 MΩ'}（接在電路上會分走一點電流，R 很大時讀值偏低）`]);
     const note = this.note();
     if (note) rows.push(['說明', note]);

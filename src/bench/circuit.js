@@ -26,6 +26,7 @@ export const LEADS = {
   'TDS.CH2.TIP': { inst: 'tds', ch: 1, role: 'tip', name: '示波器 CH2 探棒尖端' },
   'TDS.CH2.GND': { inst: 'tds', ch: 1, role: 'gnd', name: '示波器 CH2 接地夾' },
   'DMM.HI': { inst: 'dmm', role: 'hi', name: '電表 HI（紅）' },
+  'DMM.I': { inst: 'dmm', role: 'current', name: '電表 I 3A（電流紅線）' },
   'DMM.LO': { inst: 'dmm', role: 'lo', name: '電表 LO（黑）' },
   // GPE-4323 輸出端子（麵包板模式用）：各路浮接的＋／−；GND＝機殼地（大地）
   'GPE.CH1+': { inst: 'gpe', ch: 0, role: 'pos', name: 'GPE CH1 ＋（紅）' },
