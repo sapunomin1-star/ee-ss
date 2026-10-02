@@ -78,11 +78,11 @@ export function startApp(root) {
 
   // 定時更新：電容還在充放電，或電表 DCV 的積分窗隨時間移動時，只重畫螢幕與狀態，不重建面板（不影響點擊）
   // 只重畫讀值可能在變的那一台（示波器重畫會重播 LCD 動畫，不能每次都畫）：
-  //   示波器＝電容還在充放電，或電路剛改（1 秒內，確保暫態結束後補一幅穩態）；電表＝接在實驗台上就畫
+  //   示波器＝電容還在充放電、電路剛改，或實際觸發搜尋尚有待查區間；電表＝接在實驗台上就畫
   setInterval(() => {
     const t = bench.now(), tr = bench.transientActive(t);
-    // GPE：限流充電等暫態時，讀回（CC、上升中的端電壓）在變
-    const live = { tds: tr || t - bench.changedAt() < 1, dmm: models.dmm.isLive?.(), gpe: tr && models.gpe.isOn() && models.gpe.scenarios.get() === 'bench' };
+    // GPE：限流充電暫態或 AFG 的週期保護切換時，端電壓／電流／模式都會變。
+    const live = { tds: tr || t - bench.changedAt() < 1 || models.tds.needsTriggerPoll?.(), dmm: models.dmm.isLive?.(), gpe: models.gpe.isOn() && models.gpe.scenarios.get() === 'bench' && bench.gpeReadbackActive(t) };
     if (live.tds) models.tds.inputChanged?.();
     if (cur === BENCH) {
       host.querySelectorAll('svg[data-mini]').forEach((el) => { const id = el.dataset.mini, m = models[id]; if (live[id] && m.isOn()) el.innerHTML = m.lcd(); });

@@ -4,6 +4,7 @@
 import { openApp, Check, sleep } from './lib.mjs';
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const partDetails = ({ stateId, ...part }) => part;
 
 export async function run() {
   const T = new Check('實驗台麵包板：插元件、接導線');
@@ -46,7 +47,7 @@ export async function run() {
     T.ok((await snap()).bbUi.first === 'a5' && await has('[data-hole="a5"]', 'first'), '點第一個孔：記住並標示第一隻腳');
     await hole('a9');
     s = await snap();
-    T.ok(same(s.bb.parts, [{ id: 'R1', kind: 'R', a: 'a5', b: 'a9', value: 1000 }]) && (await ui.hint()).includes('R1'), '再點 a9：擺上 R1（預設 1 kΩ）');
+    T.ok(same(s.bb.parts.map(partDetails), [{ id: 'R1', kind: 'R', a: 'a5', b: 'a9', value: 1000 }]) && typeof s.bb.parts[0].stateId === 'string' && (await ui.hint()).includes('R1'), '再點 a9：擺上 R1（預設 1 kΩ）');
 
     // 3. 一孔一物：電容的第一隻腳點在 R1 的腳上 → 拒絕；跨中間溝擺 C1（e9–f9）
     await tool('C');
@@ -54,7 +55,7 @@ export async function run() {
     T.ok((await snap()).bbUi.first === null && (await ui.hint()).includes('已經插了'), '孔已被 R1 佔用：拒絕並說明');
     await place('e9', 'f9');
     s = await snap();
-    T.ok(same(s.bb.parts[1], { id: 'C1', kind: 'C', a: 'e9', b: 'f9', value: 1e-7 }), '電容 C1（預設 100 nF）跨中間溝插在 e9–f9');
+    T.ok(same(partDetails(s.bb.parts[1]), { id: 'C1', kind: 'C', a: 'e9', b: 'f9', value: 1e-7 }), '電容 C1（預設 100 nF）跨中間溝插在 e9–f9');
     await place('j9', 'j9');
     T.ok((await snap()).bbUi.first === null && (await snap()).bb.parts.length === 2, '同一個孔再點一次＝取消，不會擺兩腳同孔的元件');
 
@@ -134,11 +135,14 @@ export async function run() {
     await ui.tab('dmm'); await p.click('input[name="scen"][value="none"]');
     T.ok((await ui.snap('tds')).scenario === 'S1' && (await ui.snap('dmm')).fixture === 'none', '示波器、電表先切回單機情境');
     await ui.tab('bench');
+    const previousStateIds = new Set((await snap()).bb.parts.map((part) => part.stateId));
     await p.click('[data-bb="demo-rc"]');
     s = await snap();
     let L = s.bb.leads;
-    T.ok(same(s.bb.elements, [{ id: 'R1', kind: 'R', a: '8U', b: '12U', value: 1000 }, { id: 'C1', kind: 'C', a: '12U', b: 'T-', value: 1e-7 }]) && s.bb.parts.length === 2,
+    T.ok(same(s.bb.elements.map(partDetails), [{ id: 'R1', kind: 'R', a: '8U', b: '12U', value: 1000 }, { id: 'C1', kind: 'C', a: '12U', b: 'T-', value: 1e-7 }]) && s.bb.parts.length === 2,
       `示範 RC：只剩 R1（8U–12U）、C1（12U–T-）（${JSON.stringify(s.bb.elements)}）`);
+    T.ok(s.bb.parts.every((part) => typeof part.stateId === 'string' && !previousStateIds.has(part.stateId))
+      && s.bb.elements.every((el) => el.stateId === s.bb.parts.find((part) => part.id === el.id)?.stateId), '示範替換建立新的元件識別碼並傳入 netlist');
     T.ok(L['AFG.CH1+'] === '8U' && L['TDS.CH1.TIP'] === '8U' && L['TDS.CH2.TIP'] === '12U' && L['DMM.HI'] === '12U'
       && ['AFG.CH1-', 'TDS.CH1.GND', 'TDS.CH2.GND', 'DMM.LO'].every((id) => L[id] === 'T-') && Object.keys(L).length === 8,
     '示範 RC：輸入 8U、電容 12U、地都在藍色−軌 T-；舊導線都拔掉');
@@ -147,11 +151,13 @@ export async function run() {
     await ui.shot('breadboard-demo-rc');
 
     // 11. 示範「GPE 分壓」
+    const rcStateIds = new Set(s.bb.parts.map((part) => part.stateId));
     await p.click('[data-bb="demo-gpe"]');
     s = await snap();
     L = s.bb.leads;
-    T.ok(same(s.bb.elements, [{ id: 'R1', kind: 'R', a: 'B+', b: '22L', value: 1000 }, { id: 'R2', kind: 'R', a: '22L', b: 'B-', value: 1000 }]),
+    T.ok(same(s.bb.elements.map(partDetails), [{ id: 'R1', kind: 'R', a: 'B+', b: '22L', value: 1000 }, { id: 'R2', kind: 'R', a: '22L', b: 'B-', value: 1000 }]),
       `示範 GPE：R1（B+–22L）、R2（22L–B-）串聯（${JSON.stringify(s.bb.elements)}）`);
+    T.ok(s.bb.parts.every((part) => !rcStateIds.has(part.stateId)), '再換示範也不重用 RC 元件識別碼');
     T.ok(same(L, { 'GPE.CH1+': 'B+', 'GPE.CH1-': 'B-', 'DMM.HI': '22L', 'DMM.LO': 'B-' }) && s.bb.warnings.length === 0, '示範 GPE：CH1 ＋接 B+、−接 B-，電表跨 R2');
     T.ok(await hoverHl('j18', ['f18', 'B+1', 'B+30'], ['B-1', 'e18']), '示範 GPE：滑到 j18 看到跳線把第 18 欄接到＋軌');
     await ui.shot('breadboard-demo-gpe');

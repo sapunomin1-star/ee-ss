@@ -261,6 +261,7 @@ export class TdsModel {
     this.on = true;
     this.seed = 20260930;
     this.acqN = 0;
+    this.changeSearch = null;
     this.scen = bench ? 'BENCH' : 'S1';
     this.fx = bench ? this.benchFx() : SCEN.S1;
     this.ch = [0, 1].map(() => ({ on: false, coupling: 'DC', bw: false, vIdx: 5, pos: 0, probe: 10 }));
@@ -389,35 +390,104 @@ export class TdsModel {
 
   // 擷取電路變化（暫態）：Single 等待中、或 Normal 模式下電路改變時，從改變的時刻往後，用實際電壓（含暫態、改變前的電路）
   //   找第一個觸發，以它為 t＝0 擷取。Single 擷取後停止；Normal 繼續等下一個觸發：之後週期訊號還會觸發就被新採集蓋掉，
-  //   不再觸發（例如直流階躍只穿越一次）就一直保留這筆（手冊：Normal 只在有效觸發時更新）。找不到就照一般規則。
+  //   不再觸發（例如直流階躍只穿越一次）就一直保留這筆（手冊：Normal 只在有效觸發時更新）。只搜尋已經發生的時間。
   //   觸發判斷只看觸發源的實際電壓與位準／斜率（PD：AC 耦合只扣掉目前的直流、不模擬濾波暫態；觸發耦合 AC 同樣處理）。
   captureChange() {
     const fx = this.fx, src = this.trig.src, s = fx.sig?.[src], c = this.ch[src];
-    if (!s?.abs || c.coupling === 'GND' || fx.changedAt == null || this.triedChange === fx.changedAt) return false;
-    this.triedChange = fx.changedAt;
+    if (!s?.abs || c.coupling === 'GND' || fx.changedAt == null) return false;
     const kp = 1 / fx.probe[src], dc = c.coupling === 'AC' || this.trig.coup === 'AC' ? tableMean(s.table) * kp : 0;
-    const y = (t) => s.abs(t) * kp - dc, L = this.trig.level, up = this.trig.slope === 'R';
+    let calls = 0;
+    const y = (t) => { calls++; return s.abs(t) * kp - dc; }, L = this.trig.level, up = this.trig.slope === 'R';
     const crossed = (a, b) => (up ? a < L && b >= L : a > L && b <= L);
     const P = s.period > 0 && fx.sig[src].table && this.path(src).f > 0 ? s.period : 0;
-    const step = Math.min(this.sdiv / 25, P ? P / 400 : Infinity), horizon = Math.max(10 * this.sdiv, 4 * P, 5 * (fx.tau || 0));
-    const n = Math.min(400000, Math.ceil(horizon / step));
+    const currentStep = Math.min(this.sdiv / 25, P ? P / 400 : Infinity);
+    const key = JSON.stringify([src, c.coupling, this.trig.coup, this.trig.slope, L, kp, this.run === 'single' ? this.armedAt : null]);
+    let search = this.changeSearch;
+    if (search?.key !== key) {
+      const start = Math.max(fx.changedAt, this.run === 'single' ? this.armedAt ?? fx.now ?? fx.changedAt : fx.now ?? fx.changedAt);
+      this.changeSearch = search = { key, cursor: start, pending: [], initial: start === fx.changedAt, step: currentStep,
+        sources: [{ from: fx.changedAt, to: Infinity, sig: s }] };
+    } else if (search.sources.at(-1).from !== fx.changedAt) {
+      search.sources.at(-1).to = fx.changedAt;
+      search.sources.push({ from: fx.changedAt, to: Infinity, sig: s });
+    }
+    // 電路改變後仍續查未處理的歷史；新訊號較慢或時基放大，也不能把舊窄脈衝的搜尋解析度變粗。
+    const step = search.step = Math.min(search.step, currentStep);
+    // 截止時刻必須是現在，tView 的預覽偏移與預測中的交越都不能完成採集。
+    const end = fx.now ?? fx.changedAt;
     const hit = (t) => {
+      // Normal 每次畫面更新取一筆，下一次從這次的現在繼續，避免追趕早已發生的每一個週期。
+      search.cursor = this.run === 'single' ? t : end; search.waiting = false; search.pending = [];
+      search.step = currentStep;
+      search.sources = search.sources.filter((g) => g.to > search.cursor);
       this.rec = this.acquire(0, t, { force: true });
       this.frames = null;
       if (this.run === 'single') { this.run = 'stop'; this.complete = true; this.armedAt = null; }
       return true;
     };
-    let ta = fx.changedAt, ya = y(ta);
     // 改變那一瞬間電壓就跳過觸發線（例：開輸出時 0 → 0.952 V 的階躍）：觸發點＝改變時刻。改變前取前一段電路的值
-    if (crossed(y(ta - 1e-9), ya)) return hit(ta);
-    for (let j = 1; j <= n; j++) {
-      let tb = fx.changedAt + j * step;
-      const yb = y(tb);
-      if (crossed(ya, yb)) {
-        for (let r = 0; r < 50; r++) { const tm = (ta + tb) / 2, ym = y(tm); if (crossed(ya, ym)) tb = tm; else { ta = tm; ya = ym; } }
+    if (search.initial && fx.changedAt <= end) {
+      search.initial = false;
+      if (crossed(y(fx.changedAt - 1e-9), y(fx.changedAt))) return hit(fx.changedAt);
+    }
+    // abs(t)＝週期波形＋電容暫態。先用電壓範圍排除離 Level 很遠的區間，只有候選區間才細分到原本的步進。
+    // 區間內的表格格點也納入範圍：窄脈衝不能只看區間兩端，否則兩端都低於 Level 時會漏掉尖峰。
+    const possible = (a, b) => {
+      const ctx = search.sources.find((g) => a >= g.from && a < g.to);
+      if (!ctx || b >= ctx.to) return true; // 跨電路變化的區間先細分，包含邊界本身的跳變。
+      const signal = ctx.sig;
+      // 電路以各模態指數項的上下界提供保守範圍；未知來源沒有範圍時逐點續查，不能用少數取樣猜測沒有尖峰。
+      if (!signal.transientRange) return true;
+      if (!ctx.range) {
+        const table = signal.table, period = signal.period, M = table?.length ?? 0;
+        const steady = signal.at ?? (M && period > 0 ? lerpTable(table, period) : () => tableMean(table));
+        let low = Infinity, high = -Infinity;
+        for (const v of table ?? []) { low = Math.min(low, v); high = Math.max(high, v); }
+        if (!M) low = high = steady(a);
+        ctx.range = { table, period, M, steady, low, high };
+      }
+      const { table, period, M, steady, low, high } = ctx.range;
+      const [r0, r1] = signal.transientRange(a, b), rlo = r0 * kp, rhi = r1 * kp;
+      if (L < low * kp - dc + rlo || L > high * kp - dc + rhi) return false;
+      if (!M || !(period > 0) || b - a >= period) return true;
+      const pa = steady(a) * kp - dc, pb = steady(b) * kp - dc;
+      let lo = Math.min(pa, pb), hi = Math.max(pa, pb);
+      const h = period / M, phase = ((a % period) + period) % period;
+      const first = Math.ceil(phase / h - 1e-7), offset = first * h - phase;
+      const count = Math.max(0, Math.min(M + 1, Math.floor(((b - a) - offset) / h + 1e-7) + 1));
+      // 只在一個週期內列格點；絕對時間／h 太大時，直接遞增那個整數會超出 JS 安全整數範圍。
+      for (let j = 0; j < count; j++) {
+        const v = table[(first + j) % M] * kp - dc;
+        lo = Math.min(lo, v); hi = Math.max(hi, v);
+      }
+      return L >= lo + rlo && L <= hi + rhi;
+    };
+    // 每次更新有固定工作量上限，未完成的區間保留到下次；不能把尚未查完整的電路變化標為已處理。
+    while (calls < 40000) {
+      if (!search.pending.length) {
+        if (search.cursor >= end) break;
+        const a = search.cursor, b = end;
+        search.cursor = b;
+        search.pending.push({ a, b });
+      }
+      const interval = search.pending.pop(), { a, b } = interval;
+      // abs 的歷史可隨新電路狀態補齊；續查時重新讀兩端，不沿用未知訊號來源快照中的舊值。
+      const ya = y(a), yb = y(b);
+      if (!possible(a, b)) continue;
+      const mid = (a + b) / 2;
+      if (b - a <= step || mid === a || mid === b) {
+        if (!crossed(ya, yb)) continue;
+        let ta = a, tb = b, va = ya;
+        for (let r = 0; r < 50; r++) { const tm = (ta + tb) / 2, ym = y(tm); if (crossed(va, ym)) tb = tm; else { ta = tm; va = ym; } }
         return hit(tb);
       }
-      ta = tb; ya = yb;
+      search.pending.push({ a: mid, b });
+      search.pending.push({ a, b: mid }); // 先查較早的半段，找到的仍是第一個交越
+    }
+    search.waiting = search.pending.length > 0 || search.cursor < end;
+    if (!search.waiting) {
+      search.step = currentStep;
+      search.sources = search.sources.filter((g) => g.to > search.cursor);
     }
     return false;
   }
@@ -432,11 +502,29 @@ export class TdsModel {
     });
   }
 
+  // 暫態已結束時，低頻週期訊號的下一次實際交越仍可能尚未發生；外殼需要繼續通知等待中的採集。
+  needsTriggerPoll() {
+    if (this.scen !== 'BENCH' || !this.on || this.run === 'stop') return false;
+    return !!this.changeSearch?.waiting || ((this.run === 'single' || this.trig.mode === 'NORMAL') && this.crosses());
+  }
+
   tick(force = false) {
     if (!this.on || this.run === 'stop') return;
+    if (this.scen === 'BENCH') this.fx = this.benchFx();
     this.frames = null;
     const tv = this.fx.tView; // 實驗台「看的時刻」；單機情境沒有
     if (this.isScan()) { this.rec = this.acquire(null, tv == null ? null : tv - 5 * this.sdiv - this.mpos, { scan: true }); return; } // Scan：紀錄結束在「看的時刻」（簡化，GAP-TDS-08）
+    if (this.scen === 'BENCH' && this.fx.sig?.[this.trig.src]?.abs && this.fx.changedAt != null && this.ch[this.trig.src].coupling !== 'GND') {
+      if (force) {
+        this.rec = this.acquire(0, this.fx.now ?? this.fx.changedAt, { force: true });
+        if (this.run === 'single') { this.run = 'stop'; this.complete = true; this.armedAt = null; }
+        return;
+      }
+      if (this.run === 'single' || this.trig.mode === 'NORMAL') {
+        this.captureChange();
+        return; // 所有按鍵、旋鈕、定時更新共用實際交越；不能退回穩態相位而擷取未來的交越。
+      }
+    }
     const tt = this.trigTime();
     if (tt != null || force) {
       const a0 = this.absAnchor(tt);
@@ -457,6 +545,7 @@ export class TdsModel {
   trigStatus() {
     if (this.run === 'stop') return this.complete ? 'Acq. Complete' : 'Stop';
     if (this.isScan()) return 'Scan';
+    if (this.run === 'single' && this.changeSearch) return 'Ready';
     if (this.crosses()) return "Trig'd";
     return this.run === 'run' && this.trig.mode === 'AUTO' ? 'Auto' : 'Ready';
   }
@@ -574,6 +663,7 @@ export class TdsModel {
         return null;
       case 'TDS.KEY.SINGLE':
         this.run = 'single'; this.complete = false; this.frames = null;
+        this.changeSearch = null;
         this.armedAt = this.scen === 'BENCH' ? this.benchFx().now ?? null : null; // 之後電路一變就擷取那一刻起的暫態
         return this.crosses() ? null : { kind: 'approx', text: 'Single 等待有效觸發（Ready）；Auto 模式下也不會自己完成（暫定 GAP-TDS-07），可按 Force Trig 強制取一幀。' };
       case 'TDS.KEY.SET_TO_ZERO': this.mpos = 0; return null;
@@ -836,8 +926,6 @@ export class TdsModel {
   inputChanged() {
     if (this.scen !== 'BENCH') return;
     this.fx = this.benchFx();
-    const armed = this.run === 'single' ? this.armedAt != null && this.fx.changedAt >= this.armedAt : this.run === 'run' && this.trig.mode === 'NORMAL';
-    if (this.on && armed && !this.isScan() && this.captureChange()) return;
     this.tick();
   }
 

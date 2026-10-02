@@ -759,11 +759,202 @@ test('Single：先關輸出並按 Single 等待，再開輸出 → 擷取到電�
   run(m, 'SINGLE');
   assert.equal(m.trigStatus(), 'Ready');
   change(() => { afg.ch[0].output = true; }, 1); // 階躍
+  assert.equal(m.trigStatus(), 'Ready', '開輸出當下電容仍是 0 V');
+  change(() => {}, 0.02); // 電容實際穿越 0.5 V 之後才擷取
   assert.equal(m.trigStatus(), 'Acq. Complete');
   const tau = 1050 * 10e-6 * (1 - 1050 / 3.34e6); // 含儀器負載，約 10.5 ms
   near(recAt(m, 1, 0), 0.5, 0.02, '觸發點＝位準 0.5 V');
   near(recAt(m, 1, tau), 1 - 0.5 * Math.exp(-1), 0.03, '觸發後 τ：1−0.5e^−1');
   near(recAt(m, 1, -Math.log(2) * tau - 3e-3), 0, 0.01, '改變之前：0 V（輸出關）');
+});
+
+test('Single：10 µs/div 與 5 ns/div 都能擷取 100 kΩ／10 µF 慢充電，搜尋不被畫面時基截短（R3）', () => {
+  for (const scale of [10e-6, 5e-9]) {
+    const { m, bench, afg, change, clock } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 100e3, C: 10e-6, output: false });
+    Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
+    m.sIdx = SDIV.indexOf(scale); m.mpos = 0;
+    m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.05 };
+    run(m, 'SINGLE');
+    assert.equal(m.trigStatus(), 'Ready');
+    let calls = 0;
+    m.setBenchSource(() => {
+      const fx = bench.tdsInput(), s = fx.sig[1], abs = s.abs;
+      s.abs = (t) => { calls++; return abs(t); };
+      return fx;
+    });
+    change(() => { afg.ch[0].output = true; }, 1);
+    const t0 = clock.t;
+    assert.equal(m.trigStatus(), 'Ready', '不得擷取尚未發生的約 0.7 s 交越');
+    const n = m.acqN;
+    change(() => {}, 0.6);
+    assert.equal(m.trigStatus(), 'Ready', '充電 0.6 s 還低於 0.5 V');
+    assert.equal(m.acqN, n);
+    change(() => {}, 0.4);
+    assert.equal(m.trigStatus(), 'Acq. Complete');
+    assert.ok(m.rec.abs0 <= clock.t, '觸發時刻已經發生');
+    assert.ok(m.rec.abs0 - t0 > 0.65 && m.rec.abs0 - t0 < 0.75, `交越在約 0.7 s：${m.rec.abs0 - t0}`);
+    near(bench.vcAt(m.rec.abs0), 0.5, 1e-7, '完整搜尋找到實際交越');
+    near(recAt(m, 1, 0), 0.5, 1e-6, '放大畫面仍對在 0.5 V');
+    assert.ok(calls < 45000, `慢暫態的完整搜尋有固定工作量上限：${calls}`);
+    change(() => {}, 1);
+    assert.equal(m.trigStatus(), 'Acq. Complete');
+  }
+});
+
+test('Single：完整搜尋保留遠離改變瞬間的 CR 窄脈衝（τ 比表格間隔還短）', () => {
+  const { m, bench, afg, change, clock } = benchWith({ wave: 'SQUARE', R: 100, C: 0.001e-6, output: false });
+  change(() => { bench.topo = 'CR'; }, 0);
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.05), pos: 0 });
+  m.sIdx = SDIV.indexOf(5e-9); m.mpos = 0;
+  m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.12 };
+  run(m, 'SINGLE');
+  change(() => { afg.ch[0].output = true; }, 1.0001);
+  const t0 = clock.t;
+  assert.equal(m.trigStatus(), 'Ready', '下一個週期的窄脈衝還沒發生');
+  const n = m.acqN;
+  run(m, 'MEAS ACQ'); turn(m, 'HP', 1); turn(m, 'P2', 1);
+  assert.equal(m.trigStatus(), 'Ready', '真按鍵與旋鈕也不能繞過實際時間而擷取未來交越');
+  assert.equal(m.acqN, n);
+  change(() => {}, 0.001);
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  assert.ok(m.rec.abs0 - t0 > 0.0008 && m.rec.abs0 - t0 < 0.001, '首次超過 1.2 V 的正向尖峰在下一個週期邊緣');
+  near(recAt(m, 1, -2e-9), 0, 1e-4, '窄脈衝之前為 0 V');
+  assert.ok(recAt(m, 1, 2e-9) > 1.25, '含 50 Ω 源阻抗的窄脈衝峰值約 1.33 V，沒有因搜尋區間放大而漏掉');
+});
+
+test('Single：交越前取消充電，原預測的上升觸發不會留下虛構 0.5 V 紀錄', () => {
+  for (const offAfter of [0.1, 0.6]) {
+    const { m, bench, afg, change, clock } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 100e3, C: 10e-6, output: false, t0: 10 });
+    Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
+    m.sIdx = SDIV.indexOf(10e-6); m.mpos = 0;
+    m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.05 };
+    run(m, 'SINGLE');
+    const n = m.acqN, rec = m.rec;
+    change(() => { afg.ch[0].output = true; }, 1);
+    assert.equal(m.trigStatus(), 'Ready');
+    change(() => { afg.ch[0].output = false; }, offAfter);
+    assert.equal(m.trigStatus(), 'Ready');
+    assert.ok(bench.vcAt(clock.t) < 0.5, '關輸出之前仍低於觸發位準');
+    change(() => {}, 1 - offAfter);
+    assert.equal(m.trigStatus(), 'Ready', '原本約 0.697 s 的預測交越已因關輸出而取消');
+    assert.ok(bench.vcAt(clock.t) < 0.5);
+    change(() => {}, 10);
+    assert.equal(m.trigStatus(), 'Ready');
+    assert.equal(m.acqN, n);
+    assert.equal(m.rec, rec, '沒有不存在的 0.5 V 採集覆蓋舊紀錄');
+  }
+});
+
+test('Single：下降觸發等待電容實際放電，34 s 之前 Ready、交越後才 Complete', () => {
+  const { m, bench, afg, change, clock } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 100e3, C: 10e-6, t0: 10 });
+  change(() => {}, 20); // 電容已充到約 0.99 V
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
+  m.sIdx = SDIV.indexOf(10e-6); m.mpos = 0;
+  m.trig = { ...m.trig, src: 1, slope: 'F', mode: 'NORMAL', level: 0.05 };
+  run(m, 'SINGLE');
+  const n = m.acqN;
+  change(() => { afg.ch[0].output = false; }, 1);
+  const t0 = clock.t;
+  assert.equal(m.trigStatus(), 'Ready', '關輸出當下約 0.99 V，不能預取 34 s 後的交越');
+  change(() => {}, 30);
+  assert.ok(bench.vcAt(clock.t) > 0.5);
+  assert.equal(m.trigStatus(), 'Ready');
+  assert.equal(m.acqN, n);
+  change(() => {}, 5);
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  assert.ok(m.rec.abs0 <= clock.t);
+  assert.ok(m.rec.abs0 - t0 > 34 && m.rec.abs0 - t0 < 35);
+  near(bench.vcAt(m.rec.abs0), 0.5, 1e-7, '下降交越也是已發生的實際 0.5 V');
+  near(recAt(m, 1, 0), 0.5, 1e-6);
+});
+
+test('Single：電路再改變前已實際越線，即使沒有中間更新仍從保留歷史擷取', () => {
+  const { m, bench, afg, change, clock } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 100e3, C: 10e-6, output: false, t0: 10 });
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
+  m.sIdx = SDIV.indexOf(10e-6); m.mpos = 0;
+  m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.05 };
+  run(m, 'SINGLE');
+  change(() => { afg.ch[0].output = true; }, 1);
+  assert.equal(m.trigStatus(), 'Ready');
+  // 中間完全沒有通知示波器；在 t=11.8 關輸出時，t≈11.697 的交越已真實發生。
+  change(() => { afg.ch[0].output = false; }, 0.8);
+  assert.ok(bench.vcAt(clock.t) > 0.5);
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  near(m.rec.abs0, 11.696589488244872, 1e-7, '搜尋起點保留在舊未查完位置，沒有跳過已發生交越');
+  near(bench.vcAt(m.rec.abs0), 0.5, 1e-7);
+  near(recAt(m, 1, 0), 0.5, 1e-6);
+  assert.ok(m.rec.abs0 <= clock.t);
+});
+
+test('Single：續查舊 1 MHz 窄脈衝時，新 10 Hz 設定不能把歷史搜尋解析度變粗', () => {
+  const { m, bench, afg, change, clock } = benchWith({ wave: 'SQUARE', freq: 1e6, R: 100, C: 0.001e-6, output: false });
+  change(() => { bench.topo = 'CR'; }, 0);
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.05), pos: 0 });
+  m.sIdx = SDIV.indexOf(1e-3); m.mpos = 0;
+  m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.12 };
+  run(m, 'SINGLE');
+  change(() => { afg.ch[0].output = true; }, 1.0000001);
+  assert.equal(m.trigStatus(), 'Ready');
+  near(m.changeSearch.step, 2.5e-9, 1e-15, '舊 1 MHz 訊號的觸發搜尋步進');
+  change(() => { afg.ch[0].freq = 10; afg.ch[0].output = false; }, 1.4e-6);
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  near(m.rec.abs0, 101.000001, 2e-9, '保存歷史內的第一個正向窄脈衝');
+  assert.ok(m.rec.abs0 < clock.t);
+  assert.ok(bench.tdsInput().sig[1].abs(m.rec.abs0) > 1.2);
+});
+
+test('Single：穩態低頻訊號在下一交越前持續請求更新，Force 在現在合法完成採集', () => {
+  const { m, bench, change, clock } = benchWith({ wave: 'SINE', freq: 0.1, R: 1000, C: 0.1e-6 });
+  change(() => {}, 2);
+  Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.05), pos: 0 });
+  m.sIdx = SDIV.indexOf(10e-6); m.mpos = 0;
+  m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.05 };
+  run(m, 'SINGLE');
+  assert.equal(m.trigStatus(), 'Ready', '按 Single 時電壓已高於 Level，要等待下一個上升沿');
+  assert.equal(bench.transientActive(clock.t), false);
+  assert.equal(m.needsTriggerPoll(), true, '沒有暫態且超過 1 s 後，仍等待低頻實際交越');
+  m.sIdx = SDIV.indexOf(5e-9); m.tick();
+  near(m.changeSearch.step, 2e-10, 1e-15);
+  m.sIdx = SDIV.indexOf(10e-6); m.tick();
+  near(m.changeSearch.step, 4e-7, 1e-15, '已完整追到現在後，放大時基恢復現在解析度，不永久沿用舊細步幅');
+  change(() => {}, 6);
+  assert.equal(m.trigStatus(), 'Ready');
+  change(() => {}, 4);
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  assert.ok(m.rec.abs0 <= clock.t);
+  assert.equal(m.needsTriggerPoll(), false);
+  run(m, 'SINGLE');
+  assert.equal(m.trigStatus(), 'Ready');
+  run(m, 'FORCE');
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  near(m.rec.abs0, clock.t, 1e-12, '手動 Force 取現在，沒有預取未來週期相位');
+});
+
+test('Single：未知訊號的搜尋超過單次預算時保留進度，之後更新能完成且不提早使用穩態', () => {
+  const m = new TdsModel();
+  let changedAt = 9, now = 11, calls = 0;
+  m.setBenchSource(() => ({
+    sig: [{ table: new Float64Array(4).fill(1), period: 1, at: () => 1,
+      abs: (t) => { calls++; return changedAt === 11 && t >= 11 + 10e-6 ? 1 : 0; } }, null],
+    probe: [1, 1], changedAt, now, tView: now, tau: 0.01,
+  }));
+  m.setScenario('BENCH');
+  Object.assign(m.ch[0], { probe: 1, vIdx: VDIV.indexOf(0.2) });
+  m.sIdx = SDIV.indexOf(5e-9); m.mpos = 0;
+  m.trig = { ...m.trig, slope: 'R', mode: 'NORMAL', level: 0.5 };
+  run(m, 'SINGLE');
+  changedAt = now = 11; calls = 0; m.inputChanged();
+  assert.equal(m.trigStatus(), 'Ready');
+  now += 20e-6; calls = 0; m.inputChanged();
+  assert.equal(m.trigStatus(), 'Ready', '已越線但第一批搜尋預算尚未查到');
+  assert.ok(calls <= 40055, `第一批搜尋工作量：${calls}`);
+  assert.ok(m.changeSearch.waiting);
+  for (let j = 0; j < 20 && m.run === 'single'; j++) {
+    calls = 0; now += 0.1; m.inputChanged();
+    assert.ok(calls <= 42555, `續查工作量（含採集 2500 點）：${calls}`);
+  }
+  assert.equal(m.trigStatus(), 'Acq. Complete');
+  near(m.rec.abs0, 11 + 10e-6, 1e-12, '從保留的進度找到原始交越');
 });
 
 test('慢時基（Scan）看得到大 RC 的充電曲線：紀錄前段低、後段高，不是整條平移', () => {
@@ -791,6 +982,8 @@ test('Single：電容帶著殘留電壓再開輸出 → 擷取的曲線從殘留
   run(m, 'SINGLE');
   const t0 = clock.t;
   change(() => { afg.ch[0].output = true; }, 0); // 開輸出：往 2 V 充電
+  assert.equal(m.trigStatus(), 'Ready', '電容仍是殘留電壓，尚未越過 1.5 V');
+  change(() => {}, 0.02);
   assert.equal(m.trigStatus(), 'Acq. Complete');
   const final = diffStatsB(bench), tau = bench.solution().tau;
   const tTrig = tau * Math.log((final - residual) / (final - 1.5)); // 從殘留電壓充到 1.5 V 的時間
@@ -802,13 +995,19 @@ test('Single：電容帶著殘留電壓再開輸出 → 擷取的曲線從殘留
 });
 
 test('Normal：直流階躍只穿越一次 → 擷取暫態並保留；週期訊號還會觸發時被新採集蓋掉', () => {
-  const { m, afg, change } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 1000, C: 10e-6, output: false });
+  const { m, afg, change, clock } = benchWith({ wave: 'SINE', emfVpp: 0.002, emfOffset: 1, R: 1000, C: 10e-6, output: false });
   Object.assign(m.ch[1], { on: true, vIdx: VDIV.indexOf(0.02), pos: 0 });
   m.sIdx = SDIV.indexOf(5e-3); m.mpos = 0;
   m.trig = { ...m.trig, src: 1, slope: 'R', mode: 'NORMAL', level: 0.05 };
   m.tick();
+  const before = m.acqN;
   change(() => { afg.ch[0].output = true; }, 1);
+  assert.equal(m.acqN, before, 'Normal 不得在開輸出當下擷取未來交越');
+  change(() => {}, 0.005);
+  assert.equal(m.acqN, before, 'Normal 在實際交越前保留舊紀錄');
+  change(() => {}, 0.015);
   const n = m.acqN;
+  assert.ok(m.rec.abs0 <= clock.t, 'Normal 的觸發時刻已經發生');
   assert.equal(m.run, 'run');
   near(recAt(m, 1, 0), 0.5, 0.02, '擷取到穿越 0.5 V 的那一刻');
   assert.ok(recAt(m, 1, -5e-3) < 0.2, '觸發前還在充電的低處');
@@ -817,6 +1016,7 @@ test('Normal：直流階躍只穿越一次 → 擷取暫態並保留；週期訊
   near(recAt(m, 1, 0), 0.5, 0.02, '沒有新觸發：畫面保留暫態那一筆');
   // 換成會一直觸發的方波：下一筆就被週期穩態蓋掉
   change(() => { Object.assign(afg.ch[0], { wave: 'SQUARE', emfVpp: 10, emfOffset: 0, freq: 100 }); }, 1); // B 點約 ±2.2 V，每週期都穿越 0.5 V
+  change(() => {}, 0.1);
   change(() => {}, 1);
   assert.ok(m.acqN > n + 1);
 });
@@ -859,6 +1059,10 @@ test('GPE 限流充電時 Single 的觸發時間跟著 CC 線性充電（0.5 V �
   run(m, 'SINGLE');
   const t0 = clock.t;
   gpe.press('GPE.KEY.OUTPUT_ON_OFF'); bench.solution(); m.inputChanged();
+  assert.equal(m.trigStatus(), 'Ready', '限流充電剛開始，尚未穿越 0.5 V');
+  clock.t += 0.25e-3; m.inputChanged();
+  assert.equal(m.trigStatus(), 'Ready', '0.25 ms 時電容只有 0.25 V');
+  clock.t += 0.75e-3; m.inputChanged();
   assert.equal(m.trigStatus(), 'Acq. Complete');
   near(m.rec.abs0 - t0, 0.5e-3, 1e-6, 'CC 10 mA 對 10 µF：0.5 V 在 0.5 ms');
   near(m.sampleAt(1, 1e-3), 1.5, 0.01, '觸發後 1 ms：1.5 V（仍是線性）');

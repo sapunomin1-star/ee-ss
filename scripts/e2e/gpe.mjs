@@ -30,6 +30,22 @@ export async function run() {
     await page.locator(`[data-id="${id}"]`).focus();
     for (let i = 0; i < Math.abs(n); i++) { await sleep(220); await page.keyboard.press(n > 0 ? 'ArrowUp' : 'ArrowDown'); }
   };
+  // 設定量測情境與拖曳驗收分開。只控制 Date 時鐘，計時器仍照常跑；
+  // 每個真鍵盤事件間隔固定 200 ms，保證細調，不依賴主機排程快慢。
+  const setVoltage = async (id, ch, volts) => {
+    let time = await page.evaluate(() => Date.now());
+    const current = (await snap()).vset[ch];
+    const ticks = Math.round((volts - current) * 100);
+    await page.locator(`[data-id="${id}"]`).focus();
+    try {
+      for (let i = 0; i < Math.abs(ticks); i++) {
+        await page.clock.setFixedTime(time += 200);
+        await page.keyboard.press(ticks > 0 ? 'ArrowUp' : 'ArrowDown');
+      }
+    } finally {
+      await page.clock.setSystemTime(time + 200);
+    }
+  };
   const longPress = async (id) => {
     const b = await page.locator(`[data-id="${id}"]`).boundingBox();
     await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
@@ -40,10 +56,15 @@ export async function run() {
     T.ok(same(await rows(), [[1, '0.00', '0.100', ''], [2, '0.00', '0.100', '']]), 'LCD 初始：①② 顯示設定 0.00 V／0.100 A');
     T.ok((await lit()).includes('OFF') && !(await lit()).includes('ON'), 'LCD 亮 OFF、不亮 ON');
 
-    // L1：CH1 設 5.00 V（拖曳粗調＋方向鍵細調）
+    // L1：拖曳驗方向／範圍，再用受控時鐘的鍵盤細調到 5.00 V。
     await scen('ch1-100');
     await drag(K.V1, 6);
-    T.ok((await snap()).vset[1] === 5, `拖曳 CH1 Voltage 6 格：第一格細調、之後快轉對齊整數 → 5.00 V（實得 ${(await snap()).vset[1]}）`);
+    const dragged = (await snap()).vset[1];
+    T.ok(dragged > 0 && dragged <= 32, `往上拖 CH1 Voltage：設定增加且在 0–32 V 範圍（實得 ${dragged}）`);
+    await drag(K.V1, -1);
+    T.ok((await snap()).vset[1] < dragged && (await snap()).vset[1] >= 0, '往下拖 CH1 Voltage：設定減少且不低於 0 V');
+    await setVoltage(K.V1, 1, 5);
+    T.ok((await snap()).vset[1] === 5, '量測情境：真鍵盤細調到 5.00 V');
     await nudge(K.V1, -1);
     T.ok((await snap()).vset[1] === 4.99, '聚焦後按 ↓：4.99 V（一格 10 mV）');
     await nudge(K.V1, 1);
@@ -98,8 +119,8 @@ export async function run() {
 
     // CH3／CH4：換模式後要重新 ON 讀回才回來（GPE-F10）
     await scen('ch34');
-    await ui.press(K.CH23); await drag(K.V3, 6);
-    await ui.press(K.CH14); await drag(K.V4, 6);
+    await ui.press(K.CH23); await drag(K.V3, 6); await setVoltage(K.V3, 3, 5);
+    await ui.press(K.CH14); await drag(K.V4, 6); await setVoltage(K.V4, 4, 5);
     let got = await rows();
     T.ok(same(got, [[4, '5.00', '---', ''], [3, '5.00', '---', '']]), `切到 ④③：Output OFF 顯示設定 5.00 V，電流欄「---」（實得 ${JSON.stringify(got)}）`);
     await ui.press(K.OUT);

@@ -63,6 +63,30 @@ test('旋鈕步進：慢轉 10 mV；快轉 ×10／×100 並對齊；反向回到
   assert.equal(m.snapshot().vset[1], 0.99); // 反向第一格是細調
 });
 
+test('旋鈕加速取決於事件間隔：40 ms／80 ms 的六格終值由受控時鐘驗證', () => {
+  for (const [gaps, expected] of [
+    [[0, 40, 40, 40, 40, 40], 5],
+    [[0, 40, 80, 40, 40, 40], 4],
+    [[0, 40, 80, 80, 40, 40], 3],
+  ]) {
+    const m = fresh();
+    for (const gap of gaps) { m.tick(gap); m.turn(K.V1, 1); }
+    assert.equal(m.snapshot().vset[1], expected);
+  }
+});
+
+test('實驗台逆灌：讀回端電壓並熄滅該列 CV／CC，儀器外明示失去穩壓', () => {
+  const m = fresh();
+  m.setBenchSource(() => ({
+    1: { v: 10, i: 0, cc: false, rb: true },
+    2: { v: 0, i: 0, cc: false }, 3: { v: 0, i: 0, cc: false }, 4: { v: 0, i: 0, cc: false },
+  }));
+  m.scenarios.set('bench'); m.press(K.OUT);
+  assert.deepEqual(row(m, 0), [1, '10.00', '0.000', 'RB']);
+  assert.equal(lit(m.lcd()).filter((x) => x === 'CV').length, 1, '只有另一列仍為 CV');
+  assert.ok(m.status().some(([name, text]) => name === 'CH1 讀回' && text.includes('逆灌') && text.includes('失去穩壓')));
+});
+
 test('I04-2：切到 ④ 後轉 CH1 Voltage，改的是 CH1、顯示不跳回（GPE-F03、GAP-GPE-04）', () => {
   const m = fresh();
   m.press(K.CH14);

@@ -2,7 +2,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Breadboard, BB_DEMO, parseHole, holeGroup, DEFAULT_VALUE } from '../src/bench/breadboard.js';
-import { R_OPTIONS, C_OPTIONS } from '../src/bench/bench.js';
+import { Bench, R_OPTIONS, C_OPTIONS } from '../src/bench/bench.js';
+import { AfgModel } from '../src/instruments/afg/model.js';
+import { DmmModel } from '../src/instruments/dmm/model.js';
+import { GpeModel } from '../src/instruments/gpe/model.js';
 
 const levels = (n, level) => n.warnings.filter((w) => w.level === level);
 
@@ -50,7 +53,7 @@ test('一孔一物：元件腳、跳線端、儀器導線都佔一個孔；兩�
   const bb = new Breadboard(), w = {};
   const r1 = bb.add('R', 'a1', 'a5', undefined, w);
   assert.ok(r1.ok);
-  assert.deepEqual(r1.part, { id: 'R1', kind: 'R', a: 'a1', b: 'a5', value: DEFAULT_VALUE.R });
+  assert.deepEqual(r1.part, { id: 'R1', stateId: r1.part.stateId, kind: 'R', a: 'a1', b: 'a5', value: DEFAULT_VALUE.R });
   let r = bb.add('C', 'a1', 'a9', undefined, w);
   assert.ok(!r.ok && r.why.includes('a1') && r.why.includes('R1'), r.why);
   r = bb.add('W', 'b2', 'b2', undefined, w);
@@ -108,7 +111,7 @@ test('警告：元件兩腳在同一個節點（同欄、同軌、經跳線）�
   bad = levels(bb.netlist({}), 'bad');
   assert.ok(bad.length === 1 && bad[0].text.includes('跳線'), bad[0]?.text);
   // 被短路的元件仍在 elements（a＝b），交給電路計算略過
-  assert.deepEqual(bb.netlist({}).elements, [{ id: 'R1', kind: 'R', a: '1U', b: '1U', value: 1000 }]);
+  assert.deepEqual(bb.netlist({}).elements, [{ id: 'R1', stateId: bb.get('R1').stateId, kind: 'R', a: '1U', b: '1U', value: 1000 }]);
 });
 
 test('警告：空腳（元件那隻腳的節點沒接其他東西）是 info；跳線端不算接了東西', () => {
@@ -150,7 +153,7 @@ test('netlist：nodes 只列有接東西的節點；leads 是導線 → 節點',
   bb.plug(w, 'AFG.CH1+', 'b2'); bb.plug(w, 'AFG.CH1-', 'e6');
   const n = bb.netlist(w);
   assert.deepEqual(n.nodes, ['2U', '6U']);
-  assert.deepEqual(n.elements, [{ id: 'R1', kind: 'R', a: '2U', b: '6U', value: 470 }]);
+  assert.deepEqual(n.elements, [{ id: 'R1', stateId: bb.get('R1').stateId, kind: 'R', a: '2U', b: '6U', value: 470 }]);
   assert.deepEqual(n.leads, { 'AFG.CH1+': '2U', 'AFG.CH1-': '6U' });
   assert.equal(n.groupOf('f30'), 'B+', '沒有列在 nodes 的孔也查得到節點');
   const s = bb.snapshot(w);
@@ -166,8 +169,8 @@ test('示範「RC 低通」：AFG CH1 → R 1 kΩ → C 100 nF 到地；示波�
   assert.deepEqual(w, BB_DEMO.rc.wires, '每條導線都插得上，舊導線已拔掉');
   const n = bb.netlist(w), L = n.leads;
   assert.deepEqual(n.elements, [
-    { id: 'R1', kind: 'R', a: '8U', b: '12U', value: 1000 },
-    { id: 'C1', kind: 'C', a: '12U', b: 'T-', value: 0.1e-6 },
+    { id: 'R1', stateId: bb.get('R1').stateId, kind: 'R', a: '8U', b: '12U', value: 1000 },
+    { id: 'C1', stateId: bb.get('C1').stateId, kind: 'C', a: '12U', b: 'T-', value: 0.1e-6 },
   ]);
   assert.deepEqual(L, {
     'AFG.CH1+': '8U', 'AFG.CH1-': 'T-', 'TDS.CH1.TIP': '8U', 'TDS.CH1.GND': 'T-',
@@ -189,8 +192,8 @@ test('示範「GPE 分壓」：GPE CH1＋ → R1 → R2 → CH1−（經電源�
   assert.deepEqual(w, BB_DEMO.gpe.wires);
   const n = bb.netlist(w);
   assert.deepEqual(n.elements, [
-    { id: 'R1', kind: 'R', a: 'B+', b: '22L', value: 1000 },
-    { id: 'R2', kind: 'R', a: '22L', b: 'B-', value: 1000 },
+    { id: 'R1', stateId: bb.get('R1').stateId, kind: 'R', a: 'B+', b: '22L', value: 1000 },
+    { id: 'R2', stateId: bb.get('R2').stateId, kind: 'R', a: '22L', b: 'B-', value: 1000 },
   ]);
   assert.deepEqual(n.leads, { 'GPE.CH1+': 'B+', 'GPE.CH1-': 'B-', 'DMM.HI': '22L', 'DMM.LO': 'B-' });
   assert.deepEqual(n.nodes, ['B+', 'B-', '22L']);
@@ -204,4 +207,73 @@ test('跨中間溝槽（e9–f9）是兩組，不算短路；同一欄同一組�
   assert.deepEqual(bb.netlist({}).warnings.filter((w) => w.level === 'bad'), []);
   bb.add('C', 'a9', 'c9', 1e-7);
   assert.ok(bb.netlist({}).warnings.some((w) => w.level === 'bad' && w.text.includes('C1') && w.text.includes('不同組')));
+});
+
+test('元件生命週期識別碼不因顯示編號重用而重用，改值與接線則保留識別碼', () => {
+  const bb = new Breadboard(), w = {};
+  const original = bb.add('C', 'a1', 'a5').part;
+  assert.ok(original.stateId);
+  bb.setValue('C1', 1e-6);
+  bb.plug(w, 'DMM.HI', 'b1');
+  assert.equal(bb.netlist(w).elements[0].stateId, original.stateId);
+  bb.remove('C1');
+  const replacement = bb.add('C', 'a1', 'a5').part;
+  assert.equal(replacement.id, original.id);
+  assert.notEqual(replacement.stateId, original.stateId);
+  bb.clear();
+  const afterClear = bb.add('C', 'a1', 'a5').part;
+  assert.notEqual(afterClear.stateId, replacement.stateId);
+  const otherBoard = new Breadboard().add('C', 'a1', 'a5').part;
+  assert.notEqual(otherBoard.stateId, afterClear.stateId);
+});
+
+function chargedDivider() {
+  const afg = new AfgModel(), gpe = new GpeModel();
+  const bench = new Bench(afg, new DmmModel(), gpe);
+  let t = 0;
+  bench.now = () => t;
+  bench.board = 'bb'; bench.bb = new Breadboard();
+  gpe.vset[1] = 500; gpe.output = true; gpe.load = 'bench';
+  bench.bb.load(BB_DEMO.gpe, bench.bbWires);
+  bench.bb.add('C', 'f22', 'f26', 0.1e-6, bench.bbWires);
+  bench.solution(); t = 1;
+  assert.ok(Math.abs(bench.vcAt(t) - 2.5) < 2e-4, '原本電容已充到分壓電壓');
+  return { bench, afg, setTime: (v) => { t = v; } };
+}
+
+test('已充電的 C1 清空換成 RC 示範後，新 C1 從 0 V 開始且舊歷史不變', () => {
+  const { bench, afg, setTime } = chargedDivider();
+  const oldStateId = bench.bb.get('C1').stateId;
+  const before = bench.vcAt(1), history = bench.vcAt(0.5);
+  bench.bb.load(BB_DEMO.rc, bench.bbWires);
+  assert.equal(afg.ch[0].output, false);
+  assert.notEqual(bench.bb.get('C1').stateId, oldStateId);
+  assert.equal(bench.bb.get('C1').id, 'C1');
+  assert.ok(Math.abs(bench.vcAt(1)) < 1e-9, '新電容沒有承接舊電荷');
+  assert.ok(Math.abs(bench.vcAt(0.5) - history) < 1e-9, '更換前的量測歷史保留舊電容');
+  setTime(1.1);
+  assert.ok(Math.abs(bench.vcAt(1.1)) < 1e-9, '沒有輸出時新電容保持 0 V');
+  assert.ok(before > 2.49);
+});
+
+test('移動儀器導線或改既有元件值，仍保留同一顆電容在改變當下的電壓', () => {
+  const { bench } = chargedDivider();
+  const stateId = bench.bb.get('C1').stateId, before = bench.vcAt(1);
+  assert.ok(bench.bb.plug(bench.bbWires, 'DMM.HI', 'e22').ok);
+  assert.ok(Math.abs(bench.vcAt(1) - before) < 1e-9, '重接導線保持電容電壓連續');
+  bench.bb.setValue('R1', 2200);
+  assert.equal(bench.bb.get('C1').stateId, stateId);
+  assert.ok(Math.abs(bench.vcAt(1) - before) < 1e-9, '改電阻保持電容電壓連續');
+  bench.bb.setValue('C1', 1e-6);
+  assert.equal(bench.bb.get('C1').stateId, stateId);
+  assert.ok(Math.abs(bench.vcAt(1) - before) < 1e-9, '調整既有電容值仍保留當下電壓');
+});
+
+test('刪掉已充電 C1 後立即在原孔插入新 C1，連續兩次 solution 之間仍會重設電荷', () => {
+  const { bench } = chargedDivider();
+  const stateId = bench.bb.get('C1').stateId;
+  bench.bb.remove('C1');
+  bench.bb.add('C', 'f22', 'f26', 0.1e-6, bench.bbWires);
+  assert.notEqual(bench.bb.get('C1').stateId, stateId);
+  assert.ok(Math.abs(bench.vcAt(1)) < 1e-9, '接線與面板編號相同也不能重用原電容電荷');
 });
