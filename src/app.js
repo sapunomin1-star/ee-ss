@@ -330,7 +330,7 @@ export function startApp(root) {
     host.innerHTML = boardSwitch(bbUi.view) + (schematic
       ? schematicSvg(bench, displayModels, bbUi)
       : bbToolbar(bench, bbUi) + bbSvg(bench, displayModels, bbUi));
-    side.innerHTML = historyControls() + (schematic ? schematicSide(bench, bbUi, log) : bbSide(bench, bbUi, log, benchWarnings));
+    side.innerHTML = historyControls() + (schematic ? schematicSide(bench, bbUi, log, benchWarnings) : bbSide(bench, bbUi, log, benchWarnings));
     if (bench.breadboardArchive) side.innerHTML += `<section><h3>舊實驗的另一塊麵包板</h3><p>匯入前已插好的麵包板仍保存在實驗檔。切換會交換目前與備存接線，並重新開始模擬、清除 Undo。</p><button data-schematic="archive">切換備存麵包板</button></section>`;
     applyZoom();
     if (key) host.querySelector(key)?.focus({ preventScroll: true });

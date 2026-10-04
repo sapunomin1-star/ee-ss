@@ -45,3 +45,10 @@ svg.bench-svg.schematic-svg { min-width: 760px; background: #eef0f2; }
 .side .sc-net-list li { margin-bottom: 8px; }
 .side .sc-net-list span { display: block; color: #74808a; font-size: 11px; overflow-wrap: anywhere; }
 .side .sc-net-audit { border: 0; background: none; padding: 0; text-align: left; color: #315c7a; font-size: 12px; }
+
+.schematic-svg .sc-source-return { font-size: 11px; fill: #5b6168; }
+.schematic-svg .sc-meter-glyph { font-size: 24px; font-weight: 500; }
+.schematic-svg .sc-meter-label { font-size: 14px; font-weight: 650; }
+.schematic-svg .sc-meter-value { font-size: 13px; }
+.schematic-svg .sc-meter-status, .schematic-svg .sc-meter-terminal { font-size: 11px; fill: #5b6168; }
+.schematic-svg .sc-meter.shorted .sc-symbol { stroke: #b7352f; }

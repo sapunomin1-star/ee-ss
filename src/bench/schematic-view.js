@@ -16,16 +16,16 @@ const frequency = (n) => n >= 1e6 ? `${precise(n / 1e6)} MHz` : n >= 1e3 ? `${pr
 const coords = (edge) => `data-node-a="${esc(edge.a)}" data-node-b="${esc(edge.b)}" data-x1="${edge.x1}" data-y1="${edge.y1}" data-x2="${edge.x2}" data-y2="${edge.y2}"`;
 const path = (points) => points.map(([x, y], i) => `${i ? 'L' : 'M'}${x},${y}`).join(' ');
 
-// Sources exist only when both of their physical leads are actually plugged in.
-// Settings are explicitly labelled; this does not read back or advance simulation.
+// AFG is earth-referenced even when its own black clip is unplugged.
+// GPE floats and needs both physical leads. Settings never read back simulation.
 function sourceEdges(net, models) {
   const leads = new Map(net.leads.map((l) => [l.id, l]));
   const sources = [];
   for (const [inst, count] of [['GPE', 4], ['AFG', 2]]) for (let ch = 1; ch <= count; ch++) {
     const id = `${inst}.CH${ch}`, positive = leads.get(`${id}+`), negative = leads.get(`${id}-`);
-    if (!positive || !negative) continue;
+    if (!positive || inst === 'GPE' && !negative) continue;
     const model = models[inst.toLowerCase()];
-    const source = { id, kind: 'source', a: positive.node, b: negative.node, leadA: positive.id, leadB: negative.id, label: `${inst} CH${ch}`, wave: inst === 'GPE' ? 'dc' : 'ac' };
+    const source = { id, kind: 'source', a: positive.node, b: inst === 'AFG' ? 'E' : negative.node, leadA: positive.id, leadB: negative?.id ?? '', returnKind: negative ? 'lead' : 'earth', returnNote: !negative ? net.nodes.find((n) => n.id === 'E')?.internal ? '黑夾未接；尚未接回地' : '黑夾未接；經儀器共地' : '', label: `${inst} CH${ch}`, wave: inst === 'GPE' ? 'dc' : 'ac' };
     if (inst === 'GPE') {
       const volts = model.eff?.(ch)?.vs ?? (model.vset?.[ch] ?? 0) / 100;
       source.detail = `設定 ${precise(volts)} V`;
@@ -41,6 +41,24 @@ function sourceEdges(net, models) {
     sources.push(source);
   }
   return sources;
+}
+
+// Project conductive instrument branches without touching the breadboard or
+// querying its solver. The DMM shunt remains physically connected in DCV/OFF.
+function instrumentGraph(physical, models) {
+  const net = { ...physical, nodes: [...physical.nodes], components: [...physical.components] };
+  if (physical.leads.some((lead) => /^AFG\.CH[12]\+$/.test(lead.id)) && !physical.nodes.some((node) => node.id === 'E')) {
+    net.nodes.push({ id: 'E', label: 'GND', grounded: true, internal: true, groups: [], groupNames: [], holes: [], pins: [], leadIds: [], wireIds: [] });
+  }
+  const current = physical.leads.find((lead) => lead.id === 'DMM.I'), common = physical.leads.find((lead) => lead.id === 'DMM.LO');
+  const meter = models.dmm, shunt = meter.currentShunt?.();
+  if (current && common && Number.isFinite(shunt) && shunt > 0) {
+    net.components.push({ id: 'DMM.I-LO', kind: 'ammeter', instrument: true,
+      a: current.node, b: common.node, leadA: current.id, leadB: common.id, value: shunt,
+      active: meter.isOn() && ['DCI', 'ACI'].includes(meter.fn), powered: meter.isOn(), fn: meter.fn,
+      stopped: meter.run === 'stop', shorted: current.node === common.node, dangling: [] });
+  }
+  return net;
 }
 
 function component(edge, ui) {
@@ -79,14 +97,38 @@ function source(edge) {
   const annotation = `style="text-anchor:${anchor}"`;
   const ux = (x2 - x1) / length, uy = (y2 - y1) / length;
   const polarity = (sign) => text(cx + sign * ux * 32 + uy * 22, cy + sign * uy * 32 - ux * 22 + 6, sign < 0 ? '+' : '−', 'sc-polarity');
-  return `<g class="sc-source${edge.off ? ' off' : ''}${edge.a === edge.b ? ' shorted' : ''}" data-source="${esc(edge.id)}" data-lead-a="${esc(edge.leadA)}" data-lead-b="${esc(edge.leadB)}" data-output="${edge.off ? 'off' : 'on'}" ${coords(edge)}>
-    <title>${esc(`${edge.label}；${edge.detail}；Output ${edge.off ? 'OFF' : 'ON'}；${edge.leadA} 接 ${edge.a}，${edge.leadB} 接 ${edge.b}`)}</title>
+  return `<g class="sc-source${edge.off ? ' off' : ''}${edge.a === edge.b ? ' shorted' : ''}" data-source="${esc(edge.id)}" data-lead-a="${esc(edge.leadA)}" data-lead-b="${esc(edge.leadB)}" data-output="${edge.off ? 'off' : 'on'}" data-return="${edge.returnKind}" ${coords(edge)}>
+    <title>${esc(`${edge.label}；${edge.detail}；Output ${edge.off ? 'OFF' : 'ON'}；${edge.leadA} 接 ${edge.a}，${edge.leadB ? `${edge.leadB} 接 ${edge.b}` : edge.returnNote}`)}</title>
     <g class="sc-symbol" transform="translate(${x1} ${y1}) rotate(${angle})">${shape}</g>
     ${edge.wave === 'ac' ? `<path class="sc-symbol" d="M${cx - 15},${cy} C${cx - 9},${cy - 19} ${cx - 5},${cy - 19} ${cx},${cy} S${cx + 9},${cy + 19} ${cx + 15},${cy}"/>` : ''}
     ${polarity(-1)}${polarity(1)}
     ${text(tx, ty, edge.label, 'sc-source-label', annotation)}${text(tx, ty + 20, edge.detail, 'sc-source-detail', annotation)}
     ${edge.extra ? text(tx, ty + 38, edge.extra, 'sc-source-extra', annotation) : ''}
     ${edge.off ? text(tx, ty + (edge.extra ? 57 : 40), 'Output OFF', 'sc-source-off', annotation) : ''}
+    ${edge.returnNote ? text(tx, ty + (edge.extra ? 57 : 40) + (edge.off ? 18 : 0), edge.returnNote, 'sc-source-return', annotation) : ''}
+  </g>`;
+}
+
+function ammeter(edge) {
+  const { x1, y1, x2, y2 } = edge, length = Math.hypot(x2 - x1, y2 - y1), center = length / 2;
+  const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2, vertical = x1 === x2, angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+  const tx = vertical ? cx + (edge.shorted ? -40 : 40) : cx, ty = vertical ? cy - 17 : cy - 59, anchor = vertical ? edge.shorted ? 'end' : 'start' : 'middle';
+  const annotation = `style="text-anchor:${anchor}"`;
+  const points = [[0, 0], [center - 32, 0]];
+  for (let i = 0; i < 6; i++) points.push([center - 25 + i * 10, i % 2 ? -9 : 9]);
+  points.push([center + 32, 0], [length, 0]);
+  const symbol = edge.active ? `<path d="M0,0 H${center - 24} M${center + 24},0 H${length}"/><circle cx="${center}" cy="0" r="24"/>` : `<polyline points="${points.map((p) => p.join(',')).join(' ')}"/>`;
+  const shuntText = fmtR(Number(edge.value.toPrecision(5)));
+  const status = edge.active ? `${edge.fn}${edge.stopped ? ' · 停止擷取' : ''}` : `${edge.powered ? edge.fn : '關機'} · 分流仍導通`;
+  return `<g class="sc-meter${edge.active ? ' active' : ' inactive'}${edge.shorted ? ' shorted' : ''}" data-device="DMM.I-LO" data-active="${edge.active}" data-lead-a="DMM.I" data-lead-b="DMM.LO" data-shunt="${edge.value}" ${coords(edge)}>
+    <title>${esc(`DMM I → LO；${shuntText} 分流；${status}`)}</title>
+    <g class="sc-symbol" transform="translate(${x1} ${y1}) rotate(${angle})">${symbol}</g>
+    ${edge.active ? text(cx, cy + 8, 'A', 'sc-meter-glyph') : ''}
+    ${text(tx, ty, 'DMM I → LO', 'sc-meter-label', annotation)}
+    ${text(tx, ty + 18, `${shuntText} 分流`, 'sc-meter-value', annotation)}
+    ${text(tx, ty + 35, status, 'sc-meter-status', annotation)}
+    ${text(x1 + (vertical ? 13 : 0), y1 + (vertical ? 5 : -12), 'I ＋', 'sc-meter-terminal', vertical ? 'style="text-anchor:start"' : '')}
+    ${text(x2 + (vertical ? 13 : 0), y2 + (vertical ? 5 : -12), 'LO −', 'sc-meter-terminal', vertical ? 'style="text-anchor:start"' : '')}
   </g>`;
 }
 
@@ -96,6 +138,7 @@ function earth(x, y) {
 
 function nodeMark(place, net, ui, sourceLeadIds) {
   const node = net.nodes.find((n) => n.id === place.id);
+  if (node.internal) return `<g class="sc-internal-earth" data-internal-node="E">${earth(place.x, place.y)}${text(place.x + 24, place.y + 28, 'AFG 內部大地', 'sc-caption', 'style="text-anchor:start"')}</g>`;
   const lone = net.components.some((p) => p.dangling.some((leg) => p[leg] === node.id)) || !node.pins.some((p) => p.kind !== 'W') && node.leadIds.length <= 1;
   const selected = ui.schematicNode === node.id;
   const leads = net.leads.filter((l) => l.node === node.id && !sourceLeadIds.has(l.id));
@@ -125,11 +168,11 @@ function instrumentStrip(models, y, canvasWidth) {
 }
 
 export function schematicSvg(bench, models, ui = {}) {
-  const net = buildSchematicNet(bench.bb, bench.bbWires), sources = sourceEdges(net, models);
+  const physical = buildSchematicNet(bench.bb, bench.bbWires), net = instrumentGraph(physical, models), sources = sourceEdges(net, models);
   const layout = buildSchematicLayout(net, { sources });
   const dy = 0, shifted = (edge) => ({ ...edge, y1: edge.y1 + dy, y2: edge.y2 + dy, ...(edge.labelY != null ? { labelY: edge.labelY + dy } : {}) });
   const width = Math.max(1000, layout.width), diagramBottom = Math.max(440, layout.height + dy);
-  const sourceLeadIds = new Set(sources.flatMap((s) => [s.leadA, s.leadB]));
+  const sourceLeadIds = new Set([...sources, ...net.components.filter((e) => e.instrument)].flatMap((s) => [s.leadA, s.leadB]));
   const wireHtml = layout.wires.map((wire) => `<path class="sc-wire${ui.schematicNode === wire.netId ? ' sel' : ''}" data-wire-node="${esc(wire.netId)}" d="${path(wire.points.map(([x, y]) => [x, y + dy]))}"/>`).join('');
   const bridges = (layout.crossings ?? []).map((cross) => {
     const x = cross.x, y = cross.y + dy;
@@ -142,13 +185,13 @@ export function schematicSvg(bench, models, ui = {}) {
   }).join('');
   const dots = layout.junctions.map((j) => `<circle class="sc-junction" data-junction-node="${esc(j.netId)}" cx="${j.x}" cy="${j.y + dy}" r="3.5"/>`).join('');
   const nodes = layout.nodes.map((node) => nodeMark({ ...node, y: node.y + dy, ...(node.labelY != null ? { labelY: node.labelY + dy } : {}) }, net, ui, sourceLeadIds)).join('');
-  const edges = layout.edges.map((edge) => edge.isSource ? source(shifted(edge)) : component(shifted(edge), ui)).join('');
+  const edges = layout.edges.map((edge) => edge.isSource ? source(shifted(edge)) : edge.instrument ? ammeter(shifted(edge)) : component(shifted(edge), ui)).join('');
   return `<svg class="bench-svg schematic-svg" data-schematic-layout="${layout.layout}" viewBox="0 0 ${width} ${diagramBottom + 170}" xmlns="http://www.w3.org/2000/svg" aria-label="依麵包板實際接線產生的電路圖">
     <title>麵包板電路圖</title><desc>所有元件按麵包板實際接線連接；錯接、短路與空腳也照實呈現。導線交叉有圓點才相連。點元件可改值，點節點可核對孔位。</desc>
     <rect class="sc-sheet" x="16" y="16" width="${width - 32}" height="${diagramBottom - 16}" rx="10"/>
     ${text(43, 49, '電路圖', 'sc-title', 'style="text-anchor:start"')}
     ${text(43, 74, '麵包板的實際接線 · 交叉處有圓點才相連', 'sc-caption', 'style="text-anchor:start"')}
-    ${text(width - 43, 48, `${net.components.length} 個元件`, 'sc-stats', 'style="text-anchor:end"')}
+    ${text(width - 43, 48, `${physical.components.length} 個元件`, 'sc-stats', 'style="text-anchor:end"')}
     ${wireHtml}${bridges}${edges}${dots}${nodes}
     ${!net.nodes.length ? text(width / 2, 250, '先在麵包板插入元件與導線', 'sc-empty-title') : ''}
     ${instrumentStrip(models, diagramBottom + 18, width)}
@@ -163,12 +206,19 @@ function selectedPart(net, ui) {
     <div class="btns"><button data-bb="delete">刪除 ${esc(part.id)}</button><button data-schematic="edit">回麵包板查看</button></div>`;
 }
 
-export function schematicSide(bench, ui = {}, hints = '') {
+export function schematicSide(bench, ui = {}, hints = '', solverWarnings = []) {
   const net = buildSchematicNet(bench.bb, bench.bbWires), selected = net.nodes.find((n) => n.id === ui.schematicNode);
   const nodeDetails = selected ? `<div class="sc-selected-node"><b>${esc(selected.label)}${selected.grounded ? ' · 儀器共地' : ''}</b><p>${selected.groupNames.map(esc).join('、')}</p>
     <p>使用的孔位：${selected.holes.map(esc).join('、') || '無'}</p><ul>${selected.pins.map((p) => `<li>${esc(p.partId)} ${p.leg === 'a' ? '第一' : '第二'}腳 → ${esc(p.hole)}</li>`).join('')}${net.leads.filter((l) => l.node === selected.id).map((l) => `<li>${esc(l.name)} → ${esc(l.hole)}</li>`).join('')}</ul></div>` : '<p class="muted">點圖上的連接點，查看相連的孔位與導線。</p>';
   const rows = [...net.components, ...net.jumpers].map((p) => `<li><button class="sc-part-button${ui.sel === p.id ? ' sel' : ''}" data-comp="${esc(p.id)}" aria-pressed="${ui.sel === p.id}"><b>${esc(p.id)}</b> ${esc(value(p))}<small>${esc(p.holeA)} ↔ ${esc(p.holeB)}${p.shorted ? ' · 短路' : p.dangling?.length ? ' · 空腳' : ''}</small></button></li>`).join('');
-  const warnings = net.warnings.length ? net.warnings.map((w) => `<li class="w-${w.level}">${esc(w.text)}</li>`).join('') : '<li class="w-ok">未發現元件短路或空腳。</li>';
+  // Reuse the application's last evaluated warnings. Inspecting a view must
+  // not invoke the solver, but it must retain its limitations and wiring faults.
+  const byText = new Map();
+  for (const warning of [...solverWarnings, ...net.warnings]) {
+    if (!byText.has(warning.text) || warning.level === 'bad') byText.set(warning.text, warning);
+  }
+  const allWarnings = [...byText.values()];
+  const warnings = allWarnings.length ? allWarnings.map((w) => `<li class="w-${w.level}">${esc(w.text)}</li>`).join('') : '<li class="w-ok">目前沒有接線或求解警告。</li>';
   const netRows = net.nodes.map((n) => `<li><button class="sc-net-audit" data-schematic-node="${esc(n.id)}">${esc(n.label)} · ${n.groupNames.map(esc).join('、')}</button><span>${n.holes.map(esc).join('、')}</span></li>`).join('');
   return `<h2>實驗台（電路圖）<small>直接呈現麵包板上的實際電路</small></h2>
     <p class="howto">插錯也會照實畫出。點元件改值、點連接點核對孔位。</p><div class="btns"><button data-schematic="edit">回麵包板接線</button></div>

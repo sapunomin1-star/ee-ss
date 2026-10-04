@@ -33,7 +33,26 @@ function periodContract(channels) {
 }
 // One pure contract is shared by front-panel edits, restored sessions and the
 // electrical solver. Falling back to CH1's period would silently alter CH2.
-export function activeChannelsError(channels) { return periodContract(channels.filter(c=>c.output!==false&&c.enabled!==false)).error; }
+function manualDriverStates(c) {
+ const s=c.extended?.motion;
+ if(s?.source!=='MANUAL'||!['SWEEP','BURST'].includes(s.mode))return [c];
+ // Idle and completed Sweep both run at Start, not 1 / sweepTime. A Manual
+ // Burst holds its phase voltage when idle; Infinite becomes a plain carrier
+ // after Delay. Use the same adapter as Bench instead of a second timing model.
+ const fired={...c,triggeredAt:0};
+ const states=[applyMotionAt({...c,triggeredAt:null},0),applyMotionAt(fired,0)];
+ if(s.mode==='BURST'&&s.infinite)states.push(applyMotionAt(fired,s.delay));
+ return states;
+}
+export function activeChannelsError(channels) {
+ const active=channels.filter(c=>c.output!==false&&c.enabled!==false);
+ // Manual channels can be triggered independently. Every combination must be
+ // valid, including an active scan paired with another channel already idle.
+ let pairs=[[]];
+ for(const c of active)pairs=pairs.flatMap(pair=>manualDriverStates(c).map(driver=>[...pair,driver]));
+ for(const pair of pairs){const error=periodContract(pair).error;if(error)return error;}
+ return null;
+}
 export function simulationPeriod(channels) { const result=periodContract(channels);if(result.error)throw new RangeError(result.error);return result.period; }
 export function motionCycles(c,t) {
  t-=c._timeOrigin??0;

@@ -500,6 +500,7 @@ export class TdsModel {
     this.lastTriggerAt = null;
     this.pendingAcquisition = null;
     this.lastRecordEndAt = null;
+    this.lastRecordPublishedAt = null;
     this.lastRecordKey = null;
     this.pulseStartedAt = null;
     this.trigView = false;
@@ -734,7 +735,7 @@ export class TdsModel {
   clearAcquisition() { this.avgState = null; this.persistence = []; this.persistPixels = new Set(); }
 
   resetTemporalAcquisition() {
-    this.pendingAcquisition = null; this.lastRecordEndAt = null; this.lastRecordKey = null;
+    this.pendingAcquisition = null; this.lastRecordEndAt = null; this.lastRecordPublishedAt = null; this.lastRecordKey = null;
     this.changeSearch = null; this.pulseStartedAt = null; this.armedAt = null; this.lastTriggerAt = null;
   }
 
@@ -759,7 +760,7 @@ export class TdsModel {
     if (!pending) return false;
     if (pending.key !== this.acquisitionKey()) {
       this.pendingAcquisition = null; this.changeSearch = null; this.pulseStartedAt = null;
-      this.lastRecordEndAt = null;
+      this.lastRecordEndAt = null; this.lastRecordPublishedAt = null;
       if (this.run === 'single') this.armedAt = this.fx.now;
       return false;
     }
@@ -772,6 +773,7 @@ export class TdsModel {
     try { this.publish(this.acquire(0, pending.triggerAt, { force: true, absolute: true, sampleT0: pending.t0 })); }
     finally { this.fx = fx; }
     this.lastRecordEndAt = Math.max(pending.triggerAt, pending.endAt);
+    this.lastRecordPublishedAt = this.fx.now;
     this.lastRecordKey = pending.key;
     if (this.changeSearch) this.changeSearch.cursor = Math.max(this.changeSearch.cursor, this.lastRecordEndAt);
     this.frames = null;
@@ -793,10 +795,12 @@ export class TdsModel {
 
   autoHistory() {
     if (this.run !== 'run' || this.trig.mode !== 'AUTO') return;
-    // GAP-TDS-06: after a completed trigger, wait two record durations (at
-    // least 50 ms) before free-running. UI events do not advance this clock.
+    // GAP-TDS-06: after publishing a completed trigger, wait two record
+    // durations (at least 50 ms) before free-running. A bounded poll can
+    // publish older history; sample endAt is not the start of this new wait.
+    // Only a completed trigger resets it, never a Cursor/menu interaction.
     const timeout = Math.max(20 * this.sdiv, .05);
-    if (this.lastRecordEndAt != null && this.lastRecordKey === this.acquisitionKey() && this.fx.now < this.lastRecordEndAt + timeout) return;
+    if (this.lastRecordPublishedAt != null && this.lastRecordKey === this.acquisitionKey() && this.fx.now < this.lastRecordPublishedAt + timeout) return;
     this.publish(this.acquireHistory());
   }
 
