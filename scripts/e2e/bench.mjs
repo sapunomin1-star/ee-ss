@@ -1,6 +1,7 @@
 // 實驗台真 UI：照學生流程——設 AFG → 在實驗台點擊接線 → 示波器 AutoSet／Measure → 電表 ACV，讀值與理論值比對；
 // 再示範常見錯誤（接地夾夾在 B、拔掉黑夾）與恢復。
-import { openApp, Check, sleep } from './lib.mjs';
+import { openApp, Check } from './lib.mjs';
+import { setupRC, wireRC, RC_NODES } from './rc-ui.mjs';
 
 const A = {
   PRESET: 'AFG.KEY.PRESET', CH: 'AFG.KEY.CH1_CH2', AMPL: 'AFG.KEY.AMPL', FREQ: 'AFG.KEY.FREQ_RATE', OUT: 'AFG.KEY.OUTPUT',
@@ -24,7 +25,7 @@ export async function run() {
       if (/^[\d.]+$/.test(t)) { for (const ch of t) await ui.press(ch === '.' ? 'AFG.NUM.DOT' : `AFG.NUM.DIGIT_${ch}`); } else await ui.press(map[t]);
     }
   };
-  const wire = async (lead, node) => { await p.click(`[data-lead="${lead}"]`); await sleep(20); await p.click(`[data-node="${node}"]`); await sleep(20); };
+  const wire = (lead, node) => wireRC(ui, lead, node);
   const volts = (txt) => { const m = String(txt).match(/(-?[\d.]+)\s*(m?)V/); return m ? Number(m[1]) * (m[2] ? 1e-3 : 1) : NaN; };
   try {
     // 1. AFG：Preset → CH 選單（按兩下回 CH1）→ Load High Z → 2 VPP、1 kHz → OUTPUT
@@ -33,14 +34,14 @@ export async function run() {
     const afg = (await ui.snap('afg')).ch[0];
     T.ok(!afg.load50 && Math.abs(afg.emfVpp - 2) < 1e-9 && afg.freq === 1000 && afg.output, 'AFG：High Z、2 Vpp（EMF 2 Vpp）、1 kHz、輸出 ON');
 
-    // 2. 實驗台：逐條點擊接線
-    await ui.tab('bench');
+    // 2. 實驗台：擺上 RC 後逐條點擊實際麵包板接線
+    await setupRC(ui, { wired: false });
     await wire('AFG.CH1+', 'A'); await wire('AFG.CH1-', 'G');
     await wire('TDS.CH1.TIP', 'A'); await wire('TDS.CH1.GND', 'G');
     await wire('TDS.CH2.TIP', 'B'); await wire('TDS.CH2.GND', 'G');
     await wire('DMM.HI', 'B'); await wire('DMM.LO', 'G');
     let b = await ui.snap('bench');
-    T.ok(Object.keys(b.wires).length === 8 && b.wires['TDS.CH2.TIP'] === 'B', '點擊接線：8 條線都接上');
+    T.ok(Object.keys(b.bbWires).length === 8 && b.bb.leads['TDS.CH2.TIP'] === RC_NODES.B, '點擊接線：8 條線都接上');
     T.ok(b.warn.length === 0, `接線沒有警告${b.warn.length ? `：${b.warn.join('；')}` : ''}`);
     T.ok((await ui.snap('tds')).scenario === 'BENCH' && (await ui.snap('dmm')).fixture === 'bench', '探棒與測試線接上後，示波器與電表自動改用實驗台訊號');
     await ui.shot('bench-wired');
@@ -74,8 +75,8 @@ export async function run() {
     await ui.tab('bench');
     await wire('TDS.CH2.GND', 'B');
     b = await ui.snap('bench');
-    T.ok(b.warn.some((x) => x.includes('接地夾') && x.includes('B')), '接地夾夾在 B：實驗台警告');
-    T.ok(b.pp.B < 1e-6, 'B 點被接到大地，電壓變 0');
+    T.ok(b.warn.some((x) => x.includes('接地夾') && x.includes('C1') && x.includes('短路')), '接地夾夾在 B：實驗台警告電容短路');
+    T.ok(b.bb.leads['TDS.CH2.GND'] === RC_NODES.B && Math.abs((await ui.snap('dmm')).view.value) < 1e-6, 'B 點被接到大地，跨電容電壓變 0');
     await ui.shot('bench-mistake');
     await ui.tab('tds');
     await ui.press(S.MEAS);
@@ -84,7 +85,7 @@ export async function run() {
     // 恢復
     await ui.tab('bench');
     await wire('TDS.CH2.GND', 'G');
-    T.ok((await ui.snap('bench')).warn.length === 0 && (await ui.snap('bench')).pp.B > 1.5, '接地夾改回 G：恢復正常');
+    T.ok((await ui.snap('bench')).warn.length === 0 && (await ui.snap('bench')).pp[RC_NODES.B] > 1.5, '接地夾改回 G：恢復正常');
 
     // 6. 量電阻：通電中拒絕；關 AFG 輸出後把電表跨在 R（A–B）量到 1 kΩ
     await ui.tab('dmm');

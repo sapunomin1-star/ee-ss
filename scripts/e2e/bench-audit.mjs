@@ -1,6 +1,7 @@
 // 2026-09-30 外部審查修正的真 UI 驗收：窄脈衝有效值與峰值升檔、電容暫態（充電、關輸出後保有電荷）、畫面自動更新。
 // 只用真點擊／按鍵／選單操作；__eess 只讀狀態做斷言。
 import { openApp, Check, sleep } from './lib.mjs';
+import { setupRC, setRCValue, setRCTopology } from './rc-ui.mjs';
 
 export async function run() {
   const T = new Check('審查修正：窄脈衝、峰值量程、電容暫態');
@@ -16,10 +17,7 @@ export async function run() {
     await digits(2); await afg('SOFT.F5', 'KEY.WAVEFORM', 'SOFT.F2', 'KEY.OUTPUT');
     // 實驗台：示範接線，改成高通 100 Ω／1 nF（τ＝150 ns，比 1 kHz 每週期 4000 點的取樣間隔 250 ns 還短）
     await ui.tab('bench');
-    await p.getByRole('button', { name: '示範接線（看答案）', exact: true }).click();
-    await p.locator('select[name="topo"]').selectOption('CR');
-    await p.locator('select[name="R"]').selectOption('100');
-    await p.locator('select[name="C"]').selectOption('1e-9');
+    await setupRC(ui, { topo: 'CR', R: 100, C: 1e-9 });
     await ui.tab('dmm'); await ui.press('DMM.KEY.ACV');
     const V0 = (2 * 100) / 150, ideal = Math.sqrt((2 * V0 * V0 * 150e-9) / 2 / 1e-3);
     T.near(await dmmValue(), ideal, ideal * 0.01, `窄脈衝 ACV＝解析值 ${(ideal * 1e3).toFixed(2)} mV（修正前取樣算成 30.36 mV）`);
@@ -30,9 +28,9 @@ export async function run() {
 
     // 電容暫態：低通 100 kΩ／10 µF（τ≈1 s），加 1 V DC 偏移 → 電表 DCV 慢慢爬升，畫面自己更新
     await ui.tab('bench');
-    await p.locator('select[name="topo"]').selectOption('RC');
-    await p.locator('select[name="R"]').selectOption('100000');
-    await p.locator('select[name="C"]').selectOption('0.00001');
+    await setRCTopology(ui, 'RC');
+    await setRCValue(ui, 'R', 100000);
+    await setRCValue(ui, 'C', 0.00001);
     await ui.tab('dmm'); await ui.press('DMM.KEY.DCV');
     await sleep(8000); // 先讓換元件留下的電荷放掉（約 8τ）
     await ui.tab('afg'); await afg('KEY.WAVEFORM', 'SOFT.F1', 'KEY.DC_OFFSET'); await digits(1); await afg('SOFT.F2');
@@ -58,8 +56,8 @@ export async function run() {
 
     // 修正後複核的重現：暫態很快結束（100 Ω／1 nF）時關 OUTPUT，電表 LCD 要更新到新讀值，不能停在舊值
     await ui.tab('bench');
-    await p.locator('select[name="R"]').selectOption('100');
-    await p.locator('select[name="C"]').selectOption('1e-9');
+    await setRCValue(ui, 'R', 100);
+    await setRCValue(ui, 'C', 1e-9);
     await ui.tab('afg'); await afg('KEY.OUTPUT');
     await ui.tab('dmm'); await sleep(600);
     const onText = await ui.lcdText();

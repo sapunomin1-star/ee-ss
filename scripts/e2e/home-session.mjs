@@ -1,6 +1,7 @@
 // 在家接續實驗：真操作設定、重新整理、匯出／載入與失敗時保留現況。
 import fs from 'node:fs/promises';
 import { openApp, Check } from './lib.mjs';
+import { setupRC, setRCValue } from './rc-ui.mjs';
 
 const STORAGE = 'ee-ss.session.v1';
 export async function run() {
@@ -22,13 +23,17 @@ export async function run() {
     await ui.press('AFG.KEY.AMPL'); await digits(2); await ui.press('AFG.SOFT.F5');
     await ui.press('AFG.KEY.OUTPUT');
     await ui.tab('bench');
-    await p.click('[data-bench="demo"]');
-    await p.selectOption('select[name="R"]', '47000');
-    await p.selectOption('select[name="C"]', '0.000001');
+    await setupRC(ui, { R: 47000, C: 0.000001 });
     await p.selectOption('select[name="px1"]', '1');
-    await p.check('input[name="board"][value="bb"]');
+    const physical = await ui.snap('bench');
+    await p.check('input[name="benchView"][value="schematic"]');
+    const schematic = await ui.snap('bench');
+    T.ok(JSON.stringify(schematic.bb) === JSON.stringify(physical.bb) && JSON.stringify(schematic.bbWires) === JSON.stringify(physical.bbWires), '切原理圖保留同一 RC 元件、接線與實體探棒');
+    await p.check('input[name="benchView"][value="breadboard"]');
     await p.click('[data-bb="demo-gpe"]');
+    await setRCValue(ui, 'R', 47000);
     await p.check('input[name="bbtool"][value="C"]');
+    await p.selectOption('select[name="bbC"]', '0.000001');
     await p.click('[data-hole="f22"]'); await p.click('[data-hole="f26"]');
     await ui.tab('gpe');
     await p.locator('[data-id="GPE.KNOB.CH1_VOLTAGE"]').focus();
@@ -42,6 +47,7 @@ export async function run() {
     await ui.press('TDS.KEY.AUTOSET'); await ui.press('TDS.KEY.RUN_STOP');
     await ui.tab('bench');
     await p.click('[data-zoom="1"]');
+    await p.check('input[name="benchView"][value="schematic"]');
     await saved();
     const before = await doc();
     const [a, d, g, t, b] = await Promise.all(['afg', 'dmm', 'gpe', 'tds', 'bench'].map(ui.snap));
@@ -49,12 +55,13 @@ export async function run() {
 
     await p.reload(); await saved();
     const after = await doc();
-    T.ok(JSON.stringify(after) === JSON.stringify(before), '重新整理完整保留固定板、麵包板、探棒、四機設定與視窗設定');
+    T.ok(JSON.stringify(after) === JSON.stringify(before), '重新整理完整保留同一電路、原理圖視圖、探棒、四機與視窗設定');
     const [a2, d2, g2, t2, b2] = await Promise.all(['afg', 'dmm', 'gpe', 'tds', 'bench'].map(ui.snap));
     T.ok(a2.ch[0].freq === a.ch[0].freq && a2.ch[0].output === a.ch[0].output, 'AFG 頻率與 Output 正確還原');
     T.ok(d2.fn === d.fn && d2.auto === d.auto && JSON.stringify(d2.per) === JSON.stringify(d.per), 'DMM 功能、量程與 Null 正確還原');
     T.ok(JSON.stringify(g2.vset) === JSON.stringify(g.vset) && g2.output === g.output, 'GPE 電壓設定與 Output 正確還原');
     T.ok(t2.run === 'stop' && t2.sdiv === t.sdiv && t2.rec != null, 'TDS Stop 還原後從新配置採集再凍結');
+    T.ok(after.ui.benchView === 'schematic' && await p.locator('input[name="benchView"][value="schematic"]').isChecked(), '重新整理還原原理圖視圖');
     T.ok(b2.board === 'bb' && Object.keys(b2.bbWires).length === Object.keys(b.bbWires).length
       && Object.entries(b.bbWires).every(([id, hole]) => b2.bbWires[id] === hole)
       && b2.bb.parts.length === b.bb.parts.length, '麵包板元件與每條導線正確還原');

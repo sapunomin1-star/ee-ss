@@ -23,7 +23,7 @@ export async function run() {
     await ui.tab('afg');
     await seq(A, 'PRESET CH CH F1 F2 AMPL 2 F5 FREQ 1 F4 OUT');
     await ui.tab('bench');
-    await p.check('input[name="board"][value="bb"]');
+    await p.check('input[name="benchView"][value="breadboard"]');
     await p.click('[data-bb="demo-rc"]');
     let b = await ui.snap('bench');
     T.ok(b.board === 'bb' && b.bb.elements.length === 2 && b.warn.length === 0, `示範 RC 低通：兩個元件、沒有提醒${b.warn.length ? `（${b.warn.join('；')}）` : ''}`);

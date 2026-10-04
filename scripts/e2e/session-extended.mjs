@@ -15,9 +15,12 @@ export async function run() {
     const raw = await p.evaluate(() => localStorage.getItem('ee-ss.session.v1'));
     T.ok(JSON.parse(raw).instruments.tds.references[0].v.length === 2500, '存檔包含2500個有限參考樣本');
     await ui.tab('bench');
-    T.ok(await p.locator('[data-lead="DMM.SHI"]').count() === 1 && await p.locator('[data-lead="DMM.SLO"]').count() === 1, '固定 RC 板有獨立 Sense HI／LO 端');
-    await p.check('input[name=board][value=bb]');
     T.ok(await p.locator('[data-lead="DMM.SHI"]').count() === 1 && await p.locator('[data-lead="DMM.SLO"]').count() === 1, '麵包板有獨立 Sense HI／LO 端');
+    await p.click('[data-lead="DMM.SHI"]'); await p.click('[data-hole="a1"]');
+    await p.click('[data-lead="DMM.SLO"]'); await p.click('[data-hole="a2"]');
+    await p.check('input[name="benchView"][value="schematic"]');
+    const leads = await p.locator('.schematic-svg .sc-lead-label').allTextContents();
+    T.ok(leads.includes('DMM SHI → a1') && leads.includes('DMM SLO → a2'), '電路圖保留兩條 Sense 導線與各自實體孔位');
     await ui.shot('instrument-memory-session');
     T.ok(ui.errors.length === 0, `沒有瀏覽器錯誤：${ui.errors.join('; ')}`);
   } finally { await ui.close(); }

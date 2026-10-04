@@ -1,0 +1,44 @@
+/* Same circuit, two views. Keep the schematic legible when the host scrolls. */
+svg.bench-svg.schematic-svg { min-width: 760px; background: #e8edf2; }
+.schematic-svg .sc-sheet { fill: #fffdf8; stroke: #d4cbbb; stroke-width: 1; }
+/* LCD text keeps each instrument's own presentation colours. */
+.schematic-svg .sc-text { fill: #283b4b; }
+.schematic-svg .sc-title { font-size: 23px; font-weight: 750; }
+.schematic-svg .sc-section-title { font-size: 15px; font-weight: 700; fill: #526273; }
+.schematic-svg .sc-stats { font-size: 15px; font-weight: 600; }
+.schematic-svg .sc-caption { fill: #647482; font-size: 12px; }
+.schematic-svg .sc-component, .schematic-svg .sc-node, .schematic-svg .sc-net-card { cursor: pointer; outline: none; }
+.schematic-svg .sc-symbol, .schematic-svg .sc-wire { fill: none; stroke: #334c61; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
+.schematic-svg .sc-component-hit { fill: transparent; stroke: transparent; stroke-width: 2; }
+.schematic-svg .sc-component:hover .sc-component-hit { fill: #e5f0fa; }
+.schematic-svg .sc-component.sel .sc-component-hit, .schematic-svg .sc-component:focus-visible .sc-component-hit { fill: #e5f0fa; stroke: #176fbd; }
+.schematic-svg .sc-component-label { font-size: 17px; font-weight: 650; }
+.schematic-svg .sc-hole-label { font-size: 11px; fill: #7c858b; }
+.schematic-svg .sc-component.shorted .sc-symbol { stroke: #ba4037; }
+.schematic-svg .sc-wire-dot { fill: #334c61; }
+.schematic-svg .sc-node-hit { fill: transparent; stroke: transparent; stroke-width: 2; }
+.schematic-svg .sc-node-tag { fill: #fffdf8; stroke: var(--net-color); stroke-width: 1.5; }
+.schematic-svg .sc-node-name { fill: var(--net-color); font-size: 14px; font-weight: 750; }
+.schematic-svg .sc-junction { fill: var(--net-color); stroke: #fffdf8; stroke-width: 1.5; }
+.schematic-svg .sc-node:hover .sc-node-hit, .schematic-svg .sc-node.sel .sc-node-hit { fill: #ddecfb; fill-opacity: .65; }
+.schematic-svg .sc-node.sel .sc-node-hit, .schematic-svg .sc-node:focus-visible .sc-node-hit { stroke: #176fbd; }
+.schematic-svg .sc-earth { stroke: #237449; stroke-width: 2.3; fill: none; }
+.schematic-svg .sc-branch-bg { fill: #f6f7f7; stroke: #e2e6e8; }
+.schematic-svg .sc-branch-bg.shorted { fill: #fff4ef; stroke: #edb5a6; }
+.schematic-svg .sc-error { fill: #ba4037; font-size: 14px; font-weight: 650; }
+.schematic-svg .sc-caution { fill: #966217; font-size: 13px; font-weight: 650; }
+.schematic-svg .sc-empty-title { font-size: 22px; font-weight: 650; fill: #647482; }
+.schematic-svg .sc-net-card-bg { fill: #fff; stroke: #dbe2e7; stroke-width: 1; }
+.schematic-svg .sc-net-card:hover .sc-net-card-bg { fill: #f2f7fc; }
+.schematic-svg .sc-net-card.sel .sc-net-card-bg, .schematic-svg .sc-net-card:focus-visible .sc-net-card-bg { fill: #edf5fd; stroke: #176fbd; stroke-width: 2; }
+.schematic-svg .sc-net-card-name { font-size: 15px; font-weight: 700; fill: var(--net-color); }
+.schematic-svg .sc-lead-label { font-size: 12px; }
+.schematic-svg .sc-instrument-bg { fill: #d6e0e9; stroke: #c6d2dc; }
+.schematic-svg .sc-instrument-title { font-size: 12px; font-weight: 650; }
+.side .sc-parts { list-style: none; padding: 0; margin: 6px 0; display: grid; gap: 5px; }
+.side .sc-part-button { display: block; width: 100%; padding: 8px 10px; border: 1px solid #d2dce5; border-radius: 7px; text-align: left; background: #f7f9fb; color: #263d50; font-size: 12px; }
+.side .sc-part-button small { display: block; margin-top: 3px; color: #697783; }
+.side .sc-part-button.sel { background: #e8f3ff; border-color: #176fbd; }
+.side .sc-selected-node { border-left: 3px solid #3175b2; padding-left: 9px; font-size: 12px; overflow-wrap: anywhere; }
+.side .sc-selected-node p { margin: 6px 0; color: #536574; }
+.side .sc-selected-node ul { margin: 6px 0; padding-left: 17px; }

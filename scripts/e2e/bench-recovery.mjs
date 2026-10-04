@@ -1,5 +1,6 @@
 // 獨立補驗：用真面板／接線 UI 重現審查問題；__eess 僅讀取斷言資料。
 import { openApp, Check, sleep } from './lib.mjs';
+import { setupRC, wireRC, unplugRC, RC_NODES } from './rc-ui.mjs';
 
 export async function run() {
   const T = new Check('RC 接線與採集恢復');
@@ -13,8 +14,8 @@ export async function run() {
   const freq = async (value, unit = 'F3') => {
     await ui.tab('afg'); await afgKeys('KEY.FREQ_RATE'); await digits(value); await afgKeys(`SOFT.${unit}`);
   };
-  const wire = async (lead, node) => { await p.locator(`[data-lead="${lead}"]`).click(); await p.locator(`[data-node="${node}"]`).click(); };
-  const unplug = async (lead) => { await p.locator(`[data-lead="${lead}"]`).click(); await p.locator(`[data-lead="${lead}"]`).click(); };
+  const wire = (lead, node) => wireRC(ui, lead, node);
+  const unplug = (lead) => unplugRC(ui, lead);
   const autoFreq = (s) => s.autoMeas?.find((m) => m.type === 'FREQ')?.text;
   try {
     await ui.tab('bench');
@@ -24,12 +25,13 @@ export async function run() {
     await afgKeys('KEY.PRESET', 'KEY.CH1_CH2', 'KEY.CH1_CH2', 'SOFT.F1', 'SOFT.F2', 'KEY.AMPL');
     await digits(2); await afgKeys('SOFT.F5', 'KEY.OUTPUT');
     await ui.tab('bench');
+    await setupRC(ui);
     await wire('AFG.CH2-', 'B');
-    await p.getByRole('button', { name: '示範接線（看答案）', exact: true }).click();
+    await setupRC(ui);
     let b = await ui.snap('bench');
-    T.ok(Object.keys(b.wires).length === 8 && !b.wires['AFG.CH2-'] && b.pp.B > 1.6, '示範接線移除額外 CH2 黑夾，電容不被殘留導線短路');
+    T.ok(Object.keys(b.bbWires).length === 8 && !b.bbWires['AFG.CH2-'] && b.pp[RC_NODES.B] > 1.6, '示範接線移除額外 CH2 黑夾，電容不被殘留導線短路');
     // 舊版也繼續跑其他獨立案例，不能讓第一項問題遮住後續缺陷。
-    if (b.wires['AFG.CH2-']) await unplug('AFG.CH2-');
+    if (b.bbWires['AFG.CH2-']) await unplug('AFG.CH2-');
     await ui.tab('dmm'); await key('DMM.KEY.ACV');
     T.near((await ui.snap('dmm')).view.value, 0.5902299, 0.001, 'ACV 量到預設 RC 的有效值');
     const status = await p.locator('.side dl.kv').innerText();
@@ -86,16 +88,14 @@ export async function run() {
 
     // 在 UI 可選範圍內，高 τ／高頻不能憑空產生 DC。
     await ui.tab('bench');
-    await p.getByRole('button', { name: '示範接線（看答案）', exact: true }).click();
-    await p.locator('select[name="R"]').selectOption('100000');
-    await p.locator('select[name="C"]').selectOption('0.00001');
+    await setupRC(ui, { R: 100000, C: 0.00001 });
     await ui.tab('afg'); await afgKeys('KEY.DC_OFFSET'); await digits(0); await afgKeys('SOFT.F2');
     await afgKeys('KEY.WAVEFORM', 'SOFT.F4', 'SOFT.F1'); await digits(30); await afgKeys('SOFT.F2');
     await freq(999, 'F4');
     await ui.tab('dmm'); await key('DMM.KEY.DCV');
     // 換成 τ≈1 s 時電容還帶著換之前的電壓，要幾秒才放完（真實行為）；這裡檢查的是週期穩態本身沒有假直流
     const bs = await ui.snap('bench');
-    T.near(bs.ssMean.B, 0, 2e-6, '100 kΩ／10 µF、999 kHz Ramp 的週期穩態 DC 保持零，不產生假直流');
+    T.near(bs.ssMean[RC_NODES.B], 0, 2e-6, '100 kΩ／10 µF、999 kHz Ramp 的週期穩態 DC 保持零，不產生假直流');
     await sleep(600);
     T.ok(Math.abs((await ui.snap('bench')).dev) < Math.abs(bs.dev) || Math.abs(bs.dev) < 1e-6, '電容偏離穩態的電壓隨時間衰減（暫態）');
     T.ok(ui.errors.length === 0, '沒有瀏覽器程式錯誤');

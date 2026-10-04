@@ -215,7 +215,7 @@ export async function run() {
     for (const id of ['KEY.PRESET', 'KEY.CH1_CH2', 'KEY.CH1_CH2', 'SOFT.F1', 'SOFT.F2', 'KEY.AMPL', 'NUM.DIGIT_2', 'SOFT.F5',
       'KEY.WAVEFORM', 'SOFT.F2', 'KEY.FREQ_RATE', 'NUM.DIGIT_2', 'NUM.DIGIT_0', 'SOFT.F3', 'KEY.OUTPUT']) await ui.press(`AFG.${id}`);
     await ui.tab('bench');
-    await p.getByRole('button', { name: '示範接線（看答案）', exact: true }).click();
+    await p.click('[data-bb="demo-rc"]');
     await ui.tab('tds');
     await ui.press(K.AUTOSET);
     s = await snap();

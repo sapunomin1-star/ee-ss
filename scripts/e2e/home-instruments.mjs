@@ -1,5 +1,6 @@
 // 在家實驗的儀器回歸：所有設定使用真按鍵／鍵盤，__eess 只讀。
 import { openApp, Check } from './lib.mjs';
+import { setupRC } from './rc-ui.mjs';
 import fs from 'node:fs/promises';
 import { validateSession } from '../../src/core/session.js';
 
@@ -36,12 +37,8 @@ export async function run() {
     T.ok(await underline() === 1, '旋鈕操作後底線仍在編輯框內');
     await ui.shot('home-instruments-afg-cursor');
 
-    await keys('PRESET FREQ 1 F2 OUT'); // 1 mHz，輸出接到固定 RC 示範板。
-    await ui.tab('bench');
-    await p.check('input[name="board"][value="rc"]');
-    await p.getByRole('button', { name: '示範接線（看答案）', exact: true }).click();
-    await p.locator('select[name="R"]').selectOption('1000');
-    await p.locator('select[name="C"]').selectOption('0.00001');
+    await keys('PRESET FREQ 1 F2 OUT'); // 1 mHz，輸出接到麵包板上的 RC 電路。
+    await setupRC(ui, { R: 1000, C: .00001 });
     await ui.tab('tds'); await tds('KEY.AUTOSET');
     T.near((await ui.snap('tds')).sdiv, 50, 1e-12, '實驗台 1 mHz AutoSet：選最大 50 s/div');
     T.ok((await ui.hint()).includes('訊號太慢'), 'AutoSet 清楚提示画面不足兩個週期');

@@ -2,6 +2,7 @@
 // Use a paused browser clock and the supported setup-file workflow; __eess is read-only.
 import fs from 'node:fs/promises';
 import { openApp, Check } from './lib.mjs';
+import { setupRC } from './rc-ui.mjs';
 
 export async function run() {
   const T = new Check('50574f7：充電 Phase 與 Auto 游標'), ui = await openApp(), p = ui.page;
@@ -16,9 +17,7 @@ export async function run() {
     for (const id of ['KEY.PRESET', 'KEY.CH1_CH2', 'KEY.CH1_CH2', 'SOFT.F1', 'SOFT.F2', 'KEY.AMPL']) await afg(id);
     await digits(2); await afg('SOFT.F5'); await afg('KEY.DC_OFFSET'); await digits(2); await afg('SOFT.F2');
     await afg('KEY.FREQ_RATE'); await digits(1); await afg('SOFT.F4');
-    await ui.tab('bench'); await p.getByRole('button', { name: '示範接線（看答案）', exact: true }).click();
-    await p.locator('select[name="R"]').selectOption('100000');
-    await p.locator('select[name="C"]').selectOption('0.00001');
+    await setupRC(ui, { R: 100000, C: .00001 });
 
     await ui.tab('tds'); await scope('SAVE_RECALL'); await opt(2);
     const downloadWait = p.waitForEvent('download'); await opt(5);

@@ -164,10 +164,10 @@ export function bbSvg(bench, models, ui) {
 // ---- 側欄 ----
 const opt = (list, cur, fmt) => list.map((v) => `<option value="${v}"${v === cur ? ' selected' : ''}>${esc(fmt(v))}</option>`).join('');
 
-// 最上面的「板子」切換（兩種模式都有）
-export function boardSwitch(board) {
-  return `<div class="board-sw" role="radiogroup" aria-label="板子"><b>板子</b>` +
-    [['rc', '固定 RC 板'], ['bb', '麵包板']].map(([v, t]) => `<label><input type="radio" name="board" value="${v}"${board === v ? ' checked' : ''}> ${t}</label>`).join('') + '</div>';
+// 同一份實際接線的兩種檢視。
+export function boardSwitch(view) {
+  return `<div class="board-sw" role="radiogroup" aria-label="實驗台檢視"><b>檢視</b>` +
+    [['breadboard', '麵包板接線'], ['schematic', '電路圖']].map(([v, t]) => `<label><input type="radio" name="benchView" value="${v}"${view === v ? ' checked' : ''}> ${t}</label>`).join('') + '</div>';
 }
 
 // 主畫面上的元件工具：按鈕即使再次選同一工具，也會退出導線接線模式。
@@ -185,7 +185,7 @@ export function bbToolbar(bench, ui) {
     <p class="bb-tool-status" role="status">${esc(status)}</p></div>`;
 }
 
-export function bbSide(bench, ui, hints) {
+export function bbSide(bench, ui, hints, warnings = bench.solution().warn) {
   const net = bench.bb.netlist(bench.bbWires), p = ui.sel ? bench.bb.get(ui.sel) : null;
   const tools = [['select', '選取'], ['R', '電阻'], ['C', '電容'], ['W', '跳線']]
     .map(([v, t]) => `<label><input type="radio" name="bbtool" value="${v}"${ui.tool === v ? ' checked' : ''}> ${t}</label>`).join('');
@@ -197,17 +197,18 @@ export function bbSide(bench, ui, hints) {
       `${val}<div class="btns"><button data-bb="delete">刪除 ${esc(p.id)}</button></div>`;
   }
   // 擺放問題（麵包板模型）＋電氣問題（電路計算：輸出短路到地、沒有回路、AFG 輸出 OFF…）
-  const all = bench.solution().warn;
+  const all = warnings;
   const warn = all.length ? all.map((w) => `<li class="w-${w.level}">${esc(w.text)}</li>`).join('') : '<li class="w-ok">擺放與接線沒有問題。</li>';
   const on = Object.keys(LEADS).filter((id) => bench.bbWires[id]);
   const rows = on.map((id) => `<li><b>${esc(LEADS[id].name)}</b>：${bench.bbWires[id]}（節點 ${esc(net.leads[id])}）</li>`).join('');
   return `
     <h2>實驗台（麵包板）<small>自己插元件、接導線</small></h2>
-    <section><h3>怎麼操作</h3><p class="howto">① 麵包板上方點「插電阻／插電容／接跳線」→ 點第一個空孔 → 點第二個空孔，就插上了。② 「選取／改值」工具：點元件選取，可以改值；按 Delete 或下面的刪除鍵拿掉。③ 接線：點導線端（變藍）→ 點孔；已接的導線端選取後再點一次＝拔掉。滑鼠移到孔上，所有相連的孔會一起亮起來。</p></section>
+    <section><h3>怎麼操作</h3><p>插好後切換上方「電路圖」，核對元件與實際連接；兩種檢視共用接線與量測。</p><p class="howto">① 麵包板上方點「插電阻／插電容／接跳線」→ 點第一個空孔 → 點第二個空孔，就插上了。② 「選取／改值」工具：點元件選取，可以改值；按 Delete 或下面的刪除鍵拿掉。③ 接線：點導線端（變藍）→ 點孔；已接的導線端選取後再點一次＝拔掉。滑鼠移到孔上，所有相連的孔會一起亮起來。</p></section>
     <section><h3>工具</h3><div class="bbtools">${tools}</div>
       <label class="fld">新電阻 <select name="bbR">${opt(R_OPTIONS, ui.newR, fmtR)}</select></label>
       <label class="fld">新電容 <select name="bbC">${opt(C_OPTIONS, ui.newC, fmtC)}</select></label></section>
     <section><h3>選取的元件</h3>${selHtml}</section>
+    <section><h3>實體探棒開關</h3>${[1, 2].map(ch => `<label class="fld">CH${ch} <select name="px${ch}">${opt([1, 10], bench.probeX[ch - 1], v => `${v}×`)}</select></label>`).join('')}<p class="muted">請與示波器 CH1／CH2 選單的 Probe 設定一致。</p></section>
     <section><h3>狀況</h3><ul class="warn">${warn}</ul></section>
     <section><h3>導線</h3><ul class="wires">${rows || '<li class="muted">還沒有接導線。</li>'}</ul>
       ${on.length && on.length < Object.keys(LEADS).length ? `<p class="muted">其餘 ${Object.keys(LEADS).length - on.length} 條未接。</p>` : ''}</section>

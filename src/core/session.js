@@ -8,8 +8,9 @@
 // cursor:{type,src,sel,t,v},meas:[{src,type}],autoMeas:null|{src,types},autoKind},
 // gpe:{on,vset,iset,keyL,keyR,rows,output,lock,load},dmm:{on,fn,fixture,
 // per:{FUNCTION:{auto,idx,nullOn,base}}}},bench:{board,probeX,
-// fixed:{topo,R,C,wires},breadboard:{parts:[{id,kind,a,b,value?}],wires}},
-// ui:{tab,zoom}}. Wire maps are lead ID -> fixed node / breadboard hole.
+// fixed:{topo,R,C,wires},breadboard:{parts:[{id,kind,a,b,value?}],wires},
+// breadboardArchive?:{parts,wires}},
+// ui:{tab,zoom,benchView?}}. Wire maps are lead ID -> fixed node / breadboard hole.
 import { createInstruments } from '../instruments/index.js';
 import { AfgModel, AMPL_UNITS, MENUS } from '../instruments/afg/model.js';
 import { normalizeChannelExtension, normalizeInstrumentExtension, EXT_MENUS, EXT_HIGHLIGHTS } from '../instruments/afg/extensions.js';
@@ -32,6 +33,8 @@ const TDS_MENUS = [null, 'CH1', 'CH2', 'PROBE1', 'PROBE2', 'TRIG', 'MEAS',
 const copy = (x) => JSON.parse(JSON.stringify(x));
 const pick = (x, fields) => Object.fromEntries(fields.map((k) => [k, x[k]]));
 const wires = (x = {}) => Object.fromEntries(LEAD_IDS.filter((k) => Object.hasOwn(x, k)).map((k) => [k, x[k]]));
+const breadboardState = (parts, leads) => ({ parts: (parts ?? []).map((p) => pick(p,
+  p.kind === 'W' ? ['id', 'kind', 'a', 'b'] : ['id', 'kind', 'a', 'b', 'value'])), wires: wires(leads) });
 const AFG_FIELDS = ['on', 'sel', 'menu', 'hl', 'ch'];
 const TDS_FIELDS = ['on', 'run', 'menu', 'ch', 'sIdx', 'mpos', 'trig', 'cursor', 'meas', 'autoMeas', 'autoKind'];
 const GPE_FIELDS = ['on', 'vset', 'iset', 'keyL', 'keyR', 'rows', 'output', 'lock', 'load'];
@@ -43,7 +46,7 @@ const GPE_EXTRA = ['startupOutput', 'digits'];
 
 // Do not call model.snapshot(), DMM.view(), Bench.solution(), or any clock here:
 // periodic autosaving must not create acquisitions or change the circuit history.
-export function captureSession(models, bench, { tab = 'afg', zoom = 1 } = {}) {
+export function captureSession(models, bench, { tab = 'afg', zoom = 1, benchView } = {}) {
   const a = models.afg, t = models.tds, g = models.gpe, d = models.dmm;
   return copy({ format: SESSION_FORMAT, version: SESSION_VERSION,
     instruments: {
@@ -62,9 +65,9 @@ export function captureSession(models, bench, { tab = 'afg', zoom = 1 } = {}) {
     },
     bench: { board: bench.board ?? 'rc', probeX: [...bench.probeX],
       fixed: { topo: bench.topo, R: bench.R, C: bench.C, wires: wires(bench.wires) },
-      breadboard: { parts: (bench.bb?.parts ?? []).map((p) => pick(p,
-        p.kind === 'W' ? ['id', 'kind', 'a', 'b'] : ['id', 'kind', 'a', 'b', 'value'])), wires: wires(bench.bbWires) } },
-    ui: { tab, zoom },
+      breadboard: breadboardState(bench.bb?.parts, bench.bbWires),
+      ...(bench.breadboardArchive ? { breadboardArchive: breadboardState(bench.breadboardArchive.parts, bench.breadboardArchive.wires) } : {}) },
+    ui: { tab, zoom, ...(benchView === undefined ? {} : { benchView }) },
   });
 }
 
@@ -257,6 +260,29 @@ function wireMap(x, path, holes, occupied = new Set()) {
   }
 }
 
+function validateBreadboard(b, path) {
+  object(b, path, ['parts', 'wires']); array(b.parts, `${path}.parts`, MAX_SESSION_PARTS, 0);
+  const occupied = new Set(), partIds = new Set();
+  b.parts.forEach((p, i) => {
+    const partPath = `${path}.parts[${i}]`;
+    if (!p || !['R', 'C', 'W'].includes(p.kind)) fail(partPath, '只支援電阻 R、電容 C 和跳線 W。');
+    object(p, partPath, p.kind === 'W' ? ['id', 'kind', 'a', 'b'] : ['id', 'kind', 'a', 'b', 'value']);
+    if (typeof p.id !== 'string' || !new RegExp(`^${p.kind}[1-9]\\d{0,5}$`).test(p.id) || partIds.has(p.id)) fail(partPath, '元件 ID 必須符合種類且不能重複。');
+    partIds.add(p.id);
+    for (const h of [p.a, p.b]) {
+      if (typeof h !== 'string' || !parseHole(h)) fail(partPath, '麵包板孔位不存在。');
+      if (occupied.has(h)) fail(partPath, `孔 ${h} 已被其他元件腳佔用。`);
+      occupied.add(h);
+    }
+    if (p.kind !== 'W') {
+      // Values available in the current component UI. A later component/range
+      // expansion must intentionally extend the validator (or session version).
+      enumeration(p.value, `${partPath}.value`, p.kind === 'R' ? R_OPTIONS : C_OPTIONS);
+    }
+  });
+  wireMap(b.wires, `${path}.wires`, true, occupied);
+}
+
 // Pure whitelist validation. A malformed file cannot reset or partially replace
 // the live models. Returns a detached JSON object suitable for later application.
 export function validateSession(data) {
@@ -364,32 +390,16 @@ export function validateSession(data) {
   enumeration(d.fixture, 'DMM.fixture', D1.map((f) => f.id));
   dmmPer(d.per, 'DMM.per', true);
   const b = data.bench;
-  object(b, 'bench', ['board', 'probeX', 'fixed', 'breadboard']); enumeration(b.board, 'bench.board', ['rc', 'bb']);
+  optionalObject(b, 'bench', ['board', 'probeX', 'fixed', 'breadboard'], ['breadboardArchive']); enumeration(b.board, 'bench.board', ['rc', 'bb']);
   array(b.probeX, 'bench.probeX', 2); b.probeX.forEach((x) => enumeration(x, 'bench.probeX', [1, 10]));
   object(b.fixed, 'bench.fixed', ['topo', 'R', 'C', 'wires']); enumeration(b.fixed.topo, 'bench.fixed.topo', ['RC', 'CR']);
   enumeration(b.fixed.R, 'bench.fixed.R', R_OPTIONS); enumeration(b.fixed.C, 'bench.fixed.C', C_OPTIONS);
   wireMap(b.fixed.wires, 'bench.fixed.wires', false);
-  object(b.breadboard, 'bench.breadboard', ['parts', 'wires']); array(b.breadboard.parts, 'bench.breadboard.parts', MAX_SESSION_PARTS, 0);
-  const occupied = new Set(), partIds = new Set();
-  b.breadboard.parts.forEach((p, i) => {
-    const path = `bench.breadboard.parts[${i}]`;
-    if (!p || !['R', 'C', 'W'].includes(p.kind)) fail(path, '只支援電阻 R、電容 C 和跳線 W。');
-    object(p, path, p.kind === 'W' ? ['id', 'kind', 'a', 'b'] : ['id', 'kind', 'a', 'b', 'value']);
-    if (typeof p.id !== 'string' || !new RegExp(`^${p.kind}[1-9]\\d{0,5}$`).test(p.id) || partIds.has(p.id)) fail(path, '元件 ID 必須符合種類且不能重複。');
-    partIds.add(p.id);
-    for (const h of [p.a, p.b]) {
-      if (typeof h !== 'string' || !parseHole(h)) fail(path, '麵包板孔位不存在。');
-      if (occupied.has(h)) fail(path, `孔 ${h} 已被其他元件腳佔用。`);
-      occupied.add(h);
-    }
-    if (p.kind !== 'W') {
-      // Values available in the current component UI. A later component/range
-      // expansion must intentionally extend the validator (or session version).
-      enumeration(p.value, `${path}.value`, p.kind === 'R' ? R_OPTIONS : C_OPTIONS);
-    }
-  });
-  wireMap(b.breadboard.wires, 'bench.breadboard.wires', true, occupied);
-  object(data.ui, 'ui', ['tab', 'zoom']); enumeration(data.ui.tab, 'ui.tab', [...INST, 'bench']); number(data.ui.zoom, 'ui.zoom', 1, 2.5);
+  validateBreadboard(b.breadboard, 'bench.breadboard');
+  if (Object.hasOwn(b, 'breadboardArchive')) validateBreadboard(b.breadboardArchive, 'bench.breadboardArchive');
+  optionalObject(data.ui, 'ui', ['tab', 'zoom'], ['benchView']);
+  enumeration(data.ui.tab, 'ui.tab', [...INST, 'bench']); number(data.ui.zoom, 'ui.zoom', 1, 2.5);
+  if (Object.hasOwn(data.ui, 'benchView')) enumeration(data.ui.benchView, 'ui.benchView', ['breadboard', 'schematic']);
   scopeMemories(t, data);
   const result = copy(data), defaults = createInstruments();
   result.instruments.afg.ch.forEach((c) => { c.duty ??= 50; c.phase ??= 0; c.extended = normalizeChannelExtension(c.extended, c); });
@@ -443,6 +453,8 @@ function applySession(data, models, bench) {
   Object.assign(bench, { afg: models.afg, dmm: models.dmm, gpe: models.gpe,
     board: data.bench.board, topo: data.bench.fixed.topo, R: data.bench.fixed.R, C: data.bench.fixed.C,
     wires: copy(data.bench.fixed.wires), bb, bbWires: copy(data.bench.breadboard.wires), probeX: [...data.bench.probeX] });
+  if (Object.hasOwn(data.bench, 'breadboardArchive')) bench.breadboardArchive = copy(data.bench.breadboardArchive);
+  else delete bench.breadboardArchive;
   // reset() intentionally preserves the selected board and external sources.
   // The session replaces both boards and starts their history afresh.
   delete bench.changeT;

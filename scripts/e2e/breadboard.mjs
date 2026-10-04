@@ -1,5 +1,5 @@
-// 實驗台麵包板真 UI：切到麵包板 → 擺電阻／電容／跳線 → 滑過孔看同組高亮 → 選取改值、刪除 → 接導線、拔線 →
-// 鍵盤操作 → 兩個示範 → 清空 → 切回 RC 板。只用真點擊／按鍵／選單操作；__eess 只讀狀態做斷言。
+// 實驗台麵包板真 UI：切換同一電路的視圖 → 擺電阻／電容／跳線 → 滑過孔看同組高亮 → 選取改值、刪除 → 接導線、拔線 →
+// 鍵盤操作 → 兩個示範 → 清空並核對電路圖。只用真點擊／按鍵／選單操作；__eess 只讀狀態做斷言。
 // 這一輪只驗結構與操作（元件、孔、netlist），不驗電壓：麵包板的電路計算另外接上。
 import { openApp, Check, sleep } from './lib.mjs';
 
@@ -28,16 +28,22 @@ export async function run() {
     return a.every(Boolean) && !b.some(Boolean);
   };
   try {
-    // 0. 預設仍是固定 RC 板；先在 RC 板接一條線，之後確認換板子不會弄丟
+    // 0. 預設空白麵包板；電路圖是同一份實際接線的另一種呈現。
     await ui.tab('bench');
     let s = await snap();
-    T.ok(s.board === 'rc' && await p.locator('[data-node="A"]').count() === 1 && await p.locator('.bb-svg').count() === 0, '預設是固定 RC 板（接點 A／B／G）');
-    await lead('AFG.CH1+'); await p.click('[data-node="A"]');
-
-    // 1. 側欄最上面切到麵包板
-    await p.click('input[name="board"][value="bb"]');
+    T.ok(s.board === 'bb' && s.bbUi.view === 'breadboard' && s.bb.parts.length === 0 && Object.keys(s.bbWires).length === 0,
+      '預設為空白實體麵包板，沒有隱藏的固定 RC 電路');
+    await lead('AFG.CH1+'); await hole('a1');
+    await p.check('input[name="benchView"][value="schematic"]');
     s = await snap();
-    T.ok(s.board === 'bb' && await p.locator('.bb-svg [data-hole]').count() === 420, '切到麵包板：300 個主區孔＋120 個電源軌孔');
+    T.ok(s.board === 'bb' && s.bbUi.view === 'schematic' && s.bbWires['AFG.CH1+'] === 'a1' && await p.locator('.schematic-svg').count() === 1,
+      '切到電路圖保留同一條實際導線與物理板');
+
+    // 1. 切回實體孔位，確認接線保留，再拔線開始元件操作。
+    await p.check('input[name="benchView"][value="breadboard"]');
+    s = await snap();
+    T.ok(s.board === 'bb' && s.bbWires['AFG.CH1+'] === 'a1' && await p.locator('.bb-svg [data-hole]').count() === 420, '切回麵包板保留接線：300 個主區孔＋120 個電源軌孔');
+    await lead('AFG.CH1+'); await lead('AFG.CH1+');
     T.ok(await p.locator('.bb-svg [data-lead]').count() === 22 && await p.locator('.bb-svg [data-goto]').count() === 4 && await p.locator('svg[data-mini="gpe"]').count() === 1,
       '22 個導線端（含 DMM Sense HI／LO、I 3A、GPE 四路）與四台小螢幕');
 
@@ -148,6 +154,13 @@ export async function run() {
     '示範 RC：輸入 8U、電容 12U、地都在藍色−軌 T-；舊導線都拔掉');
     T.ok(s.bb.warnings.length === 0 && same(s.bb.nodes, ['T-', '8U', '12U']), '示範 RC：沒有擺放警告');
     T.ok((await ui.snap('tds')).scenario === 'BENCH' && (await ui.snap('dmm')).fixture === 'bench', '示範 RC：示波器與電表都切到實驗台來源');
+    const physical = { parts: s.bb.parts, wires: s.bbWires, elements: s.bb.elements };
+    await p.check('input[name="benchView"][value="schematic"]');
+    s = await snap();
+    T.ok(same({ parts: s.bb.parts, wires: s.bbWires, elements: s.bb.elements }, physical)
+      && await p.locator('.schematic-svg [data-comp]').count() === 2,
+    'RC 電路圖投影同一份 R1／C1、接線及元件識別碼，切換不重建電路');
+    await p.check('input[name="benchView"][value="breadboard"]');
     await ui.shot('breadboard-demo-rc');
 
     // 11. 示範「GPE 分壓」
@@ -169,13 +182,15 @@ export async function run() {
     s = await snap();
     T.ok(s.board === 'bb' && s.bb.parts.length === 4 && await p.locator('.bb-svg').count() === 1, '回到實驗台：仍是麵包板、元件都在');
 
-    // 13. 清空；切回 RC 板，RC 板的接線還在
+    // 13. 清空同一電路；切到電路圖也不會冒出另一份舊元件或接線。
     await p.click('[data-bb="clear"]');
     s = await snap();
     T.ok(s.bb.parts.length === 0 && Object.keys(s.bbWires).length === 0, '清空麵包板：元件拿掉、導線拔掉');
-    await p.click('input[name="board"][value="rc"]');
+    await p.check('input[name="benchView"][value="schematic"]');
     s = await snap();
-    T.ok(s.board === 'rc' && s.wires['AFG.CH1+'] === 'A' && await p.locator('[data-node="A"]').count() === 1 && await p.locator('.bb-svg').count() === 0, '切回固定 RC 板：RC 板的接線還在');
+    T.ok(s.board === 'bb' && s.bb.parts.length === 0 && Object.keys(s.bbWires).length === 0
+      && await p.locator('.schematic-svg [data-comp]').count() === 0 && await p.locator('.bb-svg').count() === 0,
+    '電路圖同步顯示已清空的物理電路，沒有殘留固定 RC 板');
     T.ok(ui.errors.length === 0, `沒有 JS 錯誤${ui.errors.length ? `：${ui.errors.join('; ')}` : ''}`);
   } finally {
     await ui.close();

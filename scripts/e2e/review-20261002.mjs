@@ -1,5 +1,6 @@
 // 2026-10-02 審查反例的真 UI 回歸；狀態鉤子只讀，設定全用滑鼠／鍵盤。
 import { openApp, Check, sleep } from './lib.mjs';
+import { setupRC } from './rc-ui.mjs';
 
 export async function run() {
   const T = new Check('2026-10-02：微赫茲、替換電容、慢充電 Single');
@@ -21,7 +22,7 @@ export async function run() {
     await afg('KEY.PRESET');
 
     await ui.tab('bench');
-    await p.check('input[name="board"][value="bb"]');
+    await p.check('input[name="benchView"][value="breadboard"]');
     await p.click('[data-bb="demo-gpe"]');
     await p.check('input[name="bbtool"][value="C"]');
     await p.locator('select[name="bbC"]').selectOption('1e-7');
@@ -40,11 +41,8 @@ export async function run() {
     T.near((await ui.snap('bench')).dcNow['12U'], 0, 1e-8, '150 ms 後新 C1 仍沒有憑空繼承電荷');
     await ui.shot('review-20261002-fresh-capacitor');
 
-    // 固定 RC 板：100 kΩ／10 µF，2 mVpp＋1 V，先 Single 再開 Output。
-    await p.check('input[name="board"][value="rc"]');
-    await p.getByRole('button', { name: '示範接線（看答案）', exact: true }).click();
-    await p.locator('select[name="R"]').selectOption('100000');
-    await p.locator('select[name="C"]').selectOption('0.00001');
+    // 同一麵包板 RC：100 kΩ／10 µF，2 mVpp＋1 V，先 Single 再開 Output。
+    await setupRC(ui, { R: 100000, C: 0.00001 });
     await ui.tab('afg');
     await afg('KEY.CH1_CH2', 'KEY.CH1_CH2', 'SOFT.F1', 'SOFT.F2', 'KEY.AMPL');
     await digits(0.002); await afg('SOFT.F5', 'KEY.DC_OFFSET');
@@ -80,7 +78,7 @@ export async function run() {
     await digits(5); await afg('SOFT.F2', 'KEY.FREQ_RATE');
     await digits(1); await afg('SOFT.F3');
     await ui.tab('bench');
-    await p.check('input[name="board"][value="bb"]');
+    await p.check('input[name="benchView"][value="breadboard"]');
     await p.click('[data-bb="clear"]');
     for (const [lead, hole] of Object.entries({
       'GPE.CH1+': 'b5', 'GPE.CH1-': 'b10', 'GPE.GND': 'c10',

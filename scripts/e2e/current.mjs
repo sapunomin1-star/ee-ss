@@ -13,7 +13,7 @@ export async function run() {
   try {
     const epoch = Date.now(); await p.clock.install({ time: epoch }); await p.reload();
     await p.locator('svg.panel').waitFor(); await p.clock.pauseAt(epoch + 1000);
-    await ui.tab('bench'); await p.check('input[name="board"][value="bb"]');
+    await ui.tab('bench'); await p.check('input[name="benchView"][value="breadboard"]');
     await p.click('[data-bb="demo-current"]');
     let b = await ui.snap('bench');
     T.ok(b.bbWires['DMM.I'] === 'i18' && b.bbWires['DMM.LO'] === 'B-26' && !b.bbWires['DMM.HI'] && (await ui.snap('dmm')).fn === 'DCI',

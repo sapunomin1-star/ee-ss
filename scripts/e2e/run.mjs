@@ -29,9 +29,10 @@ import { run as afgReviewRegressions } from './afg-review-regressions.mjs';
 import { run as sessionUndoIsolation } from './session-undo-isolation.mjs';
 import { run as tdsReview50574f7 } from './tds-review-50574f7.mjs';
 import { run as afgArbExport } from './afg-arb-export.mjs';
+import { run as schematic } from './schematic.mjs';
 
 let fail = 0, pass = 0;
-for (const r of [afg, tds, gpe, dmm, i06, bench, benchRecovery, benchAudit, breadboard, breadboardMeasure, review20261002, homeSession, homeInstruments, current, undo, protection, benchTools, instrumentsExtended, tdsExtended, sessionExtended, afgExtended, backgroundAcquisition, tdsSetupFile, measurementExport, tdsCausalAcquisition, dmmStoppedRange, afgReviewRegressions, sessionUndoIsolation, tdsReview50574f7, afgArbExport]) {
+for (const r of [afg, tds, gpe, dmm, i06, bench, benchRecovery, benchAudit, breadboard, breadboardMeasure, review20261002, homeSession, homeInstruments, current, undo, protection, benchTools, instrumentsExtended, tdsExtended, sessionExtended, afgExtended, backgroundAcquisition, tdsSetupFile, measurementExport, tdsCausalAcquisition, dmmStoppedRange, afgReviewRegressions, sessionUndoIsolation, tdsReview50574f7, afgArbExport, schematic]) {
   const T = await r();
   T.print();
   fail += T.fail; pass += T.pass;

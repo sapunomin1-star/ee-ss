@@ -3,6 +3,7 @@
 // state is only observed through __eess, never written by page evaluation.
 import fs from 'node:fs/promises';
 import { openApp, Check, sleep } from './lib.mjs';
+import { setupRC } from './rc-ui.mjs';
 export async function run(){
  const T=new Check('示波器因果採集與AC暫態'),ui=await openApp(),p=ui.page;
  const scope=id=>ui.press(`TDS.KEY.${id}`),opt=n=>ui.press(`TDS.SOFT.OPT${n}`);
@@ -33,8 +34,7 @@ export async function run(){
   template.extended.acquire='SAMPLE';template.extended.horizontal.view='MAIN';template.extended.autoRange.on=false;
   await ui.tab('afg');await afg('KEY.PRESET');await afg('KEY.CH1_CH2');await afg('KEY.CH1_CH2');await afg('SOFT.F1');await afg('SOFT.F2');
   await afg('KEY.AMPL');await digits(.02);await afg('SOFT.F5');await afg('KEY.DC_OFFSET');await digits(2);await afg('SOFT.F2');
-  await ui.tab('bench');await p.getByRole('button',{name:'示範接線（看答案）',exact:true}).click();
-  await p.locator('select[name="R"]').selectOption('1000');await p.locator('select[name="C"]').selectOption('0.00001');
+  await setupRC(ui, { R: 1000, C: .00001 });
   await ui.tab('tds');await configure(template);T.ok((await snap()).status==='Ready','輸出關閉時Single真正等待觸發');
   await ui.tab('afg');await afg('KEY.OUTPUT');await p.clock.runFor(220);await ui.tab('tds');const early=await snap();
   T.ok(early.pendingAcquisition&&early.status==="Trig'd"&&!early.complete,'觸發後後半筆未完成，仍維持採集中');

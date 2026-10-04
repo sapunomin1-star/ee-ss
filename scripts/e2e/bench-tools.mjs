@@ -1,19 +1,21 @@
-// 真滑鼠／鍵盤：固定板直流電源、可見的麵包板工具與重選同工具。
+// 真滑鼠／鍵盤：實際 RC 電路的直流電源、麵包板工具與重選同工具。
 import { openApp, Check } from './lib.mjs';
+import { setupRC, wireRC, RC_NODES } from './rc-ui.mjs';
 
 export async function run() {
-  const T = new Check('固定 RC 電源與麵包板工具');
+  const T = new Check('RC 電源與麵包板工具');
   const ui = await openApp(), p = ui.page;
-  const wire = async (lead, node) => { await p.click(`[data-lead="${lead}"]`); await p.click(`[data-node="${node}"]`); };
+  const wire = (lead, node) => wireRC(ui, lead, node);
   try {
-    await ui.tab('bench');
+    await setupRC(ui, { wired: false });
     T.ok(await p.locator('[data-goto="gpe"]').count() === 1 && await p.locator('[data-lead^="GPE."]').count() === 9,
-      '固定 RC 板有直流電源小螢幕與四路正負端、大地端');
+      '麵包板有直流電源小螢幕與四路正負端、大地端');
     await wire('GPE.CH1+', 'A'); await wire('GPE.CH1-', 'G');
     await wire('DMM.HI', 'B'); await wire('DMM.LO', 'G');
-    T.ok((await ui.snap('gpe')).load === 'bench', '固定板接線後，電源自動讀回實際電路');
+    T.ok((await ui.snap('gpe')).load === 'bench', '接線後，電源自動讀回實際 RC 電路');
     await p.click('[data-goto="gpe"]');
     T.ok(await p.locator('[data-tab="gpe"]').getAttribute('aria-selected') === 'true', '點電源小螢幕可操作完整面板');
+    await p.locator('[data-id="GPE.KNOB.CH1_VOLTAGE"]').scrollIntoViewIfNeeded();
     await ui.dragKnob('GPE.KNOB.CH1_VOLTAGE', 6);
     await ui.press('GPE.KEY.OUTPUT_ON_OFF');
     await ui.tab('dmm');
@@ -24,11 +26,12 @@ export async function run() {
     await ui.tab('bench');
     await p.locator('.save-status').filter({ hasText: '已自動保存' }).waitFor();
     await p.reload();
-    T.ok((await ui.snap('bench')).wires['GPE.CH1+'] === 'A' && await p.locator('[data-goto="gpe"]').count() === 1,
-      '含固定板 GPE 接線的自動保存可重新開啟，不會繪圖崩潰');
+    T.ok((await ui.snap('bench')).bb.leads['GPE.CH1+'] === RC_NODES.A && await p.locator('[data-goto="gpe"]').count() === 1,
+      '含 GPE 接線的實際 RC 電路可自動保存再開啟，不會繪圖崩潰');
     await ui.shot('rc-gpe-extended');
 
-    await p.check('input[name="board"][value="bb"]');
+    await p.check('input[name="benchView"][value="breadboard"]');
+    await p.click('[data-bb="clear"]');
     await p.click('[data-bbtool="R"]');
     await p.click('[data-hole="a1"]'); await p.click('[data-hole="a2"]');
     await p.click('[data-bbtool="C"]');

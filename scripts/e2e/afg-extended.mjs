@@ -1,6 +1,7 @@
 // Real panel clicks and file chooser/downloads; __eess is read only.
 import fs from 'node:fs/promises';
 import { openApp, Check, sleep } from './lib.mjs';
+import { setupRC } from './rc-ui.mjs';
 
 const K = Object.fromEntries(Object.entries({ WAVE: 'WAVEFORM', FREQ: 'FREQ_RATE', AMPL: 'AMPL', OFFSET: 'DC_OFFSET',
   CH: 'CH1_CH2', OUT: 'OUTPUT', PRESET: 'PRESET', BACK: 'RETURN', UTIL: 'UTIL', ARB: 'ARB', MOD: 'MOD', SWEEP: 'SWEEP', BURST: 'BURST' })
@@ -101,7 +102,7 @@ export async function run() {
     await ui.shot('extended-afg-manual-burst');
 
     await keys('PRESET UTIL F5'); T.ok(/Frequency:\s*—/.test(await ui.lcdText()), '未接量測訊號的Counter留空');
-    await keys('PRESET OUT'); await ui.tab('bench'); await ui.page.click('[data-bench="demo"]');
+    await keys('PRESET OUT'); await setupRC(ui);
     await ui.tab('afg'); await keys('UTIL F5');
     T.ok(/Frequency:\s*1000\.000 Hz/.test(await ui.lcdText()), 'Counter以已接示波器CH1的實際波形交越讀1kHz');
     await ui.tab('tds'); await ui.press('TDS.KEY.AUTOSET'); await sleep(450);

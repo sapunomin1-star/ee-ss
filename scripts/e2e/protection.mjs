@@ -34,7 +34,7 @@ export async function run() {
     const a = (await ui.snap('afg')).ch[0];
     T.ok(a.wave === 'SQUARE' && a.freq === 1 && a.emfVpp === 10 && a.emfOffset === 5 && !a.output,
       '真按鍵設定 High Z 0～10 V、1 Hz 方波且輸出先關');
-    await ui.tab('bench'); await p.check('input[name="board"][value="bb"]'); await p.click('[data-bb="clear"]');
+    await ui.tab('bench'); await p.check('input[name="benchView"][value="breadboard"]'); await p.click('[data-bb="clear"]');
     await p.check('input[name="bbtool"][value="C"]'); await p.selectOption('select[name="bbC"]', '4.7e-8');
     await p.click('[data-hole="a5"]'); await p.click('[data-hole="a10"]');
     for (const [id, hole] of Object.entries({ 'GPE.CH1+': 'b5', 'GPE.CH1-': 'b10', 'AFG.CH1+': 'c5', 'AFG.CH1-': 'c10',
