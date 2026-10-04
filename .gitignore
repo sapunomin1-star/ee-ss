@@ -11,3 +11,4 @@ playwright-report/
 # 建置產生的中間檔
 src/generated/
 output/
+.playwright-cli/

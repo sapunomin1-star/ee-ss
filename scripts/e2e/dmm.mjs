@@ -99,13 +99,14 @@ export async function run() {
     await keys('RANGE');
     T.ok((await ui.hint()).includes('固定 1 kΩ'), 'Cont 按 Range：說明固定 1 kΩ，不改量程');
 
-    // 未納入：Freq（外殼攔下）、Shift→Null（Math，模型回 out）
-    const before = JSON.stringify(await snap());
-    await keys('FREQ');
-    T.ok((await ui.hint()).includes('本輪未納入') && JSON.stringify(await snap()) === before, 'Freq：只提示本輪未納入，狀態不變');
+    // 新功能：Temp必須有相容感測器；Math開真正選單
+    await keys('DMM.KEY.TEMP');
+    T.ok((await snap()).fn === 'TEMP' && (await view()).state === 'none', 'Temp：切到溫度功能，開路不是虛構溫度');
+    await scen('pt100');
+    T.near((await view()).value, 25, 1e-8, 'PT100情境實際轉換為25°C');
     await keys('SHIFT NULL');
     s = await snap();
-    T.ok((await ui.hint()).includes('Math') && s.shift === false && JSON.stringify(s) === before, 'Shift→Null（Math）未納入：Null 不變、Shift 解除');
+    T.ok(s.menu === 'MATH' && s.shift === false && !s.view.nullOn, 'Shift→Null開Math，Null保持關、Shift解除');
 
     // 無效操作：沒有讀值時 Null 被拒絕
     await scen('none');

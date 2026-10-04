@@ -1,6 +1,6 @@
 {
- "instrument": "Keysight 34460A Truevolt 6½ Digit Multimeter（P1 中層；D-DMM＝datasheet 5991-1983EN，2026-06-10 版；M-DMM 操作手冊未取得）",
- "page_map": "D-DMM（Truevolt_34460A_DataSheet_5991-1983EN.pdf，28 PDF 頁；p.28 印「Published in USA, June 10, 2026, 5991-1983EN」）：PDF 1＝封面，無印刷頁碼；PDF 2–27 的頁尾印刷頁碼＝PDF 頁序（已核對：PDF 2 印 \"2\"（目錄）、PDF 3 印 \"3\"、PDF 4 印 \"4\"、PDF 11 印 \"11\"、PDF 12 印 \"12\"、PDF 21 印 \"21\"、PDF 23 印 \"23\"、PDF 24 印 \"24\"、PDF 25 印 \"25\"、PDF 26 印 \"26\"、PDF 27 印 \"27\"）；PDF 28＝封底 Definitions，無頁碼。目錄（p.2）對照：Overview p.3、Specifications 34460A p.11、34461A p.13、34465A p.15、34470A p.18、Measurement Characteristics p.21、Operating Characteristics p.23、System Speeds p.24、General Characteristics p.25（p.26 為其續頁，無標題）、Options p.27、Definitions p.28——與 PDF 頁序一致。因此本檔一律寫「D-DMM p.N (PDF N)」。04 指定頁核對：p.3 機型表、p.11–12 34460A 規格、p.21 量測特性、p.26–27 一般特性與選配，皆已開啟文字與渲染圖。P1（01_校機_AFG2225_34460A_GPE4323.jpeg，768×1024）：34460A 位於原圖約 x30–720、y330–650；controls 中的「原圖約 x,y」為原始像素座標估計。M-DMM：未取得，無頁碼可對照。",
+ "instrument": "Keysight 34460A Truevolt 6½ Digit Multimeter（P1 中層；D-DMM＝5991-1983EN；M-DMM-2020原廠完整正文已取得）",
+ "page_map": "D-DMM（Truevolt_34460A_DataSheet_5991-1983EN.pdf，28 PDF 頁；p.28 印「Published in USA, June 10, 2026, 5991-1983EN」）：PDF 1＝封面，無印刷頁碼；PDF 2–27 的頁尾印刷頁碼＝PDF 頁序（已核對：PDF 2 印 \"2\"（目錄）、PDF 3 印 \"3\"、PDF 4 印 \"4\"、PDF 11 印 \"11\"、PDF 12 印 \"12\"、PDF 21 印 \"21\"、PDF 23 印 \"23\"、PDF 24 印 \"24\"、PDF 25 印 \"25\"、PDF 26 印 \"26\"、PDF 27 印 \"27\"）；PDF 28＝封底 Definitions，無頁碼。目錄（p.2）對照：Overview p.3、Specifications 34460A p.11、34461A p.13、34465A p.15、34470A p.18、Measurement Characteristics p.21、Operating Characteristics p.23、System Speeds p.24、General Characteristics p.25（p.26 為其續頁，無標題）、Options p.27、Definitions p.28——與 PDF 頁序一致。因此本檔一律寫「D-DMM p.N (PDF N)」。04 指定頁核對：p.3 機型表、p.11–12 34460A 規格、p.21 量測特性、p.26–27 一般特性與選配，皆已開啟文字與渲染圖。P1（01_校機_AFG2225_34460A_GPE4323.jpeg，768×1024）：34460A 位於原圖約 x30–720、y330–650；controls 中的「原圖約 x,y」為原始像素座標估計。M-DMM-2020：34460-90901 Edition7 March2020，EPFL保存原廠PDF；已讀章節的印刷頁碼比PDF頁序多1（例如印p.69＝PDF68）。官方9018-03876 asset仍回傳下載頁，改用公開原廠文件副本，不把不同版頁碼混用。",
  "photo_checks": "P1 中層核對結果：型號標「KEYSIGHT 34460A 6 1/2 Digit Multimeter Truevolt」（Keysight 波形 logo），確認為 34460A。單一量測輸入的電表（無通道概念）；旋鈕 0 顆；無數字鍵盤。左側：LCD 1 面（全暗）、其下藍灰色軟鍵 6 顆（鍵面無字）、LCD 左方 USB-A 1 個（下印 USB 圖示）、圓形電源（待機）鍵 1 個與其下小圓點 1 個。右側功能鍵 4 列×3 共 12 顆：第 1 列 DCV〔上 DCI〕、ACV〔上 ACI〕、Ω2W〔上 Ω4W〕；第 2 列 Freq〔上方無次標籤〕、Cont ·))〔上方藍色二極體符號〕、Temp〔上方無次標籤〕；第 3 列 Run/Stop〔上 Reset〕、Single〔上 Probe Hold〕、Null〔上 Math〕；第 4 列 Display〔上 Utility〕、Acquire〔上 Help〕、藍色 Shift〔下 Local〕。功能鍵下方：十字方向鍵 ▲▼◀▶＋中央 Select（5 顆，▲ 上方無 ACAL 字樣）；Shift 正下方直列 +、Range、−（3 顆）。端子 5 個，排列：上排 Sense Ω4W HI（紅）、Input V Ω ⊣▶⊢ HI（紅）；中排 Sense LO（黑）、Input LO（黑）；下排右 I 3A（紅）。下排左為深色圓形平面件（非端子）、最下方為深色橢圓件（非端子）。印字：200 Vpk（Sense 側括號）、1000 VDC / 750 VAC（Input HI–LO 括號）、500 Vpk＋接地符號（Input LO）、LO→I 連線上保險絲符號＋⚠、CAT II (300V)＋其下 ⚠、右上角閃電 ⚠。沒有：10 A 端子、Front/Rear 切換、後面板端子（照片看不到後面板；DS p.3 表示 34460A 無 rear input）、ACAL 標示、數字鍵盤、旋鈕。LCD 全暗：不能證明任何畫面、選單、開機值或預設量程。面板顏色為淺灰白（DS 產品照為黑色）。",
  "controls": [
   {
@@ -10,14 +10,14 @@
    "label": "無印字（LCD 全暗）",
    "kind": "LCD（彩色 TFT）",
    "action": "無（被動顯示）",
-   "function": "顯示功能名稱、讀值＋單位、量程狀態、觸發狀態與 6 個軟鍵標籤。D-DMM p.26 (PDF 26)：\"4.3” color TFT WQVGA (480 x 272) with LED backlight\"；\"Supports: Basic number, bar meter, trend chart (34461A, 34465A, 34470A), histogram views.\"（34460A 無 trend chart）。D-DMM p.3 (PDF 3) 34460A 產品照畫面：左上 \"DC Voltage\"、上方 \"Auto Trigger\"、讀值 \"+0.634 450\"、單位 \"VDC\"、左下 \"Auto 1V\"；p.4 (PDF 4) 畫面圖另有 \"+000.030 6 mVDC\"、\"Auto 100mV\"。",
-   "feedback": "第一版：Number view 的讀值、單位前綴、Auto／手動量程字樣、Null 標示；超量程顯示不含文字的中性記號（GAP-DMM-06；導通開路例外，顯示 OPEN，GAP-DMM-08），未提供相容輸入時讀值欄留空（DMM-F10）。Shift 狀態不顯示在 LCD，只在儀器外狀態列（GAP-DMM-02）。",
+   "function": "Number／Bar Meter／Histogram、最多8筆Probe Hold清單、Statistics與Limits；僅顯示已完成且相容的量測讀值。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "480×272 像素；對角 4.3 in／109 mm（D-DMM p.3 (PDF 3) 圖示 \"4.3 in. / 109 mm\"）；Dual line display: Yes（p.3）",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3) 產品照與表、p.4 (PDF 4) 畫面圖、p.26 (PDF 26) Display",
-   "evidence": "PH+DS+PD",
-   "status": "CORE",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "P1 LCD 全暗，不能證明任何畫面、開機值或選單；畫面配置只來自 datasheet 行銷產品照（韌體版本未知）。bar meter／histogram 為 OUT；不得畫 trend chart。雙行顯示（Dual line）本輪 OUT。 LCD 版面與字樣取自 datasheet 行銷合成畫面，屬 PD。"
+   "notes": "Number布局沿用既有近似；Histogram分箱重排算法與ProbeHold穩定判定為明示PD；34460A沒有Trend。"
   },
   {
    "id": "DMM.SOFT.S1",
@@ -26,14 +26,14 @@
    "label": "鍵面無印字（功能由 LCD 標籤決定）",
    "kind": "軟鍵",
    "action": "按下",
-   "function": "DCV 畫面時 LCD 標籤為 \"Range\"／\"Auto\"（D-DMM p.3 (PDF 3)、p.1 (PDF 1) 34460A 產品照）。其他功能畫面的 S1 標籤：未找到。",
-   "feedback": "LCD 最下列對應位置的標籤／狀態（P1 LCD 全暗，無法確認）",
+   "function": "各量測Range／Beeper／Probe選項、Freq／Period切換，或目前子選單的第一項。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "DCV：100 mV/1 V/10 V/100 V/1000 V 或 Auto（D-DMM p.11 (PDF 11)）",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照",
-   "evidence": "PH+PD",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
    "status": "APPROX",
    "card": "I05",
-   "notes": "暫定（PD）：DCV/DCI/ACV/ACI/Ω2W 畫面的 S1 顯示 \"Range\" 與目前 Auto 或量程值；按下等同前面板 Range 鍵（切 Auto／手動）。Cont 畫面不顯示 Range（D-DMM p.12 (PDF 12) Continuity 只有 1 kΩ）。原廠按下後是否展開下一層選單未找到，列 GAP-DMM-04。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+   "notes": "按目前標籤操作；未標籤的軟鍵不修改設定。"
   },
   {
    "id": "DMM.SOFT.S2",
@@ -42,14 +42,14 @@
    "label": "鍵面無印字（功能由 LCD 標籤決定）",
    "kind": "軟鍵",
    "action": "按下",
-   "function": "DCV 畫面標籤 \"Aperture\"／\"10 PLC\"（D-DMM p.3 (PDF 3) 產品照）。積分時間與位數關係見 D-DMM p.23 (PDF 23)。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得——datasheet 行銷照只看得到 DCV 畫面的軟鍵標籤（PD），其他畫面的標籤未知；P1 LCD 全暗",
+   "function": "DCV/DCI/Ω2W/Ω4W Aperture；Freq Range；Math dB/dBm；Acquire Samples/Trig；Temp R0=80..120Ω。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "D-DMM p.23 (PDF 23)：100 PLC、10 PLC、1 PLC、0.2 PLC、0.02 PLC",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照；p.23 (PDF 23)",
-   "evidence": "PH+PD+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "只顯示 DS 產品照上的標籤，按下顯示「本輪未納入」；不改變位數／讀取速率。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+   "notes": "NPLC=.02/.2/1/10/100；樣本數1..1e6。數值位數編輯手勢為教學近似。"
   },
   {
    "id": "DMM.SOFT.S3",
@@ -58,14 +58,14 @@
    "label": "鍵面無印字（功能由 LCD 標籤決定）",
    "kind": "軟鍵",
    "action": "按下",
-   "function": "DCV 畫面標籤 \"Auto Zero\"／\"Off On\"（D-DMM p.3 (PDF 3) 產品照）。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得——datasheet 行銷照只看得到 DCV 畫面的軟鍵標籤（PD），其他畫面的標籤未知；P1 LCD 全暗",
+   "function": "AutoZero、AC Filter、Statistics或目前選單對應功能。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "Off／On（產品照）",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照",
-   "evidence": "PH+PD+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "只顯示標籤；按下顯示範圍說明。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+   "notes": "AutoZero有真實開關，理想內部offset=0，因此不虛構精度差；4W和Ratio固定On。ACFilter保存3/20/200Hz，硬體濾波沉降未模擬。"
   },
   {
    "id": "DMM.SOFT.S4",
@@ -74,14 +74,14 @@
    "label": "鍵面無印字（功能由 LCD 標籤決定）",
    "kind": "軟鍵",
    "action": "按下",
-   "function": "DCV 畫面標籤 \"Input Z\"／\"10M Auto\"（D-DMM p.3 (PDF 3) 產品照）。D-DMM p.21 (PDF 21)：0.1 V、1 V、10 V 量程 \"Selectable 10 MΩ or >10 GΩ\"，100 V、1000 V 量程 \"10 MΩ ± 1%\"。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得——datasheet 行銷照只看得到 DCV 畫面的軟鍵標籤（PD），其他畫面的標籤未知；P1 LCD 全暗",
+   "function": "Input Z、Gate Time、Limits、Manual Delay、Probe Hold清單清除或目前選單功能。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "10 MΩ／>10 GΩ（D-DMM p.21 (PDF 21)）",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照；p.21 (PDF 21)",
-   "evidence": "PH+PD+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "只顯示標籤；模擬器以理想輸入（不計負載效應），按下顯示範圍說明。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+   "notes": "InputZ實際改變電路負载；Auto低三檔以10GΩ近似>10GΩ。Manual Delay=0..3600秒。"
   },
   {
    "id": "DMM.SOFT.S5",
@@ -90,14 +90,14 @@
    "label": "鍵面無印字（功能由 LCD 標籤決定）",
    "kind": "軟鍵",
    "action": "按下",
-   "function": "DCV 畫面標籤 \"DCV Ratio\"／\"Off On\"（D-DMM p.3 (PDF 3) 產品照）。DC Ratio 規格見 D-DMM p.12 (PDF 12)、p.21 (PDF 21)（使用 Sense 端子作 reference）。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得——datasheet 行銷照只看得到 DCV 畫面的軟鍵標籤（PD），其他畫面的標籤未知；P1 LCD 全暗",
+   "function": "DCV Ratio、Temp Units、Math手動Null基準、Histogram Cumulative等。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "Input 100 mV–1000 V；Reference 100 mV–10 V（D-DMM p.21 (PDF 21)）",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照；p.21 (PDF 21)",
-   "evidence": "PH+PD+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "只顯示標籤；按下顯示範圍說明。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+   "notes": "Ratio需要Input与Sense四條實際線；Sense各對InputLO須±12V內、差值非零；Sense負載10GΩ是PD近似。"
   },
   {
    "id": "DMM.SOFT.S6",
@@ -106,14 +106,14 @@
    "label": "鍵面無印字（功能由 LCD 標籤決定）",
    "kind": "軟鍵",
    "action": "按下",
-   "function": "D-DMM p.3 (PDF 3) 產品照（Number view）此位置無標籤；p.1 (PDF 1) 產品照（histogram view）為 \"Clear Readings\"。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得——datasheet 行銷照只看得到 DCV 畫面的軟鍵標籤（PD），其他畫面的標籤未知；P1 LCD 全暗",
+   "function": "Done／Clear Readings／Save Readings等目前選單動作。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "未找到",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照",
-   "evidence": "PH+PD+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "第一版保持空白；按下無動作並顯示範圍說明。軟鍵標籤會隨 view 改變（兩張 DS 產品照比較）。 軟鍵標籤取自 datasheet 行銷照（合成畫面，與 p.4 的獨立畫面圖一致），只算推論（PD），未經操作手冊或校機確認；儀器外要註明。"
+   "notes": "Clear Readings重置讀值、統計、Histogram和超限計數；CSV輸出最多1,000筆已完成量測。"
   },
   {
    "id": "DMM.PORT.USB_HOST",
@@ -138,14 +138,14 @@
    "label": "⏻ 電源符號（無文字）",
    "kind": "電源（待機）按鍵",
    "action": "按下",
-   "function": "開／關機。D-DMM p.26 (PDF 26) 註 3：\"Power-off state only when power-down is initiated via front-panel power switch.\"；Internal Flash：\"Store and recall user-defined states, power-off state\"。開機時是否回復關機狀態：未找到。",
-   "feedback": "關機：LCD 暗、所有鍵無作用；開機：LCD 顯示暫定預設畫面（PD）",
+   "function": "開／關機；依Utility→Store/Recall→Power On的Last/UserDefined/FactoryDefaults回復量測設定（M-DMM-2020 p.141）。",
+   "feedback": "關機LCD暗；開機清除舊讀值重新採集，依所選模式回復設定；外部fixture/Bench輸入保持。",
    "range": "On／Off（模擬）",
-   "sources": "P1 中層；D-DMM p.26 (PDF 26)",
+   "sources": "P1中層；D-DMM p.26；M-DMM-2020 p.141、474–482",
    "evidence": "PH+DS+PD",
    "status": "APPROX",
    "card": "I05",
-   "notes": "暫定（PD）：開機一律進入明示的模擬器預設（DCV、Auto、Null off），儀器外註明「非原廠開機記憶」。原廠開機記憶列 GAP-DMM-14。"
+   "notes": "預設FactoryDefaults（明示DCV、Auto、Null off教學預設）；UserDefined用一個Store槽，Last回關機前設定；硬體校準、nonvolatile檔案系統不模擬。"
   },
   {
    "id": "DMM.LED.POWER",
@@ -202,14 +202,14 @@
    "label": "Ω2W（鍵面印 \"Ω 2W\"；上方次標籤 \"Ω4W\"）",
    "kind": "實體按鍵",
    "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
-   "function": "二線電阻；次功能四線電阻（Shift 路徑 PD）。D-DMM p.3 (PDF 3) \"2- and 4-wire resistance 100 Ω to 100 MΩ\"；p.21 (PDF 21) \"Selectable 4-wire or 2-wire ohms. Current source referenced to LO input.\"",
-   "feedback": "LCD 讀值，單位 Ω／kΩ／MΩ（PD 字樣）；開路顯示超量程狀態（字樣 PD）",
+   "function": "Ω2W；Shift→Ω4W使用獨立Input試驗電流與Sense transfer阻抗求解。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "100 Ω(1 mA)、1 kΩ(1 mA)、10 kΩ(100 µA)、100 kΩ(10 µA)、1 MΩ(5 µA)、10 MΩ(500 nA)、100 MΩ(500 nA ∥ 10 MΩ)（D-DMM p.11 (PDF 11)，括號為 Test Current）",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.11 (PDF 11)、p.21 (PDF 21)",
-   "evidence": "PH+DS+PD",
-   "status": "CORE",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "Ω2W 為 CORE；次功能 Ω4W 本輪 OUT（02 允許），按 Shift→Ω2W 只顯示範圍說明，不假裝兩線完成四線量測。；證據細節：PH+DS+PD（Shift 路徑）"
+   "notes": "四線須有Input HI/LO及Sense HI/LO四條真實接線，關閉電路供電；不拿兩線值假裝四線。"
   },
   {
    "id": "DMM.KEY.FREQ",
@@ -218,14 +218,14 @@
    "label": "Freq（上方無次標籤）",
    "kind": "實體按鍵",
    "action": "按下（P1 上方沒有 Shift 次標籤）",
-   "function": "頻率／週期（D-DMM p.3 (PDF 3) \"Frequency, period 3 Hz to 300 kHz\"；p.22 (PDF 22) \"Reciprocal-counting technique. Measurement is AC-coupled\"）。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得（M-DMM 未取得）（D-DMM 只證明功能存在）",
+   "function": "Freq／Period量實際波形交越（3Hz–300kHz）；Shift→Cap量已放電、無電阻漏電負载的1nF–100µF等效電容網路。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "3 Hz–300 kHz；Gate time 10 ms、100 ms、1 s（1 ms 只限 34465/70A，p.22）",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.22 (PDF 22)",
-   "evidence": "PH+DS",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "D-DMM p.3 產品照在 Freq 上方有藍色電容符號，但 P1 沒有 → 見 discrepancies；電容功能入口未確認（GAP-DMM-10）。 DS 行銷照在 Freq 上方有電容符號，校機沒有（GAP-DMM-10）。"
+   "notes": "Freq快捷依原廠手冊，照片沒有可辨識Cap次標籤，不補印未觀察字樣。手動Cap不以120%判過載；超100µF充電演算法超時未模擬。34460A沒有可調Timeout。"
   },
   {
    "id": "DMM.KEY.CONT",
@@ -234,14 +234,14 @@
    "label": "Cont ·))（上方次標籤：二極體符號 ⊣▶⊢）",
    "kind": "實體按鍵",
    "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
-   "function": "導通測試；次功能二極體測試（Shift 路徑 PD）。D-DMM p.12 (PDF 12)：Continuity 量程 \"1 kΩ\"、Diode Test \"5 V\"；p.21 (PDF 21)：\"Response time 300 samples/s with audible tone\"、\"Continuity threshold Fixed at 10 Ω\"；p.12 註 9 \"The 1 mA test current is typical.\"（二極體）。",
-   "feedback": "≤ 10 Ω 時可見指示（提示音可選，PD）；LCD 顯示電阻值，超過 1.2 kΩ 顯示 OPEN（IX 字樣，近似）",
+   "function": "Cont固定1kΩ；≤10Ω導通指示、>1.2kΩ OPEN；Shift→Diode固定10V／1mA測試情境，0..5V顯示、>5V OPEN。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "導通：固定 1 kΩ 量程、門檻固定 10 Ω；二極體：5 V、1 mA typ（D-DMM p.12、p.21）",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.12 (PDF 12)、p.21 (PDF 21)",
-   "evidence": "PH+DS+PD",
-   "status": "CORE",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "導通為 CORE；二極體（Shift→Cont）不在 02 必做清單 → OUT。門檻已有 DS 數字（10 Ω），不再是教學近似值；但 <10 Ω 或 ≤10 Ω 的比較方式、蜂鳴開關設定未找到（GAP-DMM-08）。；證據細節：PH+DS（門檻、量程、提示音）+PD（邊界、顯示、Shift 路徑）"
+   "notes": "二極體僅獨立情境，麵包板仍只有R/C/W；Beeper為畫面指示，沒有產生聲音。"
   },
   {
    "id": "DMM.KEY.TEMP",
@@ -250,14 +250,14 @@
    "label": "Temp（上方無次標籤）",
    "kind": "實體按鍵",
    "action": "按下（P1 上方沒有 Shift 次標籤）",
-   "function": "溫度量測：D-DMM p.3 (PDF 3) 34460A 欄 \"RTD/PT100, thermistor\"（無 thermocouples，後者只限 34465A/34470A）；p.21 (PDF 21) PT100 轉換 -200 °C–600 °C、Thermistor -80 °C–150 °C。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得（M-DMM 未取得）（D-DMM 只證明功能存在）",
+   "function": "Temp：PT100／44007熱敏電阻2W或4W，預設PT100 4W；Units=C/F/K，R0僅80..120Ω。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "PT100 -200–600 °C；Thermistor -80–150 °C（p.21）",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.12 (PDF 12)、p.21 (PDF 21)",
-   "evidence": "PH+DS",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "不得加入熱電偶類型（高階機型功能）。"
+   "notes": "以實際ohm或ohm4轉換，4W缺Sense線就無讀值；板上電阻只作理想感測器等效，未提供熱環境。"
   },
   {
    "id": "DMM.KEY.RUN_STOP",
@@ -266,14 +266,14 @@
    "label": "Run/Stop（上方次標籤 Reset）",
    "kind": "實體按鍵",
    "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
-   "function": "Run/Stop 與 Reset 的操作定義：未找到（M-DMM 未取得；D-DMM 未描述前面板鍵）。D-DMM p.3 (PDF 3) 產品照畫面顯示 \"Auto Trigger\" 狀態字。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變（讀值照常更新）。原廠回饋：未取得（M-DMM 未取得）",
+   "function": "Run/Stop凍結／恢復最後完成讀值；Shift→Reset重置前面板設定及讀值記憶。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "未找到",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3) 產品照",
-   "evidence": "PH+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "不得把 Run/Stop 做成 Probe Hold 或任意 Freeze；Reset 不作為已確認的原廠重設（模擬器重設放在儀器外，GAP-DMM-15）。；證據細節：PH（標籤）+UN（功能）"
+   "notes": "電路仍運作；凍結讀值不隨輸入變動，Null仍可重算同一筆held原始值。"
   },
   {
    "id": "DMM.KEY.SINGLE",
@@ -282,14 +282,14 @@
    "label": "Single（上方次標籤 Probe Hold）",
    "kind": "實體按鍵",
    "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
-   "function": "Single：未找到正文。Probe Hold：D-DMM p.26 (PDF 26) \"Probe Hold — Capture and navigate stable list of readings\"（一般特性，適用所有機型）；穩定判定條件未找到。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得（M-DMM 未取得）",
+   "function": "Single從觸發後的完整積分窗逐筆採集Samples/Trig，完成停止，最多緩衝一組後續觸發；Shift→ProbeHold自動捕獲穩定序列最多8筆。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "未找到",
-   "sources": "P1 中層；D-DMM p.26 (PDF 26)",
-   "evidence": "PH+DS+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "02：Probe Hold 不列核心，也不能簡化成任意 Freeze。；證據細節：PH+DS（Probe Hold 存在）+UN（操作與判定）"
+   "notes": "ProbeHold採至少3筆跨0.5秒、變動≤0.1%的明示教學判定；原廠穩定算法未公開。"
   },
   {
    "id": "DMM.KEY.NULL",
@@ -298,14 +298,14 @@
    "label": "Null（上方次標籤 Math）",
    "kind": "實體按鍵",
    "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
-   "function": "Null：相對讀值（顯示值＝量測值－基準）。D-DMM p.26 (PDF 26) Math Functions：\"Per function null, min/max/avg/Sdev, dB, dBm, span, count, limit test, histogram\"；p.12 (PDF 12) 註 7 \"2-wire ohms function using math null for offset\"。按下即以當下讀值為基準：PD。次功能 Math（Shift 路徑 PD）。",
-   "feedback": "LCD 顯示 Null 標示（字樣 PD）與差值；關閉後回原量測值",
+   "function": "Null每功能獨立基準（DCV Ratio除外）；Shift→Math提供Null值、dB/dBm、Statistics、Limits。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "每個量測功能各自一組 Null（\"Per function null\"）",
-   "sources": "P1 中層；D-DMM p.12 (PDF 12)、p.26 (PDF 26)",
-   "evidence": "PH+DS+PD",
-   "status": "CORE",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "Null 為 CORE；Math（min/max/avg/Sdev、dB、dBm、limit、histogram 等）本輪 OUT。Null 基準數值編輯 OUT（GAP-DMM-07）。；證據細節：PH+DS（per function null 存在）+PD（按鍵語義、基準擷取）"
+   "notes": "dB/dBm只DCV/ACV；公式10log10(V²/R/1mW)，dB再扣參考；R只允許原廠17種選項。沒有套用65/70的Mx−B或Smoothing。"
   },
   {
    "id": "DMM.KEY.DISPLAY",
@@ -314,14 +314,14 @@
    "label": "Display（上方次標籤 Utility）",
    "kind": "實體按鍵",
    "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
-   "function": "顯示模式：D-DMM p.3 (PDF 3) 34460A 欄 Statistical graphics \"Histogram, bar meter\"；p.4 (PDF 4) Number／Bar meter／Histogram 三種畫面；p.26 (PDF 26) trend chart 只限 34461A/65A/70A。Display 鍵與 view 切換的對應、Utility 內容：未找到（PD 推論 Display 鍵切 view）。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變（第一版固定 Number view）。原廠回饋：未取得（M-DMM 未取得）",
+   "function": "Display→Number／Bar Meter／Histogram；Shift→Utility提供Store/Recall一組設定、CSV/SVG/JSON下載、軟體自檢與Beeper。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "Number、Bar meter、Histogram（34460A 無 Trend chart）",
-   "sources": "P1 中層；D-DMM p.3 (PDF 3)、p.4 (PDF 4)、p.26 (PDF 26)",
-   "evidence": "PH+DS+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "不得提供 trend chart；不得以無效輸入畫出統計圖。；證據細節：PH+DS+UN（按鍵路徑）"
+   "notes": "真機USB/Flash/I/O/校準不模擬；這裡的檔案是瀏覽器下載，一個Store/Recall槽只保存量測設定。"
   },
   {
    "id": "DMM.KEY.ACQUIRE",
@@ -330,14 +330,14 @@
    "label": "Acquire（上方次標籤 Help）",
    "kind": "實體按鍵",
    "action": "按下；上方藍字次功能需先按 Shift（路徑 PD）",
-   "function": "Acquire 內容：未找到（D-DMM p.26 (PDF 26) 有 Triggering and Memory：\"Samples per trigger 1 to 1,000,000\"、\"Trigger delay 0 s to 3600 s\"，但未寫在哪個鍵）。Help：p.26 \"Integrated, context-sensitive system helps through press-and-hold buttons\"。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得（M-DMM 未取得）",
+   "function": "Acquire設Auto／Single、Samples/Trig 1..1e6、Manual Delay 0..3600秒、Save Readings；Shift→Help提供操作與接線說明。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "未找到",
-   "sources": "P1 中層；D-DMM p.26 (PDF 26)",
-   "evidence": "PH+UN+DS",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "DS 說原廠說明是「長按按鍵」；模擬器不要把長按當成未證實的功能觸發。；證據細節：PH+UN（Acquire 內容）+DS（help 以長按提供）"
+   "notes": "Auto Delay採理想零沉降，硬體Ext/VMC未模擬；SampleTimer只65/70，不套用34460A。Auto連續讀值以畫面更新約5Hz記錄，Single逐筆完成，非真機讀值吞吐率。"
   },
   {
    "id": "DMM.KEY.SHIFT",
@@ -349,7 +349,7 @@
    "function": "存取各鍵上方藍字次功能（DCI、ACI、Ω4W、二極體、Reset、Probe Hold、Math、Utility、Help）：依 P1 標籤顏色與位置推論（PD）。",
    "feedback": "Shift 狀態只在儀器外狀態列顯示（PD；原廠的 LCD 指示未知，依共通規則 0.2-5 不在 LCD 加字樣）",
    "range": "無",
-   "sources": "P1 中層；M-DMM 未取得",
+   "sources": "P1中層；M-DMM-2020 p.50–55 Front Panel Menu Reference",
    "evidence": "PH+PD",
    "status": "CORE",
    "card": "I05",
@@ -362,14 +362,14 @@
    "label": "▲（無次標籤；P1 確認 ▲ 上方沒有高階機型的 \"ACAL\" 字樣）",
    "kind": "實體按鍵",
    "action": "按下",
-   "function": "選單導覽／數值編輯用途：未找到（M-DMM 未取得）。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得（M-DMM 未取得）",
+   "function": "Aperture增加NPLC，數值選單增加所選位數。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "未找到",
-   "sources": "P1 中層",
-   "evidence": "PH+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "第一版核心功能不需方向鍵；不可自行設計未有來源的選單。D-DMM p.1 (PDF 1) 封面照中 34470A 在 ▲ 上方有 \"ACAL\"，34460A 與 P1 都沒有 → 不加 ACAL。"
+   "notes": "值與模型直接同步，至合法上限停止。"
   },
   {
    "id": "DMM.KEY.DOWN",
@@ -378,14 +378,14 @@
    "label": "▼（無次標籤；P1 確認 ▲ 上方沒有高階機型的 \"ACAL\" 字樣）",
    "kind": "實體按鍵",
    "action": "按下",
-   "function": "選單導覽／數值編輯用途：未找到（M-DMM 未取得）。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得（M-DMM 未取得）",
+   "function": "Aperture減少NPLC，數值選單減少所選位數。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "未找到",
-   "sources": "P1 中層",
-   "evidence": "PH+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "第一版核心功能不需方向鍵；不可自行設計未有來源的選單。D-DMM p.1 (PDF 1) 封面照中 34470A 在 ▲ 上方有 \"ACAL\"，34460A 與 P1 都沒有 → 不加 ACAL。"
+   "notes": "值與模型直接同步，至合法下限停止。"
   },
   {
    "id": "DMM.KEY.LEFT",
@@ -394,14 +394,14 @@
    "label": "◀（無次標籤；P1 確認 ▲ 上方沒有高階機型的 \"ACAL\" 字樣）",
    "kind": "實體按鍵",
    "action": "按下",
-   "function": "選單導覽／數值編輯用途：未找到（M-DMM 未取得）。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得（M-DMM 未取得）",
+   "function": "數值選單移到較大位數。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "未找到",
-   "sources": "P1 中層",
-   "evidence": "PH+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "第一版核心功能不需方向鍵；不可自行設計未有來源的選單。D-DMM p.1 (PDF 1) 封面照中 34470A 在 ▲ 上方有 \"ACAL\"，34460A 與 P1 都沒有 → 不加 ACAL。"
+   "notes": "◀▶配合▲▼是教學編輯手勢近似；沒有選數值時只提示用法。"
   },
   {
    "id": "DMM.KEY.RIGHT",
@@ -410,14 +410,14 @@
    "label": "▶（無次標籤；P1 確認 ▲ 上方沒有高階機型的 \"ACAL\" 字樣）",
    "kind": "實體按鍵",
    "action": "按下",
-   "function": "選單導覽／數值編輯用途：未找到（M-DMM 未取得）。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得（M-DMM 未取得）",
+   "function": "數值選單移到較小位數。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "未找到",
-   "sources": "P1 中層",
-   "evidence": "PH+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "第一版核心功能不需方向鍵；不可自行設計未有來源的選單。D-DMM p.1 (PDF 1) 封面照中 34470A 在 ▲ 上方有 \"ACAL\"，34460A 與 P1 都沒有 → 不加 ACAL。"
+   "notes": "◀▶配合▲▼是教學編輯手勢近似；沒有選數值時只提示用法。"
   },
   {
    "id": "DMM.KEY.SELECT",
@@ -426,14 +426,14 @@
    "label": "Select（無次標籤；P1 確認 ▲ 上方沒有高階機型的 \"ACAL\" 字樣）",
    "kind": "實體按鍵",
    "action": "按下",
-   "function": "選單導覽／數值編輯用途：未找到（M-DMM 未取得）。",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠回饋：未取得（M-DMM 未取得）",
+   "function": "完成數值編輯或關閉選單，返回量測。",
+   "feedback": "LCD軟鍵、讀值、圖表或儀器外提示隨实际設定同步；沒有相容接線時留空，未模擬項目明示。",
    "range": "未找到",
-   "sources": "P1 中層",
-   "evidence": "PH+UN",
-   "status": "OUT",
+   "sources": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
    "card": "I05",
-   "notes": "第一版核心功能不需方向鍵；不可自行設計未有來源的選單。D-DMM p.1 (PDF 1) 封面照中 34470A 在 ▲ 上方有 \"ACAL\"，34460A 與 P1 都沒有 → 不加 ACAL。"
+   "notes": "設定即時生效；未完成的編輯狀態不從舊實驗檔復原。"
   },
   {
    "id": "DMM.KEY.RANGE_UP",
@@ -497,7 +497,7 @@
    "evidence": "PH+DS",
    "status": "STATIC",
    "card": "I05/J01",
-   "notes": "四線量測本輪 OUT；端子可見但不可假裝已完成四線。；卡別細節：I05（terminal ID 預留）／J01（接線）"
+   "notes": "實驗台接線ID分別為DMM.SHI/DMM.SLO；可在固定板與麵包板接線，4W／Ratio需要真正接上。"
   },
   {
    "id": "DMM.TERM.SENSE_LO",
@@ -513,7 +513,7 @@
    "evidence": "PH+DS",
    "status": "STATIC",
    "card": "I05/J01",
-   "notes": "四線量測本輪 OUT。；卡別細節：I05（terminal ID 預留）／J01（接線）"
+   "notes": "實驗台接線ID分別為DMM.SHI/DMM.SLO；可在固定板與麵包板接線，4W／Ratio需要真正接上。"
   },
   {
    "id": "DMM.TERM.INPUT_HI",
@@ -710,92 +710,124 @@
  ],
  "menus": [
   {
-   "path": "DCV（按 DCV 鍵後的 DCV Number 畫面）→ 軟鍵列",
-   "softkeys": "S1 \"Range\"〔Auto〕｜S2 \"Aperture\"〔10 PLC〕｜S3 \"Auto Zero\"〔Off On〕｜S4 \"Input Z\"〔10M Auto〕｜S5 \"DCV Ratio\"〔Off On〕｜S6（空白）",
-   "source": "D-DMM p.3 (PDF 3) 34460A 產品照（放大可讀）；D-DMM p.1 (PDF 1) 封面 34460A 產品照（同一組 S1–S5，histogram view 時 S6＝\"Clear Readings\"）",
-   "evidence": "PD",
-   "status": "S1 APPROX（按下＝Range 鍵，PD）；S2–S6 OUT（只顯示標籤）",
-   "notes": "只證明該畫面出現過這些標籤與當下值；按下後是否展開下一層、值如何循環、是否為開機預設、韌體版本皆未找到。第一版可照此繪製 DCV 軟鍵標籤。 路徑與標籤只來自 datasheet 行銷照，未經手冊確認（PD）。"
-  },
-  {
-   "path": "Shift → DCV（上方藍字 DCI）→ DCI 畫面",
-   "softkeys": "未找到（M-DMM 未取得）；暫定只顯示 S1 \"Range\"（PD）",
-   "source": "P1 中層（DCV 上方 \"DCI\"）；D-DMM p.3 (PDF 3) DCI 100 μA to 3 A",
-   "evidence": "PH（標籤）+DS（功能存在）+PD（Shift 路徑與軟鍵）",
+   "path": "DCV/DCI/OHM/OHM4",
+   "softkeys": "Range | Aperture | Auto Zero（4W、Ratio固定開；DCV另Input Z、DCV Ratio）",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
    "status": "APPROX",
-   "notes": "核心功能；路徑以面板藍字推論，GAP-DMM-02／04。"
+   "notes": "NPLC實際改变DC積分；內部offset為理想零。"
   },
   {
-   "path": "ACV → ACV 畫面",
-   "softkeys": "未找到；D-DMM p.12 (PDF 12) 註 6 指出有 \"three filter settings are available: 3 Hz, 20 Hz, 200 Hz\"，但設定路徑未找到。暫定只顯示 S1 \"Range\"（PD）",
-   "source": "P1；D-DMM p.11 (PDF 11)、p.12 (PDF 12)",
-   "evidence": "PH+DS+PD",
+   "path": "Freq/Period",
+   "softkeys": "Freq/Period | Range | AC Filter | Gate Time",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
    "status": "APPROX",
-   "notes": "AC filter 本輪 OUT；純正弦 1 kHz 測試情境不受 filter 影響。"
+   "notes": "Timeout只65/70，34460A不加入。"
   },
   {
-   "path": "Shift → ACV（上方藍字 ACI）→ ACI 畫面",
-   "softkeys": "未找到；暫定只顯示 S1 \"Range\"（PD）",
-   "source": "P1（ACV 上方 \"ACI\"）；D-DMM p.3 (PDF 3)、p.11–12 (PDF 11–12)",
-   "evidence": "PH+DS+PD",
+   "path": "Shift→Freq→Cap",
+   "softkeys": "Range",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
    "status": "APPROX",
-   "notes": "核心功能；路徑推論。"
+   "notes": "電容量測只已放電的被動電容網路；Manual不以120%顯示超載。"
   },
   {
-   "path": "Ω2W → 二線電阻畫面",
-   "softkeys": "未找到；暫定只顯示 S1 \"Range\"（PD）",
-   "source": "P1；D-DMM p.11 (PDF 11)",
-   "evidence": "PH+DS+PD",
+   "path": "Temp",
+   "softkeys": "Probe | R0 | Auto Zero（2W） | Aperture | Units",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
    "status": "APPROX",
-   "notes": "Offset compensation 等其他選項未找到，不自行加入。"
+   "notes": "預設PT100 4W；RTD2/4W與44007Thermis2/4W；R0=80..120Ω。"
   },
   {
-   "path": "Cont ·)) → 導通畫面",
-   "softkeys": "未找到；暫定不顯示 Range（D-DMM p.12 (PDF 12) 導通只有 1 kΩ 一檔），不自行加入蜂鳴設定軟鍵",
-   "source": "P1；D-DMM p.12 (PDF 12)、p.21 (PDF 21)",
-   "evidence": "PH+DS+PD",
+   "path": "Cont/Diode",
+   "softkeys": "Beeper",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
    "status": "APPROX",
-   "notes": "門檻 10 Ω 固定（DS）；是否有蜂鳴開關設定未找到（GAP-DMM-08）。"
+   "notes": "Diode仅獨立情境；不是板上電阻二極體化。"
   },
   {
-   "path": "前面板 Range／+／−（實體鍵，非軟鍵）",
-   "softkeys": "Range：Auto⇄手動（PD）；+：手動升一檔（PD）；−：手動降一檔（PD）",
-   "source": "P1 中層（三鍵直列）；D-DMM p.21 (PDF 21) Overload ranging",
-   "evidence": "PH+DS（auto/manual 存在）+PD（鍵語義）",
-   "status": "CORE（行為暫定）",
-   "notes": "GAP-DMM-03。"
+   "path": "Acquire",
+   "softkeys": "Trg Src | Samples/Trig | Delay Auto | Delay Man |（空白）| Save Readings",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
+   "notes": "1..1e6筆、延遲0..3600秒；後續樣本依序完成，沒有65/70 SampleTimer。"
   },
   {
-   "path": "Null（實體鍵）→ Null on／off",
-   "softkeys": "Null 開啟後的軟鍵（基準值編輯等）：未找到",
-   "source": "P1（Null 鍵）；D-DMM p.26 (PDF 26) \"Per function null\"",
-   "evidence": "PH+DS+PD",
-   "status": "CORE（on/off 與擷取基準行為暫定）；基準編輯 OUT",
-   "notes": "GAP-DMM-07。"
+   "path": "Shift→Null→Math",
+   "softkeys": "Null | dB/dBm | Statistics | Limits | Null Value | Done",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
+   "notes": "dB/dBm只DCV/ACV；Stats以讀值記憶計算，使用母體SD的理想近似。"
   },
   {
-   "path": "Display → view：Number／Bar meter／Histogram",
-   "softkeys": "view 名稱來自 datasheet；按鍵／軟鍵路徑未找到",
-   "source": "D-DMM p.3 (PDF 3) Statistical graphics \"Histogram, bar meter\"；p.4 (PDF 4)；p.26 (PDF 26)",
-   "evidence": "DS+UN（路徑）",
-   "status": "OUT（第一版固定 Number view）",
-   "notes": "34460A 沒有 Trend chart（p.3、p.26）。"
+   "path": "Display",
+   "softkeys": "Display |（Label尚未模擬）|（Label Text尚未模擬）| Scale（Bar）| 2nd Meas | Digit Mask",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901 Edition 7 March 2020；原廠PDF公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf 。已逐頁核對p.93–94次測量機型表、p.98–99背景記憶與清除條件、p.119 Digit Mask畫面、p.121–122 Bar Scale。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
+   "notes": "Number／Bar／Histogram；34460A沒有Trend。Digit Mask只四捨五入顯示，不改讀值或記憶；Bar Scale提供Default及Manual Low/High或Span/Center；ProbeHold不併用圖表或Stats。"
   },
   {
-   "path": "頂層（本輪未納入，只列名稱）：Freq、Temp、Run/Stop、Single、Acquire",
-   "softkeys": "不列",
-   "source": "P1 中層鍵面字樣",
-   "evidence": "PH",
-   "status": "OUT",
-   "notes": "按下顯示範圍說明，不改狀態。"
+   "path": "Histogram",
+   "softkeys": "Display | Binning | Bin Settings | Outer Bins | Cumulative | Clear Readings",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
+   "notes": "Auto分箱按10/20/40 bins取决于保留樣本數；跨度重分箱採PD，Manual bins10/20/40/100/200/400。"
   },
   {
-   "path": "頂層 Shift 次功能（本輪未納入，只列名稱）：Ω4W（Shift→Ω2W）、二極體（Shift→Cont）、Reset（Shift→Run/Stop）、Probe Hold（Shift→Single）、Math（Shift→Null）、Utility（Shift→Display）、Help（Shift→Acquire）",
-   "softkeys": "不列",
-   "source": "P1 中層藍字次標籤；Probe Hold／Math 內容見 D-DMM p.26 (PDF 26)",
-   "evidence": "PH+PD（Shift 對應）",
-   "status": "OUT",
-   "notes": "Probe Hold 不可做成任意 Freeze。 Local 不是 Shift 次功能（印在 Shift 鍵下方的黑字），另見 DMM.KEY.SHIFT。"
+   "path": "Shift→Single→Probe Hold",
+   "softkeys": "Probe Hold | Beeper | Remove Last | Clear List",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
+   "notes": "最多8筆，穩定判定是明示PD；退出恢復先前Display/Stats。"
+  },
+  {
+   "path": "Shift→Display→Utility",
+   "softkeys": "Store/Recall | Manage Files | I/O | Test/Admin | System Setup",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
+   "notes": "一組Store槽與Power On Last/UserDefined/FactoryDefaults；CSV/SVG/JSON瀏覽器下載與軟體設定檢查；硬體I/O與校準未模擬。"
+  },
+  {
+   "path": "Shift→Acquire→Help",
+   "softkeys": "How To | Scope | Input Status |（空）|（空）| Done",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
+   "notes": "模擬器功能與接線說明，不宣稱完整原廠互動教學。"
+  },
+  {
+   "path": "Display→Digit Mask",
+   "softkeys": "Auto | 6½ | 5½ | 4½ | 3½ | Back",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901 Edition 7 March 2020；原廠PDF公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf 。已逐頁核對p.93–94次測量機型表、p.98–99背景記憶與清除條件、p.119 Digit Mask畫面、p.121–122 Bar Scale。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
+   "notes": "選項與原廠p.119圖一致；Auto依NPLC/Gate，明選位數只改格式。"
+  },
+  {
+   "path": "Display→Bar→Scale",
+   "softkeys": "Scale | Low/Center | High/Span | Format |（空）| Back",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901 Edition 7 March 2020；原廠PDF公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf 。已逐頁核對p.93–94次測量機型表、p.98–99背景記憶與清除條件、p.119 Digit Mask畫面、p.121–122 Bar Scale。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
+   "notes": "Manual刻度以顯示物理量的基本單位保存，Scale切回Default依範圍；dB/Ratio/Temp/Freq預設跨度採明示教學規則，非原廠精準韌體。"
+  },
+  {
+   "path": "Display→2nd Meas",
+   "softkeys": "Off | 本主功能唯一支援次測量 |（空）|（空）|（空）| Back",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901 Edition 7 March 2020；原廠PDF公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf 。已逐頁核對p.93–94次測量機型表、p.98–99背景記憶與清除條件、p.119 Digit Mask畫面、p.121–122 Bar Scale。",
+   "evidence": "OT+PD",
+   "status": "APPROX",
+   "notes": "僅34460A/61A表：DCV→ACV、DCI→ACI約4秒取一筆；ACV/ACI→Frequency、Freq↔Period、Temp→Sensor、Ratio→Input/Ref。OHM、Cap、Cont、Diode不加次測量；不套用65/70的Peak/Pre-Math。次測與Single、Stop共用真實來源與歷史窗，DC/AC交錯切換輸入負載未模擬。"
   }
  ],
  "specs": [
@@ -912,21 +944,21 @@
    "quote": "The 1 mA test current is typical."
   },
   {
-   "item": "頻率／週期（OUT）",
+   "item": "頻率／週期",
    "value": "3 Hz–300 kHz；電壓量程 100 mVrms–750 Vrms，Auto 或手動；gate 10 ms、100 ms、1 s（1 ms 只限 34465/70A）",
    "source": "D-DMM p.3 (PDF 3)；p.22 (PDF 22)",
    "evidence": "DS",
    "quote": "Gate time 1 ms (34465/70A), 10 ms, 100 ms, or 1 s"
   },
   {
-   "item": "溫度（OUT）",
+   "item": "溫度",
    "value": "PT100/RTD（-200 °C–600 °C）、thermistor（-80 °C–150 °C）；34460A 無熱電偶",
    "source": "D-DMM p.3 (PDF 3)；p.21 (PDF 21)",
    "evidence": "DS",
    "quote": "Temperature RTD/PT100, thermistor"
   },
   {
-   "item": "電容（OUT）",
+   "item": "電容",
    "value": "1 nF、10 nF、100 nF、1 µF、10 µF、100 µF",
    "source": "D-DMM p.11 (PDF 11) Capacitance；p.3 (PDF 3)",
    "evidence": "DS",
@@ -982,7 +1014,7 @@
    "quote": "Per function null, min/max/avg/Sdev, dB, dBm, span, count, limit test, histogram"
   },
   {
-   "item": "Probe Hold（OUT）",
+   "item": "Probe Hold",
    "value": "擷取並瀏覽穩定讀值清單；穩定判定未找到",
    "source": "D-DMM p.26 (PDF 26)",
    "evidence": "DS",
@@ -1053,10 +1085,10 @@
   },
   {
    "item": "開機預設功能／量程／觸發",
-   "value": "未找到（UN）；第一版暫定 DCV、Auto、Null off（PD）",
-   "source": "未找到（M-DMM 未取得）",
-   "evidence": "UN+PD",
-   "quote": "未找到"
+   "value": "Store/Recall→Power On可選Last/UserDefined/FactoryDefaults，預設FactoryDefaults；UserDefined使用現有一個設定槽。開機清讀值重新採集，外部fixture與Bench接線不變。FactoryDefaults採明示教學預設DCV、Auto、Null off。",
+   "source": "M-DMM-2020 p.141 Power On、p.474–482 Power-On and Reset State",
+   "evidence": "OT+PD",
+   "quote": "Last, User Defined, Factory Defaults"
   },
   {
    "item": "超量程顯示字樣",
@@ -1134,8 +1166,8 @@
   {
    "id": "DMM-F09",
    "feature": "Null 基本相對讀值",
-   "rule": "按 Null 開啟：以當下有效讀值為基準（PD），顯示＝量測值－基準、同單位；Null 開啟時改 fixture 顯示差值，不自動重取基準；再按 Null 關閉並回到原量測值。基準按功能分別保存（DS \"Per function null\"），切功能不得套用其他功能的基準或不相容單位；讀值超量程／無輸入時不得做減法。Null 基準編輯（Math 選單）OUT。",
-   "source": "P1 Null 鍵；D-DMM p.26 (PDF 26) \"Per function null\"；p.12 (PDF 12) 註 7、15",
+   "rule": "按 Null 以當下有效讀值為基準，Math可手動編輯；基準按功能保存。Temp基準存°C，切°F/K換算溫差，不能增加32/273.15偏移。dB/dBm先扣電壓基準再轉對數，差值0V無定義時顯示超限。DCV Ratio不提供Null，開Ratio即解除DCV Null，Null鍵與Null Value都拒絕；設定驗證也拒絕Ratio與DCV Null並存。Stop重算同一筆凍結的原始值，不讀新輸入。",
+   "source": "M-DMM-2020 p.101–104、p.374（Ratio不提供Null）；D-DMM p.26 Per function null",
    "evidence": "PH+DS+PD",
    "acceptance": "I05-4：設基準→改 fixture→看差值→關 Null 恢復；切到另一功能再切回，驗矩陣所定的保存策略。"
   },
@@ -1157,18 +1189,18 @@
   },
   {
    "id": "DMM-F12",
-   "feature": "Shift 次功能（暫定操作）",
-   "rule": "暫定 latch：按 Shift 進入 Shift 狀態（原廠指示方式未知，LCD 不加字樣；Shift 狀態只在儀器外狀態列顯示，近似），下一個有藍字次標籤的鍵執行次功能後自動解除；再按 Shift 取消。核心只用 DCI／ACI；其餘次功能（Ω4W、二極體、Reset、Probe Hold、Math、Utility、Help）只顯示「本輪未納入」並解除 Shift，不改量測狀態。儀器外標示此流程為近似。",
-   "source": "P1 藍字次標籤與藍色 Shift 鍵；M-DMM 未取得",
-   "evidence": "PH+PD",
+   "feature": "Shift次功能",
+   "rule": "DCI／ACI／4W／Cap／Diode／Reset／ProbeHold／Math／Utility／Help均有實際流程，任何鍵後解除Shift。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
    "acceptance": "I05-6、I05-7。"
   },
   {
    "id": "DMM-F13",
-   "feature": "未納入功能不假成功、不加高階機型功能",
-   "rule": "Freq、Temp、Ω4W、二極體、Probe Hold、Math、Display 其他 view、Utility、Help、Acquire、Run/Stop、Single、Reset、Local、方向鍵／Select、S2–S6：可見可按，但只顯示範圍說明。Probe Hold 不得做成任意 Freeze。不得出現 trend chart、digitizing、ACAL、1 µA 量程、10 A、1 GΩ、熱電偶、Front/Rear、2 M 記憶。 data logging 是否屬 34460A 為 UN，本輪以範圍決策不提供（GAP-DMM-23）。",
-   "source": "P1；D-DMM p.3 (PDF 3)、p.15 (PDF 15)／p.18 (PDF 18) ACAL、p.17 (PDF 17)／p.20 (PDF 20) Digitizing、p.26 (PDF 26)、p.27 (PDF 27)",
-   "evidence": "PH+DS",
+   "feature": "機型限定與未模擬項目明示",
+   "rule": "不加入34465A/70A的SampleTimer、Timeout可調、Mx−B、Smoothing、Thermocouple、Trend。無接線時不製造測量值。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
    "acceptance": "I05-7、I00-3。"
   },
   {
@@ -1182,112 +1214,161 @@
   {
    "id": "DMM-F15",
    "feature": "電源與重設（恢復到已定義狀態）",
-   "rule": "電源鍵模擬開／關：關機 LCD 暗、其他鍵無作用；開機進入明示暫定預設（DCV、Auto、Null off；PD）。原廠關機狀態保存／開機回復未確認，不宣稱。模擬器重設放在儀器外（I01），不把 Shift→Run/Stop（Reset）當已確認的原廠重設。",
+   "rule": "電源鍵開／關：關機LCD暗；開機依Power On Last/UserDefined/FactoryDefaults回復量測設定並重新採集。UserDefined使用一個Store槽，Factory採明示DCV、Auto、Null off教學預設。Shift→Run/Stop執行Reset，回量測預設並清讀值；Reset與開機都保留Power On偏好、Store槽、fixture、Bench來源與接線。硬體校準與nonvolatile檔案系統未模擬。",
    "source": "P1 電源鍵；D-DMM p.26 (PDF 26) 註 3",
    "evidence": "PH+DS+PD",
    "acceptance": "I05-6；I06-3（DMM range／Null 的錯誤與恢復）。"
+  },
+  {
+   "id": "DMM-F16",
+   "feature": "Frequency/Period",
+   "rule": "Freq→S1切換；HI–LO實際交越量測3Hz–300kHz，無週期／頻寬外留空；電壓量程與Gate Time可設定。",
+   "source": "M-DMM：Keysight 官方 9018-03876 Operating and Service Guide，2026-10-04 核對官方搜尋正文；Front Panel Menu Reference p.50、Frequency and Period p.79、Triggering and Readings p.96。官方PDF下載回傳asset頁，未保存完整PDF；不把其他機型選項套用34460A。",
+   "evidence": "OT+PD",
+   "acceptance": "正弦／方波及clip；移除訊號、直流與充電斜坡無頻率；不直接抄AFG設定。"
+  },
+  {
+   "id": "DMM-F17",
+   "feature": "Run/Stop、Single与NPLC",
+   "rule": "停止保存讀值；Single從觸發後真積分窗量一筆再停止；NPLC=0.02/0.2/1/10/100。",
+   "source": "M-DMM：Keysight 官方 9018-03876 Operating and Service Guide，2026-10-04 核對官方搜尋正文；Front Panel Menu Reference p.50、Frequency and Period p.79、Triggering and Readings p.96。官方PDF下載回傳asset頁，未保存完整PDF；不把其他機型選項套用34460A。",
+   "evidence": "OT+PD",
+   "acceptance": "源在Stop改變不更新；Single不讀未來，完成窗起點等於按鍵時間；解析積分量核對。"
+  },
+  {
+   "id": "DMM-F18",
+   "feature": "InputZ及Number/Bar Meter",
+   "rule": "Input Z實際負載為10M/Auto，低三檔10G理想近似，高兩檔10M；Bar只顯示有效讀值。",
+   "source": "M-DMM：Keysight 官方 9018-03876 Operating and Service Guide，2026-10-04 核對官方搜尋正文；Front Panel Menu Reference p.50、Frequency and Period p.79、Triggering and Readings p.96。官方PDF下載回傳asset頁，未保存完整PDF；不把其他機型選項套用34460A。",
+   "evidence": "OT+PD",
+   "acceptance": "高阻分壓比較10M/10G；高電壓範圍返回10M；無源無bar。"
+  },
+  {
+   "id": "DMM-F19",
+   "feature": "四線電阻、電容、溫度及二極體",
+   "rule": "OHM4使用四條實際線與Sense transfer阻抗；Cap解算放電電容等效網路；Temp從實際2W/4W電阻轉換；Diode仅fixture。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "acceptance": "test/dmm-extended.test.mjs、scripts/e2e/instruments-extended.mjs；實際接線／不相容／邊界／連續記憶與單次採集驗證。"
+  },
+  {
+   "id": "DMM-F20",
+   "feature": "DCV Ratio、Auto Zero及dB/dBm",
+   "rule": "Ratio需要有效Sense差值，各對InputLO≤12V；原廠p.374禁止Ratio與Null併用。AutoZero按選項保存且理想offset=0；dB/dBm使用原廠參考阻抗與公式；Null基準以V保存，先扣基準再轉dB；停止後改縮放只重算已凍結讀值。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "acceptance": "test/dmm-extended.test.mjs、scripts/e2e/instruments-extended.mjs；實際接線／不相容／邊界／連續記憶與單次採集驗證。"
+  },
+  {
+   "id": "DMM-F21",
+   "feature": "讀值記憶、Histogram、Statistics、Limits",
+   "rule": "保留最近最多1000筆真正完成的量測；同一採集多次畫面讀取不重複計數；Stats/Histogram/Limits與CSV使用同一資料。 數值使用基本單位；顯示前綴另存displayUnit，避免CSV把A誤標mA或Hz誤標kHz。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "acceptance": "test/dmm-extended.test.mjs、scripts/e2e/instruments-extended.mjs；實際接線／不相容／邊界／連續記憶與單次採集驗證。"
+  },
+  {
+   "id": "DMM-F22",
+   "feature": "Probe Hold與多樣本觸發",
+   "rule": "依已完成讀值的穩定序列捕獲最多8筆，帶不同功能/單位；Single有手動延遲、設定樣本數與一組觸發緩衝。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "acceptance": "test/dmm-extended.test.mjs、scripts/e2e/instruments-extended.mjs；實際接線／不相容／邊界／連續記憶與單次採集驗證。"
+  },
+  {
+   "id": "DMM-F23",
+   "feature": "Utility/Help與設定持久化",
+   "rule": "Store/Recall一組量測設定；Power On Last/UserDefined/FactoryDefaults，User用Store槽，Reset不清除槽或Power On偏好。瀏覽器下載CSV/LCD SVG/設定JSON；舊實驗檔可載入，新設定嚴格驗證，不載入虛構讀值。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "evidence": "OT+PD",
+   "acceptance": "test/dmm-extended.test.mjs、scripts/e2e/instruments-extended.mjs；實際接線／不相容／邊界／連續記憶與單次採集驗證。"
+  },
+  {
+   "id": "DMM-F24",
+   "feature": "Digit Mask",
+   "rule": "Auto、6½、5½、4½、3½位。只對顯示四捨五入，保留未掩碼的量測值、統計、CSV与凍結狀態。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901 Edition 7 March 2020；原廠PDF公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf 。已逐頁核對p.93–94次測量機型表、p.98–99背景記憶與清除條件、p.119 Digit Mask畫面、p.121–122 Bar Scale。",
+   "evidence": "OT+PD",
+   "acceptance": "test/dmm-extended.test.mjs；真Bench解析對照與CSV value/unit oracle；scripts/e2e/instruments-extended.mjs真實Chrome操作、檔案下載與畫面檢查。"
+  },
+  {
+   "id": "DMM-F25",
+   "feature": "Bar Meter手動刻度",
+   "rule": "Default依量測範圍，Manual可Low/High或等價Center/Span；顯示端點及基本單位，零點按實際刻度定位。刻度與讀值分開保存，編輯不清記憶。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901 Edition 7 March 2020；原廠PDF公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf 。已逐頁核對p.93–94次測量機型表、p.98–99背景記憶與清除條件、p.119 Digit Mask畫面、p.121–122 Bar Scale。",
+   "evidence": "OT+PD",
+   "acceptance": "test/dmm-extended.test.mjs；真Bench解析對照與CSV value/unit oracle；scripts/e2e/instruments-extended.mjs真實Chrome操作、檔案下載與畫面檢查。"
+  },
+  {
+   "id": "DMM-F26",
+   "feature": "34460A真次測量",
+   "rule": "按p.93/94限定組合。DCV/DCI的次AC以同一時間來源約4秒更新，不從訊號標籤複製值；Frequency由端子波形交點、Sensor取實際選定2W/4W電阻、Ratio顯示同一窗Input/Ref；停止後凍結。模擬器保持主功能输入負載，不宣稱精準硬體交錯切換。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901 Edition 7 March 2020；原廠PDF公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf 。已逐頁核對p.93–94次測量機型表、p.98–99背景記憶與清除條件、p.119 Digit Mask畫面、p.121–122 Bar Scale。",
+   "evidence": "OT+PD",
+   "acceptance": "test/dmm-extended.test.mjs；真Bench解析對照與CSV value/unit oracle；scripts/e2e/instruments-extended.mjs真實Chrome操作、檔案下載與畫面檢查。"
+  },
+  {
+   "id": "DMM-F27",
+   "feature": "延遲輪詢與歷史量測窗",
+   "rule": "Single電壓/電流要求完整時間窗兩線均有效，使用各歷史接線/負載段的mean/RMS/peak；Ratio也驗證歷史Sense整窗±12V。窗結束後改值、拔線不改寫結果；Frequency用歷史線路/頻率提示；被動量測取完成時歷史網路，未模擬Cap充電演算法。NaN/無法解析回無讀值，禁止進入十進位格式器。停止檔位與實體負載同步。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901 Edition 7 March 2020；原廠PDF公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf 。已逐頁核對p.93–94次測量機型表、p.98–99背景記憶與清除條件、p.119 Digit Mask畫面、p.121–122 Bar Scale。",
+   "evidence": "OT+PD",
+   "acceptance": "test/dmm-extended.test.mjs；真Bench解析對照與CSV value/unit oracle；scripts/e2e/instruments-extended.mjs真實Chrome操作、檔案下載與畫面檢查。"
+  },
+  {
+   "id": "DMM-F28",
+   "feature": "基本單位資料與背景採集",
+   "rule": "已完成讀值value以顯示物理量的基本單位保存（如0.01234 ADC、1000 Hz、1e-6 F），CSV、Stats與Histogram使用同一單位，不受Auto換前綴影響；text另配displayUnit供Probe Hold。約5Hz背景採集，即使其他面板可見也繼續記錄；可見畫面讀取仍去重。",
+   "source": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901 Edition 7 March 2020；原廠PDF公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf 。已逐頁核對p.93–94次測量機型表、p.98–99背景記憶與清除條件、p.119 Digit Mask畫面、p.121–122 Bar Scale。",
+   "evidence": "OT+PD",
+   "acceptance": "test/dmm-extended.test.mjs；真Bench解析對照與CSV value/unit oracle；scripts/e2e/instruments-extended.mjs真實Chrome操作、檔案下載與畫面檢查。"
   }
  ],
  "out_of_scope": [
   {
-   "item": "四線電阻 Ω4W（Shift→Ω2W）與 Sense HI/LO 實際使用",
-   "reason": "02 允許首版不做；需四端接線（J01）",
-   "ui_treatment": "Sense 端子可見；Shift→Ω2W 顯示「四線量測本輪未納入」，不假裝兩線完成四線。"
+   "item": "硬體I/O、Ext Trig、VMC、SCPI、USB隨身碟與硬體校準",
+   "reason": "沒有後面板/真實硬體介面，無法合理映射瀏覽器。",
+   "ui_treatment": "Utility選項提供明確說明；CSV/SVG/JSON另用瀏覽器下載。"
   },
   {
-   "item": "二極體測試（Shift→Cont）",
-   "reason": "不在 02 第一版必做清單（DS 有 5 V、1 mA typ 規格）",
-   "ui_treatment": "顯示範圍說明，不改功能。"
+   "item": "AC Filter精準沉降、雜訊、校準誤差與保險絲熔斷",
+   "reason": "目前是理想線性教學模型；沒有實測硬體資料。",
+   "ui_treatment": "AC Filter與AutoZero選项可保存，明确说明没有精準物理滤波/零漂，絕不虛構精度改變。"
   },
   {
-   "item": "頻率／週期（Freq）",
-   "reason": "不在第一版必做；DS 3 Hz–300 kHz",
-   "ui_treatment": "按下顯示範圍說明。"
+   "item": "麵包板二極體與感測器熱環境",
+   "reason": "板上元件仍是R/C/W。",
+   "ui_treatment": "Diode只fixture；Temp用選定感測器轉換實際電阻，提示理想感測器等效。"
   },
   {
-   "item": "溫度（Temp）",
-   "reason": "不在第一版必做；需 PT100／thermistor 探棒",
-   "ui_treatment": "按下顯示範圍說明；不得列熱電偶。"
+   "item": "電容充電、漏電、超100µF超時演算法",
+   "reason": "僅支持已放電、无跨电容节点电阻负載的等效電容測量。",
+   "ui_treatment": "拒絕不支持接線並給whyC，不偽造充電時間量測。"
   },
   {
-   "item": "電容量測",
-   "reason": "34460A 具備（DS p.3、p.11），但 P1 找不到前面板入口（Freq 上方無符號），M-DMM 未取得",
-   "ui_treatment": "不配置到任何鍵；在功能範圍說明列「具備但入口待校機確認」。"
+   "item": "ProbeHold原廠穩定判定／Auto Histogram壓縮算法",
+   "reason": "原廠未公開完整穩定阈值／分箱算法細節。",
+   "ui_treatment": "明示至少3笔、0.5秒、0.1%稳定判定以及理想重分箱近似。"
   },
   {
-   "item": "DCV Ratio、Aperture/NPLC、Auto Zero、Input Z、AC filter",
-   "reason": "非核心；只見於 DS 產品照標籤或註腳",
-   "ui_treatment": "DCV 畫面照 DS 產品照顯示 S2–S5 標籤，按下顯示範圍說明；模擬器固定理想輸入與 6½ 位。"
+   "item": "完整原廠Utility偏好、Label/Label Text及硬體OS",
+   "reason": "已完成Power On三模式、Digit Mask、Bar Scale與本機型真次測量；仍未重製完整文字標籤編輯、硬體介面或OS。",
+   "ui_treatment": "未支持選項明確說明；瀏覽器CSV/SVG/JSON下載與已實作前面板功能可用。"
   },
   {
-   "item": "Math（min/max/avg/Sdev、dB、dBm、span、count、limit test、histogram）",
-   "reason": "非核心（DS p.26 列出）",
-   "ui_treatment": "Shift→Null 顯示範圍說明。"
-  },
-  {
-   "item": "Display 的 Bar meter／Histogram view、Dual line 次顯示",
-   "reason": "非核心",
-   "ui_treatment": "Display 鍵顯示範圍說明；固定 Number view。"
-  },
-  {
-   "item": "Probe Hold（Shift→Single）",
-   "reason": "02 明定不列核心，且穩定判定未找到",
-   "ui_treatment": "顯示範圍說明；不可做成任意 Freeze。"
-  },
-  {
-   "item": "Run/Stop、Single、Acquire（觸發／取樣設定）、Reset",
-   "reason": "操作定義未找到",
-   "ui_treatment": "顯示範圍說明；讀值維持連續更新；Reset 不作原廠重設。"
-  },
-  {
-   "item": "Utility、Help（長按說明）、Local",
-   "reason": "非核心；Help 依 DS 為長按按鍵提供；Local 與遠端控制相關",
-   "ui_treatment": "顯示範圍說明；長按不觸發未證實功能。"
-  },
-  {
-   "item": "方向鍵 ▲▼◀▶ 與 Select",
-   "reason": "選單內容未找到，核心不需要",
-   "ui_treatment": "按下顯示範圍說明。"
-  },
-  {
-   "item": "前面板 USB 隨身碟存取、內部 Flash 狀態存取、讀值記憶 1,000 筆、螢幕截圖",
-   "reason": "非核心",
-   "ui_treatment": "USB 口只畫外觀。"
-  },
-  {
-   "item": "遠端介面（USB device、LAN 選配、GPIB 選配）、外部觸發、Voltmeter complete、Web UI、SCPI",
-   "reason": "後面板或選配；非單機練習範圍",
-   "ui_treatment": "不繪後面板；不提供。"
-  },
-  {
-   "item": "保險絲熔斷、輸入保護、負擔電壓、輸入阻抗負載效應、雜訊與精度模型",
-   "reason": "02：首版為理想教學模型",
-   "ui_treatment": "讀值理想化；在範圍說明註明不模擬精度與保護。"
-  },
-  {
-   "item": "高階機型功能：digitizing、ACAL、1 µA 量程、10 A 端子、1 GΩ、熱電偶、trend chart、2 M 讀值記憶",
-   "reason": "D-DMM 機型欄（p.3 表與各機型規格頁）顯示 34460A 沒有這些。",
-   "ui_treatment": "完全不出現（不是停用，而是不存在）。"
-  },
-  {
-   "item": "開機記憶、使用者自訂開機訊息、螢幕色彩、時鐘",
-   "reason": "DS p.26 有提及但操作未找到",
-   "ui_treatment": "不提供；開機用明示暫定預設。"
-  },
-  {
-   "item": "Data logging 模式",
-   "reason": "範圍決策（PD）：34460A 是否具備 UN——只有 p.3 概述「Both models also provide a data logging mode…」提到，沒寫是哪兩個機型；IX 線索（知識庫摘要）說 34460A／61A 只有連續量測模式。02 核心不需要。",
-   "ui_treatment": "不提供；範圍說明寫「34460A 是否有 data logging 待手冊確認」。"
+   "item": "高階機型专有功能",
+   "reason": "34460A沒有SampleTimer可調、FreqTimeout可調、Mx−B、Smoothing、Thermocouple、Trend、10A、1GΩ、2M記憶。",
+   "ui_treatment": "不加入這些選項；Data Log專用模式僅65/70，34460A只讀值記憶/CSV。"
   }
  ],
  "gaps": [
   {
    "id": "GAP-DMM-01",
-   "gap": "34460A Operating and Service Guide（M-DMM）正文未取得。料號 34460-90901／資產 9018-03876 來自本次 WebSearch（IX，見 docs/sources.md §3.1），不是正文。所有軟鍵頁、Shift 流程、選單層級均未核對。",
-   "impact": "I05 的所有選單路徑只能以 P1 標籤＋DS 產品照＋PD 實作，不能宣稱完整還原。",
-   "provisional": "只做 02 核心；其餘鍵顯示範圍說明；所有暫定行為在儀器外標「近似／待校機確認」。",
-   "rationale": "官方網域在本環境被封鎖；04 已記錄存取表單問題；搜尋索引只算 IX。",
-   "verify_method": "取得 M-DMM 後補讀 Front Panel、Front Panel Menu Reference、DC/AC Voltage、DC/AC Current、Resistance、Continuity、Math/Null、Probe Hold 章節，記錄版本與適用型號，只回修 I05。"
+   "gap": "已取得完整原廠2020 Edition7手冊，機型與章節限定均已核對；校機韌體版仍未知。",
+   "impact": "本輪補完相關功能；剩餘實測韌體、布局或精準物理模型限制另列。",
+   "provisional": "按本輪實作及明示PD範圍操作。",
+   "rationale": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "verify_method": "模型、真實Bench接線與UI回歸測試；精準硬體行為仍需校機。"
   },
   {
    "id": "GAP-DMM-02",
@@ -1307,11 +1388,11 @@
   },
   {
    "id": "GAP-DMM-04",
-   "gap": "各功能畫面的軟鍵標籤未找到（只有 DS 產品照中的 DCV 畫面：Range／Aperture／Auto Zero／Input Z／DCV Ratio）；S1 Range 按下後是否展開子選單也未找到。",
-   "impact": "DCI／ACV／ACI／Ω2W／Cont 畫面的軟鍵列只能暫定。",
-   "provisional": "DCV 照 DS 產品照繪製 S1–S5；其他核心畫面只顯示 S1 \"Range\"（Cont 不顯示），S2–S6 空白；S1 按下＝Range 鍵。",
-   "rationale": "不編造未見的標籤。",
-   "verify_method": "校機拍攝各功能亮屏正面；補 M-DMM Front Panel Menu Reference。"
+   "gap": "軟鍵功能已核對原廠完整手冊；子選單分頁與數值編輯手勢採教學近似，非像素級韌體還原。",
+   "impact": "本輪補完相關功能；剩餘實測韌體、布局或精準物理模型限制另列。",
+   "provisional": "按本輪實作及明示PD範圍操作。",
+   "rationale": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "verify_method": "模型、真實Bench接線與UI回歸測試；精準硬體行為仍需校機。"
   },
   {
    "id": "GAP-DMM-05",
@@ -1331,19 +1412,19 @@
   },
   {
    "id": "GAP-DMM-07",
-   "gap": "Null 細節未找到：按下時是否即取當下讀值為基準、基準可否手動輸入、切功能後 Null 開關狀態是否保留、換量程時基準處理。DS 只寫 \"Per function null\"。",
-   "impact": "I05-4 的保存策略為暫定。",
-   "provisional": "按 Null＝取當下有效讀值為基準並開啟；每功能各存 {on/off, 基準}；切回該功能時恢復其 Null 狀態；換量程保留基準（以物理值保存）；讀值超量程或無輸入時不能開啟 Null（按下顯示說明）。",
-   "rationale": "DS p.26 \"Per function null\"；02 要求不默默共用不相容單位。",
-   "verify_method": "校機：DCV 開 Null→切 ACV→切回 DCV 觀察 Null 是否仍開；補 M-DMM Math/Null 章節。"
+   "gap": "p.102證實Null基準每功能保存、可手動輸入；已實作。",
+   "impact": "本輪補完相關功能；剩餘實測韌體、布局或精準物理模型限制另列。",
+   "provisional": "按本輪實作及明示PD範圍操作。",
+   "rationale": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "verify_method": "模型、真實Bench接線與UI回歸測試；精準硬體行為仍需校機。"
   },
   {
    "id": "GAP-DMM-08",
-   "gap": "導通細節未找到：門檻 10 Ω 為 < 或 ≤；是否可關閉提示音；LCD 在導通時顯示電阻值或文字；開路時顯示字樣。",
-   "impact": "導通顯示為部分暫定（門檻值本身有 DS）。",
-   "provisional": "R ≤ 10 Ω 時可見指示（提示音可在儀器外開關）；LCD 顯示電阻值到 1.2 kΩ，超過顯示「OPEN」（字樣只來自 IX 搜尋摘要，屬共通規則 0.2-5 第 (2) 級，列入近似清單）；< 或 ≤ 的邊界待證（IX 摘要為 ≤），fixture 避開 10 Ω 與 1.2 kΩ 邊界。",
-   "rationale": "D-DMM p.12、p.21：1 kΩ 量程、門檻固定 10 Ω、audible tone。；邊界與 OPEN 字樣只有 IX 搜尋摘要，屬 PD。",
-   "verify_method": "校機以 5 Ω、15 Ω 電阻與開路測試；補 M-DMM Continuity 章節。"
+   "gap": "p.77正文證實≤10Ω、10Ω..1.2kΩ、>1.2kΩ OPEN與Beeper；已實作。",
+   "impact": "本輪補完相關功能；剩餘實測韌體、布局或精準物理模型限制另列。",
+   "provisional": "按本輪實作及明示PD範圍操作。",
+   "rationale": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "verify_method": "模型、真實Bench接線與UI回歸測試；精準硬體行為仍需校機。"
   },
   {
    "id": "GAP-DMM-09",
@@ -1355,11 +1436,11 @@
   },
   {
    "id": "GAP-DMM-10",
-   "gap": "電容功能的前面板入口未找到：P1 在 Freq 上方沒有任何次標籤；DS 產品照（p.1、p.3）在 Freq 上方有藍色電容符號。",
-   "impact": "電容雖為 34460A 功能，本輪無法確認入口。",
-   "provisional": "本輪 OUT，不配置到任何鍵；範圍說明寫「34460A 具備電容量測，入口待確認」。",
-   "rationale": "照片優先於行銷產品照；兩者矛盾不可默默合併。",
-   "verify_method": "校機近拍 Freq 周邊與按 Shift→Freq 的結果；補 M-DMM Capacitance 章節。"
+   "gap": "p.76證實Cap入口，模擬器使用Shift→Freq快捷；P1看不到次標籤之差異仍保留。",
+   "impact": "本輪補完相關功能；剩餘實測韌體、布局或精準物理模型限制另列。",
+   "provisional": "按本輪實作及明示PD範圍操作。",
+   "rationale": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "verify_method": "模型、真實Bench接線與UI回歸測試；精準硬體行為仍需校機。"
   },
   {
    "id": "GAP-DMM-11",
@@ -1387,19 +1468,19 @@
   },
   {
    "id": "GAP-DMM-14",
-   "gap": "開機預設功能／量程／觸發狀態與開機記憶未找到；DS p.26 只說 power-off state 在前面板關機時保存。",
-   "impact": "I00-4 開機記憶待確認；模擬器開機畫面為暫定。",
-   "provisional": "開機一律 DCV、Auto、Null off、連續更新（PD），儀器外註明非原廠開機記憶。",
-   "rationale": "02 共用規則：未知開機記憶另列，不與 Preset 混淆。",
+   "gap": "原廠p.141已確認并實作Power On Last/UserDefined/FactoryDefaults；Factory完整硬體偏好、校準與檔案系統仍不模擬。",
+   "impact": "重新開機回所選量測設定，重新採集，不保存舊量測或拆輸入。",
+   "provisional": "預設FactoryDefaults；UserDefined用一個Store槽，未Store時拒絕選取。",
+   "rationale": "M-DMM-2020 p.141與p.474–482；test/dmm-extended.test.mjs驗3種模式、輸入與槽保存。",
    "verify_method": "校機：改設定後用前面板電源鍵關／開機，觀察是否回復；補 M-DMM Power-on／Utility 章節。"
   },
   {
    "id": "GAP-DMM-15",
-   "gap": "Reset（Shift→Run/Stop）、Run/Stop、Single、Acquire 的功能未找到。",
-   "impact": "無法用原廠鍵做重設。",
-   "provisional": "模擬器重設放在儀器外（I01）；這些鍵顯示範圍說明。",
-   "rationale": "不把未確認語義當原廠 Default／Preset。",
-   "verify_method": "補 M-DMM Triggering 與 Front Panel 章節。"
+   "gap": "p.53、p.95–100已核對Reset、Run/Stop、Single、Samples/Trig、延遲、ProbeHold；已實作。",
+   "impact": "本輪補完相關功能；剩餘實測韌體、布局或精準物理模型限制另列。",
+   "provisional": "按本輪實作及明示PD範圍操作。",
+   "rationale": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "verify_method": "模型、真實Bench接線與UI回歸測試；精準硬體行為仍需校機。"
   },
   {
    "id": "GAP-DMM-16",
@@ -1435,35 +1516,35 @@
   },
   {
    "id": "GAP-DMM-20",
-   "gap": "預設積分時間／位數與讀值更新率未找到（DS 產品照 DCV 畫面為 \"Aperture 10 PLC\"）。",
-   "impact": "LCD 位數與更新節奏為暫定。",
-   "provisional": "固定 6½ 位顯示（對應 DS p.23 的 10 PLC）；更新節奏採確定性時間軸，不加隨機雜訊。實驗台 DCV（2026-09-30）：每筆讀值＝10 PLC 積分窗（台灣 60 Hz 市電，1/6 秒）的平均，約每 1/6 秒一筆（p.23：10 PLC 6 rdg/s）；慢速波形的讀值會跟著起伏。",
-   "rationale": "DS p.23：10 PLC → 6½ 位、6 rdg/s（60 Hz）。",
-   "verify_method": "校機觀察預設 NPLC 與更新速度。"
+   "gap": "p.50–52核對NPLC預設10与60A五種選項；理想顯示位數及更新速度仍为教學近似。",
+   "impact": "本輪補完相關功能；剩餘實測韌體、布局或精準物理模型限制另列。",
+   "provisional": "按本輪實作及明示PD範圍操作。",
+   "rationale": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "verify_method": "模型、真實Bench接線與UI回歸測試；精準硬體行為仍需校機。"
   },
   {
    "id": "GAP-DMM-21",
    "gap": "LCD 上方觸發狀態字樣（DS 產品照 \"Auto Trigger\"）是否為預設未確認。",
    "impact": "僅影響狀態列文字。",
-   "provisional": "可顯示 \"Auto Trigger\" 並標為依 DS 產品照（PD），不提供觸發設定。",
+   "provisional": "可顯示 \"Auto Trigger\" 並標為依 DS 產品照（PD），不提供觸發設定。 2026-10-04補強：Auto Trigger／Single Trigger／Stopped依採集狀態顯示；狀態字樣仍屬教學近似。",
    "rationale": "DS p.3 產品照可見。",
    "verify_method": "校機亮屏確認。"
   },
   {
    "id": "GAP-DMM-22",
-   "gap": "IX 線索（主控的官方手冊搜尋與驗證者搜尋，詳見 docs/sources.md §3.1）：官方 9018-03876 PDF 與 Truevolt WebHelp 都被環境封鎖；搜尋摘要稱導通「≤10 Ω 嗶聲、10 Ω–1.2 kΩ 顯示電阻、>1.2 kΩ 顯示 OPEN」、Shift 為「先按放開再按目標鍵」。也有第三方副本（batronix、docs.rs-online、manualslib）；2026-09-29 實測這些網域也全部被環境封鎖（403）。實作者決策（PD）：第三方副本在能與官方 9018-03876 比對版次與雜湊之前最多算 IX，不升為 OT（04 的規定是「不得繞過登入」，沒有禁止第三方副本）。",
-   "impact": "無法升級任何 PD／UN。",
-   "provisional": "維持 PD／UN。",
-   "rationale": "主控已確認所有 Keysight 網域被封鎖。",
-   "verify_method": "改在可存取網路的環境下載並記錄 Edition。"
+   "gap": "已用公開原廠完整文件驗證導通等正文；官方asset下載頁的存取問題不再阻礙實作。",
+   "impact": "本輪補完相關功能；剩餘實測韌體、布局或精準物理模型限制另列。",
+   "provisional": "按本輪實作及明示PD範圍操作。",
+   "rationale": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "verify_method": "模型、真實Bench接線與UI回歸測試；精準硬體行為仍需校機。"
   },
   {
    "id": "GAP-DMM-23",
-   "gap": "Data logging 是否為 34460A 功能：D-DMM p.3 概述「Both models also provide a data logging mode」未指明機型；機型欄沒有此列",
-   "impact": "只影響未納入清單的措辭",
-   "provisional": "本輪不提供；範圍說明標「待手冊確認」",
-   "rationale": "02 核心不需要；證據不足時不能寫成「不具備」也不能寫成「具備」",
-   "verify_method": "取得 M-DMM 後查 Acquire／Data Logging 章節的適用機型"
+   "gap": "p.47明確Data Log專用模式只65/70；34460A用最多1000筆讀值記憶與CSV，未套用Data Log模式。",
+   "impact": "本輪補完相關功能；剩餘實測韌體、布局或精準物理模型限制另列。",
+   "provisional": "按本輪實作及明示PD範圍操作。",
+   "rationale": "M-DMM-2020：Keysight Truevolt Operating and Service Guide，34460-90901，Edition 7，March 2020；原廠文件EPFL公開副本 https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf （2026-10-04下載，583 PDF頁）。p.50–55選單；p.57–80測量；p.95–104觸發、讀值、Probe Hold、Math；p.111–114統計及Limits；p.133–136 Histogram；p.306樣本數；p.309–310的Sample Timer僅65/70；p.365 R0機型限定。",
+   "verify_method": "模型、真實Bench接線與UI回歸測試；精準硬體行為仍需校機。"
   }
  ],
  "discrepancies": [
@@ -1471,7 +1552,7 @@
    "topic": "Freq 鍵上方次標籤（電容符號）",
    "a": "P1 中層（放大確認）：Freq 上方沒有任何字樣或符號；Cont 上方為藍色二極體符號。",
    "b": "D-DMM p.3 (PDF 3) 與 p.1 (PDF 1) 34460A 產品照：Freq 上方有藍色電容符號 ⊣⊢，Cont 上方為二極體符號。",
-   "resolution": "面板照 P1；電容入口列 GAP-DMM-10，本輪不配置 Shift→Freq＝電容。可能是面板改版或產品照版本不同（未證實）。"
+   "resolution": "P1面板保留原照片外觀；原廠手冊p.76確認Cap功能，以Shift→Freq作教學快捷，Help標明照片沒有可辨識次標籤。"
   },
   {
    "topic": "面板顏色",
@@ -1507,7 +1588,7 @@
    "topic": "頻率規格表的列名",
    "a": "D-DMM p.12 (PDF 12) Frequency 表：\"3 Hz to 10 Hz\"、\"10 Hz to 100 Hz\"、\"100 Hz to 1 kHz\"、下一列印 \"1 Hz to 300 kHz\"（Additional Gate Time Errors 表同）。",
    "b": "D-DMM p.3 (PDF 3)：Frequency, period \"3 Hz to 300 kHz\"。",
-   "resolution": "該列疑為 \"1 kHz to 300 kHz\" 的印刷錯誤；頻率功能本輪 OUT，採 p.3 的 3 Hz–300 kHz。"
+   "resolution": "該列疑為1 kHz to 300 kHz印刷錯誤；已實作頻率功能，採p.3與M-DMM-2020 p.79的3Hz–300kHz。"
   },
   {
    "topic": "導通門檻是否有證據",
@@ -1540,5 +1621,5 @@
    "resolution": "軟鍵為情境式；第一版固定 Number view，S6 保持空白。"
   }
  ],
- "pages_read": "D-DMM 文字（逐頁全文）：PDF 1–12、21–28；部分：PDF 13（34461A 標題）、PDF 14（34461A 註腳 8–10）、PDF 15（34465A 標題與 ACAL 字樣）、PDF 17（34465A Digitizing 表與註腳）、PDF 18（34470A 標題與 ACAL）、PDF 20（34470A Digitizing 表與註腳）。未讀：PDF 16、19 內文。D-DMM 渲染圖（Read 看圖）：p.1（封面，含 34460A／34470A 產品照並放大端子區與按鍵區）、p.3（含 34460A 產品照放大：軟鍵標籤、次標籤）、p.4、p.11、p.12、p.21、p.23、p.24、p.25、p.26、p.27；另抽出 p.1、p.3 內嵌產品圖原解析度檢視。照片：P1 全圖；主控裁切 dmm_left、dmm_right、dmm_freqtemp、dmm_input、dmm_symbols；自行放大 P1 的功能鍵上排、Input 標題、Freq 上方、Cont 上方、保險絲符號區、橢圓件、USB／電源區、方向鍵／Range 區、型號列、整個 34460A 區域。規劃文件：00、01、02（共用規則、34460A 節、第一階段測試情境）、03（共用契約、I00、I05）、04（全文）、DOWNLOAD_SOURCES.json。未讀：05、06、07。M-DMM：未取得（0 頁）。本代理未做 WebSearch。"
+ "pages_read": "D-DMM 文字（逐頁全文）：PDF 1–12、21–28；部分：PDF 13（34461A 標題）、PDF 14（34461A 註腳 8–10）、PDF 15（34465A 標題與 ACAL 字樣）、PDF 17（34465A Digitizing 表與註腳）、PDF 18（34470A 標題與 ACAL）、PDF 20（34470A Digitizing 表與註腳）。未讀：PDF 16、19 內文。D-DMM 渲染圖（Read 看圖）：p.1（封面，含 34460A／34470A 產品照並放大端子區與按鍵區）、p.3（含 34460A 產品照放大：軟鍵標籤、次標籤）、p.4、p.11、p.12、p.21、p.23、p.24、p.25、p.26、p.27；另抽出 p.1、p.3 內嵌產品圖原解析度檢視。照片：P1 全圖；主控裁切 dmm_left、dmm_right、dmm_freqtemp、dmm_input、dmm_symbols；自行放大 P1 的功能鍵上排、Input 標題、Freq 上方、Cont 上方、保險絲符號區、橢圓件、USB／電源區、方向鍵／Range 區、型號列、整個 34460A 區域。規劃文件：00、01、02（共用規則、34460A 節、第一階段測試情境）、03（共用契約、I00、I05）、04（全文）、DOWNLOAD_SOURCES.json。未讀：05、06、07。M-DMM：未取得（0 頁）。本代理未做 WebSearch。；2026-10-04：取得M-DMM-2020完整原廠PDF（Edition7 March2020），讀p.11版本、p.50–55、57–80、95–104、111–114、133–136、172、306、309–310、365、474。 2026-10-04補完複核：M-DMM-2020 p.93–94次測量表已渲染辨識空欄，p.119 Digit Mask圖片核對Auto/6½/5½/4½/3½，p.121–122核對Bar Scale Default/Manual。"
 }

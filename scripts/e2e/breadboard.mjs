@@ -38,8 +38,8 @@ export async function run() {
     await p.click('input[name="board"][value="bb"]');
     s = await snap();
     T.ok(s.board === 'bb' && await p.locator('.bb-svg [data-hole]').count() === 420, '切到麵包板：300 個主區孔＋120 個電源軌孔');
-    T.ok(await p.locator('.bb-svg [data-lead]').count() === 19 && await p.locator('.bb-svg [data-goto]').count() === 4 && await p.locator('svg[data-mini="gpe"]').count() === 1,
-      '19 個導線端（含 GPE CH1～CH4 ＋／−、GND）與四台小螢幕（含 GPE）');
+    T.ok(await p.locator('.bb-svg [data-lead]').count() === 22 && await p.locator('.bb-svg [data-goto]').count() === 4 && await p.locator('svg[data-mini="gpe"]').count() === 1,
+      '22 個導線端（含 DMM Sense HI／LO、I 3A、GPE 四路）與四台小螢幕');
 
     // 2. 電阻：點 a5（標示第一隻腳）→ 點 a9
     await tool('R');

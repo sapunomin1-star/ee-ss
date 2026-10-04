@@ -171,12 +171,12 @@ export async function run() {
     await keys('O1 O5');
     T.ok((await lcd('.mb2')) === 'CH2Freq', 'Measure 2 來源 CH2（未顯示）：數值留空，不顯示 0');
 
-    // ---- 未納入 ----
+    // ---- Newly supported Math and Invert ----
     const before = JSON.stringify((await snap()).ch);
     await ui.press(K.MATH);
-    T.ok((await ui.hint()).includes('本輪未納入'), 'Math（未納入）：儀器外提示');
+    T.ok((await snap()).extended.math.on && (await lcd('.mtitle')) === 'Math', 'Math opens an active arithmetic menu');
     await keys('CH1 O5');
-    T.ok((await ui.hint()).includes('本輪未納入') && JSON.stringify((await snap()).ch) === before, 'CH1 選單 Invert（未納入）：只提示、不改狀態');
+    T.ok((await snap()).extended.invert[0] && (await lcd('.mb5')) === 'InvertOn' && JSON.stringify((await snap()).ch) === before, 'Invert turns on without overwriting channel range/probe settings');
 
     // ---- 電源 ----
     await ui.press(K.POWER);

@@ -27,8 +27,8 @@ const CASES = [
   ['儀器前綴打錯', renameId('TDS.KEY.HELP', 'TDZ.KEY.HELP'), /ID 格式或儀器前綴不符/],
   ['加入 10 A 端子', renameId('DMM.TERM.I_3A', 'DMM.TERM.I_10A'), /DMM\.TERM\.\* 應正好是|不可出現 10 A/],
   ['34460A 端子標籤寫 10 A', editRow('DMM.TERM.I_3A', (r) => r.replace('I — 3A', 'I — 10 A')), /端子標籤不可出現 10 A/],
-  ['非法狀態', editRow('DMM.KEY.NULL', (r) => r.replace('| CORE |', '| DONE |')), /狀態「DONE」不合法/],
-  ['引用未取得的 M-DMM 當來源', editRow('DMM.KEY.NULL', (r) => r.replaceAll('D-DMM', 'M-DMM')), /M-DMM/],
+  ['非法狀態', editRow('DMM.KEY.NULL', (r) => r.replace(/\| (CORE|APPROX) \|/, '| DONE |')), /狀態「DONE」不合法/],
+  ['引用未登錄的操作手冊當來源', editRow('DMM.KEY.NULL', (r) => r.replaceAll('M-DMM-2020', 'M-UNKNOWN')), /M-UNKNOWN/],
   ['CORE 列只有 PD 證據', editRow('AFG.KEY.PRESET', (r) => r.replace('| PH+OT |', '| PD |')), /CORE 列至少要有 PH\/OT\/DS/],
   ['TDS 出現 CH3', renameId('TDS.TERM.EXT_TRIG', 'TDS.TERM.CH3_IN'), /TDS 不可出現 CH3|缺少必要列 TDS\.TERM\.EXT_TRIG/],
 ];

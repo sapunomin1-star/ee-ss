@@ -170,14 +170,14 @@
    "label": "鍵上方「Set View」；鍵下方「LOCK」加底線（部分被鍵帽遮住）；左側圖例「— : Long Push」（底線＝長按）",
    "kind": "按鍵（短按／長按雙功能）",
    "action": "短按：查看設定；長按 >2 s：Lock／Unlock",
-   "function": "短按：Output ON 時顯示各通道 V/I 設定值（p.19 \"When the output is ON, you can view the voltage/current settings of each channel by pressing this key. The corresponding channel will be displayed on the LCD display.\"）。長按：Lock（p.27 \"Press the LOCK key (for more than 2 seconds) to lock the voltage knob operation for CH1 & CH2\"；p.19 \"Press and hold the key to lock and unlock the panel keys (except OUTPUT).\"）；Unlock 時 Output 關閉（p.27）。開機組合用途（p.27–29）屬本輪未納入。",
+   "function": "短按：Output ON時顯示各通道V/I設定值；長按>2s執行Lock，Unlock時Output關閉（p.19、27）。開機Output/3–4位顯示設定中短按則切換待保存的選項（p.27–29）。",
    "feedback": "LCD「Set」圖示（p.17 \"View setting value\"）；Lock 圖示亮／滅（p.27）；Unlock 時 OFF 圖示、On/Off 鍵燈滅。",
    "range": "長按門檻 >2 s（p.27）；Set View 顯示多久／如何返回：未找到（UN）",
    "sources": "M-GPE p.15 (PDF 15)、M-GPE p.17 (PDF 17)、M-GPE p.19 (PDF 19)、M-GPE p.25 (PDF 25)、M-GPE p.27 (PDF 27)、M-GPE p.28 (PDF 28)、M-GPE p.29 (PDF 29)、M-GPE p.43 (PDF 43)；P1",
    "evidence": "PH+OT+UN",
    "status": "APPROX",
    "card": "I04",
-   "notes": "p.15 面板圖印「V/I Check」，照片、p.19 圖示、p.27–29 正文皆為「Set View」；依照片。Lock 範圍與 Set View 返回時機見 GAP-GPE-01/02；UI 需在儀器外標示近似。；證據細節：PH+OT；返回時機 UN；Lock 範圍 UN（段落不一致）"
+   "notes": "p.15 面板圖印「V/I Check」，照片、p.19 圖示、p.27–29 正文皆為「Set View」；依照片。Lock 範圍與 Set View 返回時機見 GAP-GPE-01/02；UI 需在儀器外標示近似。；證據細節：PH+OT；返回時機 UN；Lock 範圍 UN（段落不一致） 2026-10-04：開機設定中切換Output ON/OFF或3/4位顯示；不触发Lock。"
   },
   {
    "id": "GPE.KEY.OUTPUT_ON_OFF",
@@ -193,7 +193,7 @@
    "evidence": "PH+OT",
    "status": "CORE",
    "card": "I04",
-   "notes": "手冊稱 Output key／OUTPUT key／ON/OFF key，面板實印「On / Off」。開機時按住此鍵可設定開機輸出狀態（p.27–28），本輪未納入。"
+   "notes": "手冊稱Output/ON-OFF key，面板實印On/Off。按住此鍵開機設定Output預設（p.27–28）；模擬器提供外部教學入口重現此組合。設定中按此鍵保存，不立即開輸出；Output偏好到下次開機生效。"
   },
   {
    "id": "GPE.PWR.POWER",
@@ -209,7 +209,7 @@
    "evidence": "PH+OT+UN",
    "status": "APPROX",
    "card": "I04",
-   "notes": "電源開關與 Output 是不同狀態。開機後設定值是否沿用上次（記憶）未寫，暫定見 GAP-GPE-05。；證據細節：PH+OT；全段顯示時長與設定值是否斷電記憶 UN"
+   "notes": "電源開關與 Output 是不同狀態。開機後設定值是否沿用上次（記憶）未寫，暫定見 GAP-GPE-05。；證據細節：PH+OT；全段顯示時長與設定值是否斷電記憶 UN 2026-10-04：開機Output依已保存偏好，3/4位顯示保留。持Output/Set View開機可進對應設定，亦有儀器外等效入口。"
   },
   {
    "id": "GPE.LED.OUTPUT_KEY",
@@ -507,7 +507,7 @@
    "kind": "LCD 圖示",
    "action": "無",
    "function": "Output 狀態顯示（p.16 \"Output status display\"；p.25 \"The OFF icon will become lit\"；p.32 \"the ON icon will appear\"）。",
-   "feedback": "Output ON → ON 亮；OFF → OFF 亮。開機輸出狀態設定時會閃爍（p.27，本輪未納入）。",
+   "feedback": "Output ON→ON亮，OFF→OFF亮；開機輸出狀態設定时对应圖示閃爍（p.27）。",
    "range": "ON／OFF",
    "sources": "M-GPE p.16 (PDF 16)、M-GPE p.25 (PDF 25)、M-GPE p.27 (PDF 27)、M-GPE p.32 (PDF 32)",
    "evidence": "OT",
@@ -862,20 +862,20 @@
    "notes": "p.27 \"Press the LOCK key (for more than 2 seconds) to lock the voltage knob operation for CH1 & CH2 in the front panel. The Lock icon will become lit.\" / \"To unlock, press the LOCK key for more than 2 seconds. The Lock icon will then turn off and the output turns off as well.\""
   },
   {
-   "path": "Set the output state at startup（頂層名稱；本輪未納入）",
-   "softkeys": "（未納入，不列步驟）",
+   "path": "Set the output state at startup",
+   "softkeys": "按住On/Off開機（模擬器外部教學入口）→Set View切ON/OFF→On/Off保存",
    "source": "M-GPE p.27 (PDF 27)、M-GPE p.28 (PDF 28)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "手冊註記 \"By default the output is set to OFF at startup.\"（p.28）。"
+   "status": "APPROX",
+   "notes": "預設OFF（p.28），保存後下次開機生效，設定中輸出OFF。按住鍵開機與外部入口都由模型支援。"
   },
   {
-   "path": "Set the displayed digit resolution for the voltage/current（頂層名稱；本輪未納入）",
-   "softkeys": "（未納入，不列步驟）",
+   "path": "Set the displayed digit resolution for the voltage/current",
+   "softkeys": "按住Set View開機（模擬器外部教學入口）→Set View切3/4→On/Off保存",
    "source": "M-GPE p.29 (PDF 29)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "\"By default the number of displayed digits is set to four.\"（p.29）"
+   "status": "APPROX",
+   "notes": "預設4位（p.29）；3位僅減少顯示小數，不改設定或電路輸出解析度，保存跨開機。"
   },
   {
    "path": "Remote Control Setting（後面板端子；頂層名稱；本輪未納入）",
@@ -1159,6 +1159,22 @@
    "source": "M-GPE p.19 (PDF 19)、M-GPE p.25 (PDF 25)、M-GPE p.27 (PDF 27)、M-GPE p.43 (PDF 43)",
    "evidence": "OT；範圍 UN→PD",
    "acceptance": "I04-6：Lock 後 Output 仍可開關；解鎖後 Output 為 OFF。"
+  },
+  {
+   "id": "GPE-F13",
+   "feature": "開機Output ON/OFF設定",
+   "rule": "等效持Output開機→Set View選ON/OFF→On/Off保存，未確認只暫存，下一次開機生效。",
+   "source": "M-GPE p.27–28 (PDF27–28)",
+   "evidence": "OT+PD",
+   "acceptance": "保存前不改变偏好，POWER取消不提交，保存ON後下次開機ON，設定中無有效輸出。"
+  },
+  {
+   "id": "GPE-F14",
+   "feature": "3/4位顯示設定",
+   "rule": "等效持Set View開機→Set View選3/4→On/Off保存，關開機保留；只改变顯示，不改真实设置值。",
+   "source": "M-GPE p.29 (PDF29)",
+   "evidence": "OT+PD",
+   "acceptance": "5.26V/0.123A切3位显示5.3V/0.12A，eff值不變，切4位恢復；小數位對應為PD。"
   }
  ],
  "out_of_scope": [
@@ -1168,14 +1184,9 @@
    "ui_treatment": "LCD 保留圖示段但恆暗；儀器外範圍說明「未納入」。"
   },
   {
-   "item": "開機輸出狀態設定（按住 Output 開機）",
-   "reason": "02 未列核心；校機目前設定未知（p.27–28）。",
-   "ui_treatment": "不提供此開機組合；範圍說明寫「原廠預設 OFF，校機設定待確認」。"
-  },
-  {
-   "item": "顯示位數 3／4 設定（按住 Set View 開機）",
-   "reason": "非核心（p.29）；預設 4 位。",
-   "ui_treatment": "固定 4 位顯示；範圍說明提及 3 位選項存在。"
+   "item": "開機V／I設定記憶及校機實際偏好",
+   "reason": "Output開機狀態與3/4位選項已依p27–29實作；校機偏好及V/I記憶未確認",
+   "ui_treatment": "提供儀器外「按住Output／Set View開機」教學入口，面板Set View選擇、On/Off保存；V/I仍用明示模擬器預設。"
   },
   {
    "item": "遠端控制（後面板 Remote control 端子）",
@@ -1255,7 +1266,7 @@
    "id": "GAP-GPE-05",
    "gap": "開機記憶：開機 Output 狀態可被設定（p.27–28，預設 OFF），校機目前設定未知；斷電後 V/I 設定是否保留、模式鍵狀態（若為機械自鎖則保持）未寫。",
    "impact": "重設／開機行為（I04-7）。",
-   "provisional": "定案：模擬器「電源開／重設」＝CH1–CH4 V-set 0.00 V、CH1／CH2 I-set 0.100 A、兩模式鍵彈起（Independent）、LCD 顯示 ①②、Output OFF、Lock 解除；儀器外標示「非原廠開機記憶」。2026-09-30 修正：模式鍵是按下／彈起的機械自鎖鍵（GAP-GPE-07），關開機保持原位置，只有模擬器的「重設」會把兩鍵彈起。原廠預設開機 Output OFF（p.28）與此一致。",
+   "provisional": "定案：模擬器「電源開／重設」＝CH1–CH4 V-set 0.00 V、CH1／CH2 I-set 0.100 A、兩模式鍵彈起（Independent）、LCD 顯示 ①②、Output OFF、Lock 解除；儀器外標示「非原廠開機記憶」。2026-09-30 修正：模式鍵是按下／彈起的機械自鎖鍵（GAP-GPE-07），關開機保持原位置，只有模擬器的「重設」會把兩鍵彈起。原廠預設開機 Output OFF（p.28）與此一致。 2026-10-04：開機Output ON/OFF可依p27–28设置，預設OFF；關開機保留已提交偏好。V/I仍未确认。",
    "rationale": "p.28 \"By default the output is set to OFF at startup.\"；02 要求開機記憶與重設分開。",
    "verify_method": "校機：記錄開機後 LCD、Output 狀態；改設定後關機再開看是否保留。"
   },
@@ -1263,7 +1274,7 @@
    "id": "GAP-GPE-06",
    "gap": "校機顯示位數（3 或 4）未知；位數與解析度對應為推論。",
    "impact": "LCD 小數點位置。",
-   "provisional": "近似：4 位（10 mV、1 mA），例如 5.00 V、0.050 A。",
+   "provisional": "近似：4 位（10 mV、1 mA），例如 5.00 V、0.050 A。 2026-10-04：3/4位選項已實作；3位固定1位電壓小數、2位電流小數為教學推論，只改显示、不降低內部10mV/1mA設定解析度。",
    "rationale": "p.29 預設四位；p.46 \"33.00V full scale\"、\"3.200A full scale\"。",
    "verify_method": "校機亮屏照片；若為 3 位則加設定選項。"
   },

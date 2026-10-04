@@ -23,6 +23,21 @@ const lcdAmpl = (m) => `${fmtAmpl(m.refVpp(), m.c.unit, m.c.wave)} ${UNIT_TEXT[m
 const near = (a, b, tol = 1e-9) => assert.ok(Math.abs(a - b) <= tol, `${a} ≉ ${b}`);
 const fresh = () => { const m = new AfgModel(); run(m, 'PRESET'); return m; };
 
+// 從實際 LCD SVG 確認底線落在數字上，且該數字的位權等於旋鈕用的位權。
+function visibleCursor(m) {
+  const svg = m.lcd();
+  const edit = svg.match(/<text x="([^"]+)" y="223"[^>]*>([^<]+)<\/text>/);
+  const line = svg.match(/<rect x="([^"]+)" y="226"/);
+  assert.ok(edit && line, `編輯框必須有可見游標：${m.hl}，位權 ${m.cexp}`);
+  const [number, unit] = edit[2].split(' ');
+  const index = Math.round((Number(line[1]) - Number(edit[1]) - 0.5) / 9.4);
+  assert.match(number[index] ?? '', /\d/, `底線必須落在數字而非小數點或負號：${edit[2]}`);
+  const dot = number.indexOf('.');
+  const shownExp = dot < 0 ? number.length - index - 1 : dot - index - (index < dot ? 1 : 0);
+  const mult = { uHz: 1e-6, mHz: 1e-3, Hz: 1, kHz: 1e3, MHz: 1e6, mVPP: 1e-3, mVRMS: 1e-3, mVDC: 1e-3 }[unit] ?? 1;
+  assert.equal(m.cexp, Math.round(Math.log10(mult)) + shownExp, `旋鈕與底線位權一致：${edit[2]}`);
+}
+
 test('Preset 狀態（AFG-F13）', () => {
   const m = fresh();
   assert.equal(m.c.wave, 'SINE'); assert.equal(m.c.freq, 1000); near(m.refVpp(), 3); assert.equal(m.refOffset(), 0);
@@ -110,6 +125,68 @@ test('F05：1 kHz 游標移到 kHz 個位，順時針得 2 kHz、逆時針回 1 
   m.turn('AFG.KNOB.SCROLL_WHEEL', -1); assert.equal(m.c.freq, 1000);
 });
 
+test('F05：頻率／幅度／偏移／SYM 的游標只在 LCD 可見數字間移動', () => {
+  for (const seq of ['FREQ', 'AMPL', 'AMPL F1', 'AMPL F2', 'AMPL F3', 'AMPL F4', 'OFFSET', 'OFFSET F1', 'OFFSET 0.9 PM F2', 'WAVE F4 F1']) {
+    const m = fresh(); run(m, seq);
+    visibleCursor(m);
+    for (const direction of ['LEFT', 'RIGHT']) {
+      for (let i = 0; i < 16; i++) { run(m, direction); visibleCursor(m); }
+    }
+  }
+  const f = fresh(); run(f, 'FREQ LEFT LEFT');
+  assert.equal(f.cexp, 3, '1 kHz 的最高可見位是 kHz 個位');
+  f.turn('AFG.KNOB.SCROLL_WHEEL', 1);
+  assert.equal(f.c.freq, 2000, '不能因隱藏的十 kHz 位而跳到 11 kHz'); visibleCursor(f);
+  const a = fresh(); run(a, 'AMPL LEFT LEFT');
+  a.turn('AFG.KNOB.SCROLL_WHEEL', 1); near(a.refVpp(), 4); visibleCursor(a);
+  const o = fresh(); run(o, 'OFFSET LEFT LEFT');
+  o.turn('AFG.KNOB.SCROLL_WHEEL', 1); near(o.refOffset(), 1); visibleCursor(o);
+});
+
+test('F05：頻率跨 Hz／kHz 與 mHz／uHz 時保留正確位權及可見游標', () => {
+  const m = fresh(); run(m, 'FREQ 999.999999 F3');
+  for (let i = 0; i < 16; i++) run(m, 'RIGHT');
+  assert.equal(m.cexp, -6);
+  m.turn('AFG.KNOB.SCROLL_WHEEL', 1);
+  assert.equal(m.c.freq, 1000); assert.equal(m.cexp, -6); visibleCursor(m);
+  m.turn('AFG.KNOB.SCROLL_WHEEL', -1);
+  near(m.c.freq, 999.999999, 1e-10); visibleCursor(m);
+  run(m, '1 F2');
+  for (let i = 0; i < 16; i++) run(m, 'RIGHT');
+  m.turn('AFG.KNOB.SCROLL_WHEEL', -1);
+  near(m.c.freq, 999e-6, 1e-12); assert.equal(m.cexp, -6); visibleCursor(m);
+});
+
+test('F05：幅度進位縮減顯示小數時，游標移到最近的可見位數', () => {
+  const m = fresh(); run(m, 'CH CH F1 F2 AMPL 9.999 F5 RIGHT RIGHT');
+  assert.equal(m.cexp, -3); visibleCursor(m);
+  m.turn('AFG.KNOB.SCROLL_WHEEL', 1);
+  near(m.refVpp(), 10); assert.equal(lcdAmpl(m), '10.00 VPP');
+  assert.equal(m.cexp, -2, '10.00 沒有千分位，不能保留隱藏游標'); visibleCursor(m);
+  m.turn('AFG.KNOB.SCROLL_WHEEL', 1);
+  near(m.refVpp(), 10.01); visibleCursor(m);
+  run(m, 'F2'); visibleCursor(m);
+  const before = m.refVpp();
+  m.turn('AFG.KNOB.SCROLL_WHEEL', -1);
+  near(m.refVpp(), before - 0.1 * 2 * Math.SQRT2); visibleCursor(m);
+});
+
+test('F05：偏移切到 mVDC 與 SYM 跨 100%→0% 時，旋鈕不使用消失的位數', () => {
+  const m = fresh(); run(m, 'OFFSET F1');
+  assert.equal(m.cexp, -3, '0 mVDC 只有 mV 個位'); visibleCursor(m);
+  m.turn('AFG.KNOB.SCROLL_WHEEL', 1);
+  near(m.refOffset(), 0.001); visibleCursor(m);
+  run(m, 'F2'); visibleCursor(m);
+  m.turn('AFG.KNOB.SCROLL_WHEEL', -1);
+  near(m.refOffset(), -0.099); visibleCursor(m);
+  run(m, 'WAVE F4 F1 100 F2 LEFT LEFT');
+  assert.equal(m.cexp, 2); visibleCursor(m);
+  m.turn('AFG.KNOB.SCROLL_WHEEL', -1);
+  assert.equal(m.c.sym, 0); assert.equal(m.cexp, 0); visibleCursor(m);
+  m.turn('AFG.KNOB.SCROLL_WHEEL', 1);
+  assert.equal(m.c.sym, 1); visibleCursor(m);
+});
+
 test('F05：微赫茲頻率的預設游標不低於 1 µHz 解析度，提交與重開選單後旋鈕每格生效', () => {
   for (const f of [1, 25, 999]) {
     const m = fresh();
@@ -194,13 +271,12 @@ test('F14：Return 捨棄半截輸入；F2 選單依情境', () => {
   assert.equal(m.menu, 'FREQ');
 });
 
-test('F15：Pulse、Noise、Phase 不改狀態', () => {
-  const m = fresh();
-  const before = JSON.stringify(m.snapshot());
-  assert.equal(run(m, 'WAVE F3').kind, 'out');
-  assert.equal(run(m, 'F5').kind, 'out');
-  run(m, 'CH CH'); assert.equal(run(m, 'F4').kind, 'out');
-  const after = m.snapshot();
-  assert.equal(after.ch[0].wave, 'SINE');
-  assert.deepEqual(after.ch.map((c) => c.emfVpp), JSON.parse(before).ch.map((c) => c.emfVpp));
+test('F15：Pulse、Noise與Phase 已可實際選取/編輯', () => {
+  const m = new AfgModel();
+  run(m, 'WAVE F3'); assert.equal(m.c.wave, 'PULSE');
+  run(m, 'F1 250 F3'); assert.equal(m.c.extended.pulseWidth, 250e-6);
+  run(m, 'WAVE F5'); assert.equal(m.c.wave, 'NOISE');
+  assert.match(run(m, 'FREQ').text, /Noise/); assert.equal(m.hl, null);
+  run(m, 'WAVE F1 CH CH F4 F1 45 F5'); assert.equal(m.c.phase, 45);
+  assert.equal(m.descriptor(0).phase, 45);
 });

@@ -42,7 +42,7 @@
    "label": "F1",
    "kind": "軟鍵（螢幕旁）",
    "action": "按下",
-   "function": "執行 LCD 右側第 1 格軟鍵：Waveform 選單＝Sine；FREQ/Rate＝uHz；AMPL＝dBm；DC Offset＝mVDC；Ramp 子選單＝SYM；CH1/CH2 選單＝Load；Load 子選單＝50 OHM；Square 子選單＝Duty（OUT）；Pulse 子選單＝Width（OUT）",
+   "function": "執行 LCD 右側第 1 格軟鍵：Waveform 選單＝Sine；FREQ/Rate＝uHz；AMPL＝dBm；DC Offset＝mVDC；Ramp 子選單＝SYM；CH1/CH2 選單＝Load；Load 子選單＝50 OHM；Square 子選單＝Duty；Pulse 子選單＝Width",
    "feedback": "LCD 軟鍵標籤；選波形時波形區改變；按單位鍵時提交數值並顯示單位",
    "range": "依選單",
    "sources": "P1；M-AFG p.13, p.18, p.23, p.55, p.58, p.60–62, p.144–145 (PDF 同)",
@@ -74,14 +74,14 @@
    "label": "F3",
    "kind": "軟鍵（螢幕旁）",
    "action": "按下",
-   "function": "Waveform 選單＝Pulse（本輪 OUT）；FREQ/Rate＝Hz；AMPL＝VRMS；DC Offset 選單＝空白；Pulse 子選單＝uSEC（OUT）",
+   "function": "Waveform 選單＝Pulse；FREQ/Rate＝Hz；AMPL＝VRMS；DC Offset 選單＝空白；Pulse 子選單＝uSEC",
    "feedback": "同 F1；Pulse 顯示範圍說明",
    "range": "依選單",
    "sources": "P1；M-AFG p.18, p.57–58, p.61–62 (PDF 同)",
    "evidence": "PH+OT",
    "status": "CORE",
    "card": "I02/I01",
-   "notes": "Pulse 參數本輪未納入，但軟鍵保留。；卡別細節：I02（I01）"
+   "notes": "Pulse Width已支援；軟鍵依單位提交真實脈衝寬度。；卡別細節：I02（I01）"
   },
   {
    "id": "AFG.SOFT.F4",
@@ -90,7 +90,7 @@
    "label": "F4",
    "kind": "軟鍵（螢幕旁）",
    "action": "按下",
-   "function": "Waveform 選單＝Ramp；FREQ/Rate＝kHz；AMPL＝mVPP；CH1/CH2 選單＝Phase（OUT）",
+   "function": "Waveform 選單＝Ramp；FREQ/Rate＝kHz；AMPL＝mVPP；CH1/CH2 選單＝Phase",
    "feedback": "同 F1",
    "range": "依選單",
    "sources": "P1；M-AFG p.27, p.58, p.61–62, p.145 (PDF 同)",
@@ -106,7 +106,7 @@
    "label": "F5",
    "kind": "軟鍵（螢幕旁）",
    "action": "按下",
-   "function": "Waveform 選單＝Noise（OUT）；FREQ/Rate＝MHz；AMPL＝VPP；CH1/CH2 選單＝DSO Link（OUT）；Pulse 子選單＝SEC（OUT）",
+   "function": "Waveform 選單＝Noise；FREQ/Rate＝MHz；AMPL＝VPP；CH1/CH2 選單＝DSO Link；Pulse 子選單＝SEC",
    "feedback": "同 F1",
    "range": "依選單",
    "sources": "P1；M-AFG p.27–28, p.59, p.61–62, p.147 (PDF 同)",
@@ -316,7 +316,7 @@
    "action": "按下",
    "function": "暫定（PD）：切換輸入中數值的正負號。用在 DC Offset 的負值，以及 AMPL 用 dBm 單位時的負 dBm（例如 −10 dBm）。",
    "feedback": "LCD 編輯框數值前出現或消失負號（暫定）",
-   "range": "Offset（±Vpk）；AMPL 的 dBm（可為負或 0，合法與否依換算後、未捨入的 Vpp 與聯合限制判定，AFG-F06）；Vpp／Vrms 只能大於 0（0 或負值在提交時拒絕）；Phase 本輪 OUT",
+   "range": "Offset（±Vpk）；AMPL 的 dBm（可為負或 0，合法與否依換算後、未捨入的 Vpp 與聯合限制判定，AFG-F06）；Vpp／Vrms 只能大於 0（0 或負值在提交時拒絕）；Sine/Ramp Phase為−180°–180°，Square/Pulse/Noise/ARB固定0°",
    "sources": "P1；M-AFG p.15, p.24 (PDF 同)",
    "evidence": "PH+OT+PD",
    "status": "APPROX",
@@ -330,7 +330,7 @@
    "label": "無印字",
    "kind": "旋鈕",
    "action": "順時針／逆時針旋轉",
-   "function": "編輯目前高亮參數的游標所在位數；p.23：「Clockwise increases the value, counter clockwise decreases the value.」也用於在清單中選項目（Memory、Help 等，本輪 OUT）",
+   "function": "編輯目前高亮參數的游標所在位數；p.23：「Clockwise increases the value, counter clockwise decreases the value.」也用於在清單中選項目（Memory、Help 等）",
    "feedback": "LCD 參數值與編輯框即時變化（立即生效與否 UN）",
    "range": "受該參數的範圍與聯合限制約束",
    "sources": "P1；M-AFG p.13, p.15, p.23, p.25, p.40 (PDF 同)",
@@ -385,7 +385,7 @@
    "evidence": "PH+OT+PD",
    "status": "CORE",
    "card": "I02",
-   "notes": "照片與手冊都只有一顆標「CH1/CH2」的鍵，不是兩顆。按一次到底是切換通道、開啟選單，還是兩者都做，手冊沒寫清楚（GAP-AFG-01）。切換時不得覆寫另一通道的設定。；證據細節：PH+OT；按一次是否同時切換通道並開啟選單為 PD"
+   "notes": "照片與手冊都只有一顆標「CH1/CH2」的鍵，不是兩顆。按一次到底是切換通道、開啟選單，還是兩者都做，手冊沒寫清楚（GAP-AFG-01）。切換時不得覆寫另一通道的設定。；證據細節：PH+OT；按一次是否同時切換通道並開啟選單為 PD 已支援 Load、Phase、DSO Link；DSO Link匯入模擬示波器已採集資料，實體USB協定不在模擬範圍。"
   },
   {
    "id": "AFG.KEY.OUTPUT",
@@ -412,7 +412,7 @@
    "action": "按下",
    "function": "選擇波形類型；軟鍵顯示 F1 Sine／F2 Square／F3 Pulse／F4 Ramp／F5 Noise",
    "feedback": "LCD 軟鍵換成波形選單；選定後波形區更新",
-   "range": "Sine、Square、Ramp（CORE）；Pulse、Noise（OUT）",
+   "range": "Sine、Square、Ramp、Pulse、Noise（CORE）",
    "sources": "P1；M-AFG p.13, p.18, p.44, p.55–59 (PDF 同)",
    "evidence": "PH+OT",
    "status": "CORE",
@@ -426,9 +426,9 @@
    "label": "FREQ/Rate（照片斜線不清楚，讀似「FREQ Rate」）",
    "kind": "實體鍵",
    "action": "按下",
-   "function": "設定頻率（ARB 模式下為取樣率，本輪 OUT）。FREQ 參數高亮，軟鍵顯示 F1 uHz／F2 mHz／F3 Hz／F4 kHz／F5 MHz",
+   "function": "設定頻率（ARB 模式下為取樣率；Noise不適用頻率設定）。FREQ 參數高亮，軟鍵顯示 F1 uHz／F2 mHz／F3 Hz／F4 kHz／F5 MHz",
    "feedback": "LCD FREQ 欄紅字高亮；編輯框顯示如「1.000000000 kHz」",
-   "range": "Sine／Square 1 μHz–25 MHz；Ramp 1 μHz–1 MHz；Pulse 500 μHz–25 MHz（OUT）；解析度 1 μHz",
+   "range": "Sine／Square 1 μHz–25 MHz；Ramp 1 μHz–1 MHz；Pulse 500 μHz–25 MHz；解析度 1 μHz",
    "sources": "P1；M-AFG p.13, p.60–61, p.208, p.288 (PDF 同)",
    "evidence": "PH+OT",
    "status": "CORE",
@@ -474,14 +474,14 @@
    "label": "UTIL",
    "kind": "實體鍵",
    "action": "按下",
-   "function": "進入 Utility 選單：F1 Memory／F2 Cal.／F3 System／F4 Dual Chan／F5 Counter（p.51）",
+   "function": "UTIL：10個記憶槽、版本、Beep、雙通道耦合/Tracking/S_Phase、真輸入Counter",
    "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 軟鍵換成 UTIL 選單",
    "range": "—",
    "sources": "P1；M-AFG p.14, p.40–43, p.51, p.134–143 (PDF 同)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "CORE",
    "card": "I02",
-   "notes": "p.14 說 UTIL 可設「output impedance settings」，但 p.51 選單樹與 p.144 操作步驟都把 Load 放在 CH1/CH2 下，衝突待校機（GAP-AFG-17）。本輪只顯示頂層選單名稱與範圍說明，不改任何狀態。"
+   "notes": "M-AFG p.133–147/291；校正與韌體更新需要硬體。Counter虛擬取實驗台CH1探棒尖端，5Hz–150MHz、gate整數計數近似。"
   },
   {
    "id": "AFG.KEY.ARB",
@@ -490,14 +490,14 @@
    "label": "ARB",
    "kind": "實體鍵",
    "action": "按下",
-   "function": "任意波形設定：F1 Display／F2 Edit／F3 Built in／F4 Output／F5 More",
+   "function": "ARB：4k點編輯/保護/顯示/函數範本/實際輸出/記憶槽",
    "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 軟鍵換成 ARB 選單",
    "range": "—",
    "sources": "P1；M-AFG p.14, p.37–38, p.45–48, p.149–172 (PDF 同)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "CORE",
    "card": "I02",
-   "notes": "本輪未納入 ARB 編輯；只顯示範圍說明。"
+   "notes": "M-AFG p.148–180；sample-and-hold教學近似，不含真機重建濾波器。內建命名函數是近似，不是66形原廠ROM。"
   },
   {
    "id": "AFG.KEY.MOD",
@@ -506,14 +506,14 @@
    "label": "MOD",
    "kind": "實體鍵",
    "action": "按下",
-   "function": "調變：F1 AM／F2 FM／F3 FSK／F4 PM／F5 SUM",
+   "function": "AM/FM/FSK/PM/SUM理想時變波形與解析相位",
    "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 軟鍵換成 MOD 選單",
    "range": "—",
    "sources": "P1；M-AFG p.14, p.29–33, p.48, p.64, p.67–105 (PDF 同)",
-   "evidence": "PH+OT",
-   "status": "OUT",
+   "evidence": "PH+OT+PD",
+   "status": "CORE",
    "card": "I02",
-   "notes": "本輪未納入。"
+   "notes": "最多64000解析區段、周期閉合需1024以内有理比，超界原值保留；MOD/Sweep/Burst互斥。再次按模式鍵退出為教學面板近似。External/Gate/TTL Trigger OUT需要未提供的後面板端子，不假顯成功。"
   },
   {
    "id": "AFG.KEY.SWEEP",
@@ -522,14 +522,14 @@
    "label": "Sweep",
    "kind": "實體鍵",
    "action": "按下",
-   "function": "掃頻：F1 Source／F2 Type／F3 Start／F4 Stop／F5 More",
+   "function": "INT線性/可整比Log掃頻，Manual單次線性/Log掃頻與截止後Start頻率",
    "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 軟鍵換成 Sweep 選單",
    "range": "—",
    "sources": "P1；M-AFG p.14, p.34, p.49, p.109–117 (PDF 同)",
-   "evidence": "PH+OT",
-   "status": "OUT",
+   "evidence": "PH+OT+PD",
+   "status": "CORE",
    "card": "I02",
-   "notes": "本輪未納入。"
+   "notes": "最多64000解析區段、周期閉合需1024以内有理比，超界原值保留；MOD/Sweep/Burst互斥。再次按模式鍵退出為教學面板近似。External/Gate/TTL Trigger OUT需要未提供的後面板端子，不假顯成功。"
   },
   {
    "id": "AFG.KEY.BURST",
@@ -538,14 +538,14 @@
    "label": "Burst",
    "kind": "實體鍵",
    "action": "按下",
-   "function": "Burst 選單：F1 N Cycle、F2 Gate（p.121：「To select either N Cycle (F1) or Gate (F2).」）；本輪未納入",
+   "function": "INT N-Cycle真實間隔、Manual单次与Infinite",
    "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 軟鍵換成 Burst 選單",
    "range": "—",
    "sources": "P1；M-AFG p.14, p.35, p.50, p.120–121",
-   "evidence": "PH+OT",
-   "status": "OUT",
+   "evidence": "PH+OT+PD",
+   "status": "CORE",
    "card": "I02",
-   "notes": "本輪未納入。"
+   "notes": "最多64000解析區段、周期閉合需1024以内有理比，超界原值保留；MOD/Sweep/Burst互斥。再次按模式鍵退出為教學面板近似。External/Gate/TTL Trigger OUT需要未提供的後面板端子，不假顯成功。"
   },
   {
    "id": "AFG.KEY.PRESET",
@@ -746,8 +746,8 @@
    "softkeys": "F1 Sine｜F2 Square｜F3 Pulse｜F4 Ramp｜F5 Noise",
    "source": "M-AFG p.18, p.23, p.44, p.55–59 (PDF 同)",
    "evidence": "OT",
-   "status": "CORE（Sine／Square／Ramp）；Pulse、Noise 為 OUT",
-   "notes": "沒有 Triangle 軟鍵。p.55：「The AFG-2225 can output 5 standard waveforms: sine, square, pulse, ramp and noise.」"
+   "status": "CORE",
+   "notes": "Sine/Square/Pulse/Ramp/Noise皆可選。Noise固定種子、1MSa/s/4096點對稱sample-and-hold教學近似，不呈現Frequency。"
   },
   {
    "path": "Waveform → F4 Ramp → F1 SYM → 數字鍵（或 ◀▶＋旋鈕）→ F2 %",
@@ -762,16 +762,16 @@
    "softkeys": "F1 Duty｜F2 %｜TTL（手冊未寫 F 鍵位置）",
    "source": "M-AFG p.44, p.56 (PDF 同)",
    "evidence": "OT",
-   "status": "OUT（本輪 Duty 固定為預設 50%）",
-   "notes": "p.56：「TTL function is to set the amplitude of the current square wave at 2.5Vpp, and DC Offset at 1.25Vdc.」"
+   "status": "CORE",
+   "notes": "Duty真實連動；TTL採EMF5Vpp+2.5Voffset（50Ω面板2.5Vpp+1.25Vdc），F3位置教學近似。"
   },
   {
    "path": "Waveform → F3 Pulse → F1 Width → 數字 → 單位",
    "softkeys": "F1 Width｜F2 nSEC｜F3 uSEC｜F4 mSEC｜F5 SEC",
    "source": "M-AFG p.44, p.57–58 (PDF 同)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "Pulse Width 20ns–1999.9s。"
+   "status": "CORE",
+   "notes": "理想邊緣/20ns低平台保留；<=100kHz最小Width採T/4096。未模擬真機<50ns幅度衰減。"
   },
   {
    "path": "FREQ/Rate →（FREQ 高亮）→ 數字鍵或 ◀▶＋旋鈕 → 單位軟鍵",
@@ -802,7 +802,7 @@
    "softkeys": "F1 Load｜F4 Phase｜F5 DSO Link｜F2、F3 未標示（UN）",
    "source": "M-AFG p.51, p.144–147 (PDF 同)",
    "evidence": "OT",
-   "status": "CORE（只做 Load）；Phase、DSO Link 為 OUT",
+   "status": "CORE（Load、Phase、模擬DSO Link）",
    "notes": "按 CH1/CH2 時是否同時切換通道：UN（GAP-AFG-01）。"
   },
   {
@@ -818,16 +818,16 @@
    "softkeys": "F1 Phase（→ 數字 → F5 Degree）｜F2 S_Phase",
    "source": "M-AFG p.145–146 (PDF 同)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "LCD 的 Phase 列仍顯示 Preset 值 0.0°（截圖）。"
+   "status": "CORE",
+   "notes": "Sine/Ramp可設±180°，Square/Pulse固定0°；ARB/Noise不開放。S_Phase將兩通道Phase歸零。"
   },
   {
    "path": "CH1/CH2 → F5 DSO Link",
    "softkeys": "F1 Search｜F2 CH1｜F3 CH2｜F4 CH3｜F5 CH4",
    "source": "M-AFG p.147 (PDF 147)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "這些 CH1–CH4 是 GDS 示波器的通道，不是 AFG 的通道。"
+   "status": "CORE",
+   "notes": "DSO Link橋接模擬示波器已採集資料，正規化為±511並匯入ARB；真機只支援GDS-2000，此為教學近似。"
   },
   {
    "path": "OUTPUT（直接鍵，沒有選單）",
@@ -858,40 +858,40 @@
    "softkeys": "F1 Memory｜F2 Cal.｜F3 System｜F4 Dual Chan｜F5 Counter",
    "source": "M-AFG p.25, p.40–43, p.51, p.134–143 (PDF 同)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "p.51 UTIL 選單樹沒有列 Load；但 p.14 說 UTIL 含「output impedance settings」，兩處衝突（UN，見 GAP-AFG-17）。本輪 UTIL 只顯示頂層與範圍說明。"
+   "status": "CORE",
+   "notes": "記憶槽保存/讀回/刪除設定與ARB，Preset保留記憶；雙向頻率/幅度耦合、Tracking/Inverted與實際EMF連動，超界原子拒絕。"
   },
   {
    "path": "MOD",
    "softkeys": "F1 AM｜F2 FM｜F3 FSK｜F4 PM｜F5 SUM",
    "source": "M-AFG p.29–33, p.48, p.67–105 (PDF 同)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "只列頂層名稱。"
+   "status": "CORE",
+   "notes": "AM標準公式(1+d·m)採教學近似，非校機峰值定義；FM解析積分頻率，PM加相位，FSK保持phase連續，SUM相加；INT源五種形。"
   },
   {
    "path": "Sweep",
    "softkeys": "F1 Source｜F2 Type｜F3 Start｜F4 Stop｜F5 More",
    "source": "M-AFG p.34, p.49, p.109–117 (PDF 同)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "只列頂層名稱。"
+   "status": "CORE",
+   "notes": "相位跨INT sweep連續（官方p.110）；總相位有理p/q才q次重複。一般Log無有限周期閉合時拒絕INT，Manual可一次真掃描，截止後Startfreq相位接續。"
   },
   {
    "path": "Burst",
    "softkeys": "F1 N Cycle｜F2 Gate｜F3–F5 未標示（UN）",
    "source": "M-AFG p.50, p.120–121",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "只列頂層名稱。"
+   "status": "CORE",
+   "notes": "INT N Cycle/Period/Phase/Delay真實輸出及held-gap。Manual的finite deadline由Bench排真歷史段且傳承電容狀態；Infinite僅Manual。Square/Ramp起始phase/hold值遵從現有理想波形約定，非校機零伏定義。"
   },
   {
    "path": "ARB",
    "softkeys": "F1 Display｜F2 Edit｜F3 Built in｜F4 Output｜F5 More（→ F1 Save…）",
    "source": "M-AFG p.37–38, p.45–48, p.149–172 (PDF 同)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "只列頂層名稱。"
+   "status": "CORE",
+   "notes": "Point/Line/Copy/Clear/Protect、Display範圍/縮放、輸出Start/Length及Rate連動模型；USB/韌體/校正不假裝硬體成功。"
   }
  ],
  "specs": [
@@ -917,7 +917,7 @@
    "quote": "Ramp wave 1μHz~1MHz"
   },
   {
-   "item": "頻率範圍：Pulse（OUT）／Noise（OUT）",
+   "item": "頻率範圍：Pulse／Noise",
    "value": "Pulse 500 μHz–25 MHz；Noise 不適用頻率",
    "source": "M-AFG p.60 (PDF 60)；p.208–209",
    "evidence": "OT",
@@ -1050,7 +1050,7 @@
    "quote": "Variable Symmetry 0% to 100% (0.1% Resolution)"
   },
   {
-   "item": "Square Duty（OUT，供參考）",
+   "item": "Square Duty（已支援）",
    "value": "≤100kHz：1.0%–99.0%；100kHz–≤1MHz：10.0%–90.0%；>1MHz–25MHz：固定 50%；預設 50%",
    "source": "M-AFG p.56 (PDF 56)；p.212；p.289",
    "evidence": "OT",
@@ -1120,7 +1120,7 @@
    "quote": "Overload relay automatically disables main output"
   },
   {
-   "item": "Phase（OUT，供參考）",
+   "item": "Phase（已支援 Sine/Ramp）",
    "value": "-180°–180°；Square 與 Pulse 不能改，固定 0°",
    "source": "M-AFG p.145 (PDF 145)；p.291–292",
    "evidence": "OT",
@@ -1227,7 +1227,7 @@
   {
    "id": "AFG-F13",
    "feature": "Preset",
-   "rule": "按 Preset 後（暫定兩通道都套用）：Sine、1 kHz、3.000 Vpp、0.00 V、單位 Vpp、Load 50 Ω、Output OFF；SYM／Duty 暫定 50%，Phase 0°。 Preset 同時把 MOD、Sweep、Burst 設為 Off（本輪這三者本來就 OUT，只需保持 Off）。",
+   "rule": "按 Preset 後（暫定兩通道都套用）：Sine、1 kHz、3.000 Vpp、0.00 V、單位 Vpp、Load 50 Ω、Output OFF；SYM／Duty 暫定 50%，Phase 0°。 Preset 同時把 MOD、Sweep、Burst 設為 Off，重設其參數與Manual觸發執行狀態，保留10個Memory槽。",
    "source": "M-AFG p.52–53, p.212–213 (PDF 同)",
    "evidence": "OT+PD（套用範圍與未列項目）",
    "acceptance": "I02-7：任意設定後按 Preset，檢查 LCD 與兩通道 descriptor 都回到上列值。"
@@ -1242,67 +1242,94 @@
   },
   {
    "id": "AFG-F15",
-   "feature": "未納入的鍵要明示範圍",
-   "rule": "ARB、MOD、Sweep、Burst、UTIL：按下時 LCD 與狀態都不變，只在儀器外顯示範圍說明（含原廠頂層選單名稱）。Waveform 選單裡的 Pulse、Noise 與 CH 選單裡的 Phase、DSO Link 標籤照原廠顯示，按下同樣只在儀器外提示。Square 的 Duty 固定 50%。都不出現成功訊息。",
+   "feature": "硬體與數值模擬範圍須明示",
+   "rule": "Duty、Phase、TTL、S_Phase、Pulse、Noise、ARB、UTIL、MOD、Sweep、Burst與模擬DSO Link均為實際功能。TTL以EMF 5Vpp＋2.5V offset輸出，F3位置為教學近似；S_Phase清零兩通道Phase。硬體校正／韌體、外部MOD／Trigger／Gate、實體USB／TTL端子未提供時必須明示限制；不顯示虛構成功。所有雙通道active輸出，包括CONT，都必須具有1024以内有理比的真共同週期；超過64000解析區段或無有限閉合週期時設定被拒絕且原值保留，不會退回CH1週期改寫CH2。",
    "source": "M-AFG p.14, p.29–51 (PDF 同)",
    "evidence": "OT+PD（UI 處理方式）",
-   "acceptance": "I02-7、I02-8：逐一按下這些鍵，確認狀態與 descriptor 都沒改變。"
+   "acceptance": "模型與UI驗證支援鍵改變實際狀態、source descriptor及量測；硬體功能明示限制，不顯示成功。"
   },
   {
    "id": "AFG-F16",
    "feature": "LCD 與狀態同源",
-   "rule": "status tab、參數窗、波形區、軟鍵標籤全部從同一份儀器狀態產生；Phase 列顯示 0.0°（本輪不可編輯）；不新增 Period 欄位。",
+   "rule": "status tab、參數窗、波形區、軟鍵標籤全部從同一份儀器狀態產生；Phase 列顯示已提交的角度，Square 固定 0.0°；不新增 Period 欄位。",
    "source": "M-AFG p.18, p.55–63 截圖 (PDF 同)",
    "evidence": "OT",
    "acceptance": "I02-1 至 I02-8：每一步都比對 LCD 與唯讀 debug 狀態是否一致；一致＝LCD 字串等於 debug 狀態（已提交的未捨入值）依 GAP-AFG-13 格式化的結果，不要求兩者數值相等。"
+  },
+  {
+   "id": "AFG-F17",
+   "feature": "Square Duty 可編輯且輸出連動",
+   "rule": "Waveform → Square → Duty → 數字 → %；旋鈕與游標步進暫定 0.1%。≤100 kHz 為 1–99%，100 kHz–1 MHz 為 10–90%，>1 MHz 固定 50%。改頻率若使目前 Duty 超界則拒絕；切入 Square 時把記憶 Duty 夾至合法範圍（PD，儀器外說明）。雙極性 ±A 的波形 RMS 為 A（沿用幅度單位換算），自身平均值 A(2d−1)，去直流的 AC RMS＝2A√[d(1−d)]。EMF、電容解析分段、GPE CC/RB、示波器觸發與讀值都使用相同 Duty。",
+   "source": "M-AFG p.44, p.56, p.212, p.289；步進/超界處理/RMS 模型為 PD",
+   "evidence": "OT+PD",
+   "acceptance": "test/afg-duty-phase.test.mjs：1%/1.1% 短占空比、頻率聯合限制、兩通道、RC 解析值、GPE 共驅電容。"
+  },
+  {
+   "id": "AFG-F18",
+   "feature": "Sine/Ramp Phase 可編輯且輸出連動",
+   "rule": "CH1/CH2 → Phase → Phase → 數字 → Degree；−180°–180°，0.1° 步進暫定。正角度表示超前共用時鐘（PD）。Square 固定 0°，切入 Square 清零 Phase；Preset 清零兩通道。LCD、descriptor、bench 波形及解析折點採用相同值；S_Phase依p.143清零兩通道Phase。",
+   "source": "M-AFG p.145–146, p.291–292；步進/正負語義/切波形記憶為 PD",
+   "evidence": "OT+PD",
+   "acceptance": "test/afg-duty-phase.test.mjs：負角度、邊界、旋鈕、移相 RC、觸發位準與 GPE 保護。"
+  },
+  {
+   "id": "AFG-F19",
+   "feature": "Pulse Width",
+   "rule": "500µHz–25MHz、Width20ns–1999.9s；≤100kHz依p.58採最小T/4096（1kHz為244.140625ns，因此20ns被拒絕）。另外保留低平台20ns是教學保守近似。理想跳變，EMF/解析RC/限流/量測同步",
+   "source": "M-AFG p.57–60,218,289–292",
+   "evidence": "OT+PD",
+   "acceptance": "20ns短脈衝的時刻/平均/AC RMS/解析RC與獨立指數式一致"
+  },
+  {
+   "id": "AFG-F20",
+   "feature": "Noise/ARB實際輸出",
+   "rule": "Noise固定種子1MSa/s/4096點對稱值；ARB至多4096點±511、Rate≤120MSa/s、輸出2–4096點、1µHz–60MHz；物理sample-and-hold。App實際ARB JSON匯出/匯入使用選定SaveStart/Length與LoadTo地址，嚴格驗證型別/長度/範圍/Protect；不模擬實體USB格式。",
+   "source": "M-AFG p.59,148–180,261–267",
+   "evidence": "OT+PD",
+   "acceptance": "Noisemean=0、RMS與點平方一致；ARB四點的真平台/均值/RMS通過"
+  },
+  {
+   "id": "AFG-F21",
+   "feature": "記憶與雙通道耦合",
+   "rule": "10slots保存設定/ARB/both，Preset保留；Frequency Ratio/Offset、Amplitude、Tracking/Inverted真實連動；衝突拒絕且回滾两通道",
+   "source": "M-AFG p.133–143,269–273",
+   "evidence": "OT+PD",
+   "acceptance": "雙向頻率關係、超界兩通道不變、Invert EMF、save/recall/delete驗證"
+  },
+  {
+   "id": "AFG-F22",
+   "feature": "Counter與DSO Link",
+   "rule": "Counter虛擬輸入以實驗台CH1尖端的真交越+gate取整近似；DSO以已取得record的點匯入ARB，不拿AFG設定捏造",
+   "source": "M-AFG p.138,147,267,291",
+   "evidence": "OT+PD",
+   "acceptance": "Callback無信號不讀值，匯入data與record一致，無CH3資料拒絕"
+  },
+  {
+   "id": "AFG-F23",
+   "feature": "MOD解析時變波形",
+   "rule": "AM=(1+d*m)carrier，SUM=carrier+a*m（PD）；FM相位積分frequency，PM加相位，FSK真Hop/Carrier輪替且連續phase；INT周期可閉合才解算",
+   "source": "M-AFG p.66–107,219–241",
+   "evidence": "OT+PD",
+   "acceptance": "AM/SUM真RMS、FM/PM/FSK真時刻值、FM方波RC對獨立ODE参考"
+  },
+  {
+   "id": "AFG-F24",
+   "feature": "Sweep與單次歷史",
+   "rule": "Linear/Log解析phase積分，不把每sweep非整數相位重設；Manual一次扫完接Startfreq連續phase，截止真歷史傳承capacitorstate",
+   "source": "M-AFG p.108–118,241–250",
+   "evidence": "OT+PD",
+   "acceptance": "INT Linear跨repeatphase，ManualLog開端/中段/截止後真值，historydeadline正確"
+  },
+  {
+   "id": "AFG-F25",
+   "feature": "Burst真間隔与單次",
+   "rule": "INT N Cycle指定cycles/phase/delay/period，中間hold起始phase；Manual finite只一次，Infinite直到離開或關輸出，獨立deadline與電容state傳承",
+   "source": "M-AFG p.119–131,250–261",
+   "evidence": "OT+PD",
+   "acceptance": "真有波段與gap、Manual一次不重播、電容voltage連續且對獨立閉式充放電驗證"
   }
  ],
  "out_of_scope": [
-  {
-   "item": "Pulse 波形與 Width 參數（Waveform→F3）",
-   "reason": "02 本輪未納入 Pulse 完整參數",
-   "ui_treatment": "保留 F3 Pulse 軟鍵標籤；按下時在儀器外顯示範圍說明，波形狀態不變"
-  },
-  {
-   "item": "Noise 波形（Waveform→F5）",
-   "reason": "02 本輪未納入",
-   "ui_treatment": "同上"
-  },
-  {
-   "item": "Square Duty／TTL",
-   "reason": "02 必做只有方波基本輸出，Duty 不在清單內",
-   "ui_treatment": "Square 子選單顯示 Duty、%、TTL 標籤；Duty 固定 50%；按下時顯示範圍說明"
-  },
-  {
-   "item": "ARB（Display／Edit／Built in／Output／More）",
-   "reason": "02 未納入 ARB 編輯",
-   "ui_treatment": "按 ARB 時 LCD 不變，只在儀器外顯示範圍說明（含原廠頂層選單名稱），不改狀態"
-  },
-  {
-   "item": "MOD（AM／FM／FSK／PM／SUM）",
-   "reason": "02 未納入完整 MOD",
-   "ui_treatment": "同上"
-  },
-  {
-   "item": "Sweep",
-   "reason": "02 未納入",
-   "ui_treatment": "同上"
-  },
-  {
-   "item": "Burst",
-   "reason": "02 未納入",
-   "ui_treatment": "同上"
-  },
-  {
-   "item": "UTIL（Memory、Cal.、System：Language／Help／Beep、Dual Chan：Freq Cpl／Ampl Cpl／Tracking／S_Phase、Counter）",
-   "reason": "02 必做沒有列入；耦合與追蹤會破壞「兩通道獨立」的驗收",
-   "ui_treatment": "按 UTIL 時 LCD 不變，只在儀器外顯示範圍說明（含原廠頂層選單名稱）；耦合與追蹤固定 Off"
-  },
-  {
-   "item": "CH1/CH2 → Phase／S_Phase、DSO Link",
-   "reason": "02 未列",
-   "ui_treatment": "CH 選單顯示 F4 Phase、F5 DSO Link 標籤，按下顯示範圍說明；LCD 的 Phase 固定 0.0°"
-  },
   {
    "item": "遠端控制（USB Device、SCPI、REM/LOCK）",
    "reason": "02 未納入",
@@ -1322,6 +1349,16 @@
    "item": "20–25 MHz 平坦度、失真、上升時間等類比性能",
    "reason": "不在第一階段範圍",
    "ui_treatment": "不模擬；範圍說明中註明"
+  },
+  {
+   "item": "UTIL硬體校正/韌體USB、ARB實體USB、原廠66種ROM",
+   "reason": "瀏覽器沒有硬體/原廠ROM；目前內建18種命名函數教學近似",
+   "ui_treatment": "相關鍵明示硬體限制；內建函數近似與DSO教學橋接在儀器外說明"
+  },
+  {
+   "item": "External MOD/Trigger、Gated Burst、Marker與Trigger OUT實體TTL",
+   "reason": "沒有後面板虛擬端子/外部time-event输入；前面板相關鍵說明限制",
+   "ui_treatment": "拒絕或明說目前未提供實體輸出，不把state切換當作有訊號"
   }
  ],
  "gaps": [
@@ -1457,7 +1494,7 @@
    "id": "GAP-AFG-17",
    "gap": "UTIL 選單是否也有 Load／輸出阻抗入口（p.14 說有，p.51 選單樹沒有）",
    "impact": "AFG.KEY.UTIL、Load 操作路徑",
-   "provisional": "只做 CH1/CH2 → F1 Load → F1 50 OHM／F2 High Z；UTIL 本輪 OUT",
+   "provisional": "Load入口採 CH1/CH2 → F1 Load → F1 50 OHM／F2 High Z；UTIL已支援Memory/System/Dual Chan/Counter，但不增設沒有明文操作樹的Load入口",
    "rationale": "p.144 有逐步操作，比 p.14 的概述具體",
    "verify_method": "校機逐層打開 UTIL 選單，確認有無 Load 或 Impedance 項"
   },
@@ -1476,6 +1513,14 @@
    "provisional": "照 AFG-F06 ①–④：先用未捨入值判定，合法才提交，LCD 只格式化；不另設 dBm、Vrms 硬邊界。數值以一般雙精度浮點計算即可，判定上下限與聯合限制時容許 1×10⁻⁹ V 誤差（只吸收浮點誤差，遠小於任何有意義的輸入差），聯合限制一律用 AFG-F08 的加法形式。已知限制（同一規則的必然結果，不是缺陷）：(1) 顯示值不一定能照打回去：10 Vpp 顯示 3.536 VRMS，但輸入 3.536 VRMS≈10.00132 Vpp 被拒絕；≈9.99954 Vpp 與 10 Vpp 都顯示 23.98 dBm，但輸入 23.98 dBm≈10.00069 Vpp 被拒絕；25 MHz 時 5 Vpp 顯示 17.96 dBm，輸入 17.96 dBm≈5.00069 Vpp 被拒絕。(2) 1 kHz 下 +17.959 dBm≈5.00012 Vpp 合法，只按 VPP 顯示 5.000 VPP，但之後改到 25 MHz 被拒絕（GAP-AFG-09）。(3) 只換顯示單位後，已提交值可能不在顯示格點上：3.535 VRMS 切 VPP 顯示 9.998（≈9.99849），旋鈕在 0.001 位加一格得≈9.99949（顯示 9.999），再加一格≈10.00049 超過上限而不生效，畫面上卻像是要到 10.00；要設 10 Vpp 請直接輸入 10 VPP",
    "rationale": "修正複核 C1：原本 AFG-F06「單位換算後先依顯示解析度（1 mV 或 3 位有效數字）捨入，再做範圍與聯合限制檢查」有兩種讀法，+23.98 dBm（≈10.00069 Vpp）捨入到 1 mV 得 10.001 被拒絕、捨入到 3 位有效數字得 10.0 被接受。p.288 沒有演算法；p.203 的「(3.536 Vrms)」、p.202／p.210 的「must be adjusted to 3.536 Vrms」、p.207 的「automatically adjusted to 3.536」都在遠端章節，字面上把 3.536 Vrms 當成 sine 的上限讀值；本專案推論（PD）那是 10/(2√2)≈3.5355 捨入到 3 位小數後的標示，不當硬邊界，見來源差異「3.536 Vrms」。選「先判定未捨入值」是因為它唯一、可計算，而且只換顯示單位不會改變物理量",
    "verify_method": "校機：Sine、50 Ω、1 kHz、offset 0 分別輸入 23.98 dBm 與 3.536 VRMS，記錄是否被接受、接受後只按 VPP 的讀數；再輸入 10 VPP 後只按 dBm、VRMS、VPP 往返，看讀數與示波器量到的 Vpp 有沒有改變；在 VPP 顯示 9.998 附近用旋鈕加到 10.00，看會不會被擋"
+  },
+  {
+   "id": "GAP-AFG-20",
+   "gap": "新增 Duty/Phase 的旋鈕解析度、超界處理、相位正負方向與切換波形的記憶行為未校機確認",
+   "impact": "學生能練完整數值操作與電路結果；按鍵手感與自動夾值可能與校機不同。",
+   "provisional": "Duty/Phase 0.1%/0.1°；頻率改動使 Duty 超界時拒絕；切入 Square 時夾 Duty 並把 Phase 清零。正 Phase 表示超前。儀器外練習說明明示教學近似。",
+   "rationale": "頻率相關 Duty 與 Phase 範圍有原廠引用，新增提交/記憶細節按既有模擬器一致性定義，不偽稱校機驗證。",
+   "verify_method": "原廠正文與校機操作確認步進、跨頻率、Sine/Ramp→Square→原波形的參數保留。"
   }
  ],
  "discrepancies": [
@@ -1552,10 +1597,10 @@
    "resolution": "面板暫定用拒絕方式（GAP-AFG-05），並記錄這與遠端的夾值語義不同；校機後再調整。"
   },
   {
-   "topic": "Square Duty 的頻段邊界（非核心）",
+   "topic": "Square Duty 的頻段邊界",
    "a": "面板 p.56：≤100kHz 1.0–99.0%；100kHz~≤1MHz 10.0–90.0%；>1MHz~25MHz 固定 50%",
    "b": "遠端 p.209／p.212：「10% to 90% (100 KHz ≤ frequency ≤1MHz)」「50% (frequency ≤ 25 MHz)」，剛好 100 kHz 時兩處說法不同",
-   "resolution": "Duty 本輪 OUT，只記錄；日後實作採面板 p.56。"
+   "resolution": "已實作面板 p.56範圍：剛好100kHz仍採1–99%；跨頻段不合法時拒絕並保留原值。"
   },
   {
    "topic": "遠端查詢範例的最大幅度",
@@ -1579,7 +1624,7 @@
    "topic": "後面板 Trigger Output 的適用功能",
    "a": "M-AFG p.16：只用於 Sweep 與 ARB",
    "b": "M-AFG p.291：Type「For Burst, Sweep, Arb」",
-   "resolution": "後面板端子本輪 OUT，不影響實作；記錄矛盾，日後做 J 卡或 Burst 時再核對。"
+   "resolution": "Burst/Sweep可儲存Trigger OUT/Marker設定，但未提供實體TTL端子，不會產生可接線的TTL訊號；差異留待硬體端子擴充時核對。"
   }
  ],
  "pages_read": "規劃包：00、02、03、04 全文；DOWNLOAD_SOURCES.json、PHOTO_ORIGINS.json；01、05 只 grep 了與 AFG／terminal／descriptor 相關的行。照片：P1 原圖全幅、crops/afg_left.png、crops/afg_right.png，以及我另外裁切放大的操作鍵列、POWER、CH1/CH2 與 OUTPUT、OUTPUT BNC 區、右側邊緣，還有座標疊圖（P2 不在本機型範圍，未看）。M-AFG 文字全文讀過（印刷頁＝PDF 頁序）：p.1–28、p.29–32、p.40–65、p.109（前半）、p.120、p.127、p.132–149、p.182–183、p.190–191、p.194–217、p.274–281、p.288–292、p.306–307。M-AFG 只讀了 grep 出的按鍵序列行：p.33–39、p.67–105、p.111–129、p.151–175；另外對全書做了 dBm、Return、light／LED／illuminat、power on／up、+/-、Output key、CH1/CH2、current／selected channel 的關鍵字搜尋。M-AFG 看過渲染圖的頁：p.1、2、13（含面板高解析放大）、14、15、16、18、23、24、27、28（含 BNC 圖示放大）、44、51、52、53、55、56、58、59、60、61、62、63、144、145、288、289（含 Offset 列放大）。沒讀的頁：p.66–108 與 p.110–131 的正文細節（只有 grep 行）、p.150–181 的正文細節、p.218–273（其他 SCPI 命令）、p.282–287、p.293–305。"

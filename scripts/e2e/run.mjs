@@ -10,9 +10,23 @@ import { run as benchAudit } from './bench-audit.mjs';
 import { run as breadboard } from './breadboard.mjs';
 import { run as breadboardMeasure } from './breadboard-measure.mjs';
 import { run as review20261002 } from './review-20261002.mjs';
+import { run as homeSession } from './home-session.mjs';
+import { run as homeInstruments } from './home-instruments.mjs';
+import { run as current } from './current.mjs';
+import { run as undo } from './undo.mjs';
+import { run as protection } from './protection.mjs';
+import { run as benchTools } from './bench-tools.mjs';
+import { run as instrumentsExtended } from './instruments-extended.mjs';
+import { run as tdsExtended } from './tds-extended.mjs';
+import { run as sessionExtended } from './session-extended.mjs';
+import { run as afgExtended } from './afg-extended.mjs';
+import { run as backgroundAcquisition } from './background-acquisition.mjs';
+import { run as tdsSetupFile } from './tds-setup-file.mjs';
+import { run as measurementExport } from './measurement-export.mjs';
+import { run as tdsCausalAcquisition } from './tds-causal-acquisition.mjs';
 
 let fail = 0, pass = 0;
-for (const r of [afg, tds, gpe, dmm, i06, bench, benchRecovery, benchAudit, breadboard, breadboardMeasure, review20261002]) {
+for (const r of [afg, tds, gpe, dmm, i06, bench, benchRecovery, benchAudit, breadboard, breadboardMeasure, review20261002, homeSession, homeInstruments, current, undo, protection, benchTools, instrumentsExtended, tdsExtended, sessionExtended, afgExtended, backgroundAcquisition, tdsSetupFile, measurementExport, tdsCausalAcquisition]) {
   const T = await r();
   T.print();
   fail += T.fail; pass += T.pass;

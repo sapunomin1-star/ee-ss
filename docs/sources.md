@@ -3,6 +3,12 @@
 整理日期：2026-09-29（I00）。本檔是 `docs/control-matrix.md` 與 `docs/instrument-scope.md` 的引用依據。
 來源 ID 沿用交接包 `04_來源與照片對照.md`。所有檔案路徑都相對於解壓後的 `reference/electronics-lab-handoff-20260929/`（不進 Git，見 `reference/README.md`）。
 
+2026-10-04 更新：本輪補功能已取得並閱讀 Keysight 原廠 Truevolt 操作手冊的 EPFL 公開副本，新增來源 **M-DMM-2020**。下文「未取得」與網路封鎖段落保留為 2026-09-29 的歷史紀錄，不能據此推斷本輪仍缺操作手冊。原廠 AFG Ver.B 與 TDS 077-0826-00 的進階操作也已複核；具體頁碼與近似限制以 `docs/data/*.json` 及 [功能補強報告](reviews/2026-10-04-instrument-functions.md) 為準。
+
+| 新增 ID | 文件、版次與取得位置 | 頁碼、雜湊與範圍 |
+|---|---|---|
+| M-DMM-2020 | Keysight Truevolt Series DMM Operating and Service Guide，34460-90901，Edition 7，March 2020；[EPFL 保存的原廠 PDF](https://wiki.epfl.ch/me412-emem-2020/documents/34460-90901.pdf)，2026-10-04 下載 | 583 PDF 頁；已讀章節印刷頁＝PDF 頁序＋1。SHA-256：`2aeb4b1ae2d6a2b89ab735f39c9f30cf045398060c40cec303ac837c8bac308b`。只採適用 34460A 的敘述；不借用 34465A／34470A 的 Sample Timer 或特殊量程。 |
+
 ## 1. 證據級別代碼
 
 | 代碼 | 意義 | 能支持 | 不能支持 |

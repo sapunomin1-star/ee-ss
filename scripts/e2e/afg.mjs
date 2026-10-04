@@ -41,11 +41,11 @@ export async function run() {
     T.near(c.refVpp, 0.2, 1e-9, 'offset +4 V 時 +13 dBm 被拒絕，幅度保留 −10 dBm（0.2 Vpp）');
     T.ok(/-10\.00\s*dBm/.test(await ui.lcdText()), 'LCD 仍顯示 -10.00 dBm');
 
-    // 未納入的鍵：UTIL 不改狀態
-    const before = JSON.stringify(await ui.snap('afg'));
+    // UTIL now opens its actual menu without changing either output setting.
+    const before = JSON.stringify((await ui.snap('afg')).ch);
     await ui.press(K.UTIL);
-    T.ok((await ui.hint()).includes('本輪未納入'), 'UTIL 顯示「本輪未納入」');
-    T.ok(JSON.stringify(await ui.snap('afg')) === before, 'UTIL 不改變任何狀態');
+    T.ok((await ui.snap('afg')).menu === 'UTIL' && /Memory/.test(await ui.lcdText()), 'UTIL 開啟實際 Memory／System 選單');
+    T.ok(JSON.stringify((await ui.snap('afg')).ch) === before, '開啟 UTIL 保留兩通道的輸出設定');
 
     // CH2 獨立、Output
     await keys('PRESET OUT CH WAVE F4');

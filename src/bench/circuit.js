@@ -13,6 +13,8 @@
 //     平方積分會失準（例：100 kΩ／10 µF、1 kHz 的有效值少 5%，100 kHz 變成 0），所以改寫成值＋斜率＋小彎曲量。
 //   電容電壓偏離穩態 δ 時，各接點再加 kv·δ（暫態由 Bench 依時間衰減）。
 export const M = 4000;           // 每週期取樣點
+import { electricalFrequency, tableData } from '../instruments/afg/extensions.js';
+import { carrierRate, motionDrive, motionCuts, meshDensity, simulationPeriod, MAX_MESH } from '../instruments/afg/motion.js';
 export const R_OUT = 50;         // AFG 輸出內阻
 const GMIN = 1e-12;              // 每個節點對地的極小電導，讓浮接電路也可解
 export const NODES = ['A', 'B', 'G'];
@@ -26,7 +28,10 @@ export const LEADS = {
   'TDS.CH2.TIP': { inst: 'tds', ch: 1, role: 'tip', name: '示波器 CH2 探棒尖端' },
   'TDS.CH2.GND': { inst: 'tds', ch: 1, role: 'gnd', name: '示波器 CH2 接地夾' },
   'DMM.HI': { inst: 'dmm', role: 'hi', name: '電表 HI（紅）' },
+  'DMM.I': { inst: 'dmm', role: 'current', name: '電表 I 3A（電流紅線）' },
   'DMM.LO': { inst: 'dmm', role: 'lo', name: '電表 LO（黑）' },
+  'DMM.SHI': { inst: 'dmm', role: 'senseHi', name: '電表 Sense HI（四線／Ratio）' },
+  'DMM.SLO': { inst: 'dmm', role: 'senseLo', name: '電表 Sense LO（四線／Ratio）' },
   // GPE-4323 輸出端子（麵包板模式用）：各路浮接的＋／−；GND＝機殼地（大地）
   'GPE.CH1+': { inst: 'gpe', ch: 0, role: 'pos', name: 'GPE CH1 ＋（紅）' },
   'GPE.CH1-': { inst: 'gpe', ch: 0, role: 'neg', name: 'GPE CH1 −（黑）' },
@@ -39,14 +44,75 @@ export const LEADS = {
   'GPE.GND': { inst: 'gpe', role: 'gnd', name: 'GPE GND（機殼地）' },
 };
 
-// AFG 開路電壓（EMF）：offset＋Vpp/2×波形；相位 0（Phase 本輪 OUT）
+// Positive phase leads the common clock. Square phase is fixed at 0° (M-AFG p.145).
+export function wavePhase(ch, t) {
+  let ph = (((t * carrierRate(ch) + (ch._driverPhase ?? (['SQUARE', 'PULSE', 'NOISE'].includes(ch.wave) ? 0 : (ch.phase ?? 0) / 360))) % 1) + 1) % 1;
+  // Floating-point multiplication at an exact edge must select its right side.
+  if (ph < 1e-12 || 1 - ph < 1e-12) ph = 0;
+  if (ch.wave === 'SQUARE' && Math.abs(ph - (ch.duty ?? 50) / 100) < 1e-12) ph = (ch.duty ?? 50) / 100;
+  if (ch.wave === 'PULSE' && Math.abs(ph - (ch.extended?.pulseWidth ?? 100e-6) * carrierRate(ch)) < 1e-12) ph = (ch.extended?.pulseWidth ?? 100e-6) * carrierRate(ch);
+  return ph;
+}
+
+// AFG 開路電壓（EMF）：offset＋Vpp/2×波形；Duty/Phase 與 LCD 同源。
 export function emf(ch, t) {
-  const ph = (((t * ch.freq) % 1) + 1) % 1;
+  const advanced = motionDrive(ch, t, (raw, at) => emf({ ...raw, extended: { ...raw.extended, inverted: false } }, at));
+  if (advanced != null) return (ch.extended?.inverted ? -1 : 1) * advanced;
+  const ph = wavePhase(ch, t);
   let s;
   if (ch.wave === 'SINE') s = Math.sin(2 * Math.PI * ph);
-  else if (ch.wave === 'SQUARE') s = ph < 0.5 ? 1 : -1;
+  else if (ch.wave === 'SQUARE') s = ph < (ch.duty ?? 50) / 100 ? 1 : -1;
+  else if (ch.wave === 'PULSE') s = ph < (ch.extended?.pulseWidth ?? 100e-6) * carrierRate(ch) ? 1 : -1;
+  else if (ch.wave === 'ARB' || ch.wave === 'NOISE') { const a = tableData(ch), k = Math.min(a.length - 1, Math.floor(ph * a.length + 1e-10)); s = a.points[a.start + k] / 511; }
   else { const k = Math.min(Math.max(ch.sym / 100, 1e-9), 1 - 1e-9); s = ph < k ? -1 + (2 * ph) / k : 1 - (2 * (ph - k)) / (1 - k); }
-  return ch.emfOffset + (ch.emfVpp / 2) * s;
+  return (ch.extended?.inverted ? -1 : 1) * (ch.emfOffset + (ch.emfVpp / 2) * s);
+}
+
+// Physical corners, including a shifted Ramp's wrap. All solvers integrate up
+// to these exact boundaries; an interpolation cell never straddles a jump.
+export function waveCuts(ch, T) {
+  const advanced = motionCuts(ch, T); if (advanced) return advanced;
+  if (ch.wave === 'SINE') return [];
+  const f = carrierRate(ch), phase = ch._driverPhase ?? (['SQUARE', 'PULSE', 'NOISE'].includes(ch.wave) ? 0 : (ch.phase ?? 0) / 360);
+  const data = tableData(ch), corner = ch.wave === 'SQUARE' ? (ch.duty ?? 50) / 100 : ch.wave === 'PULSE' ? (ch.extended?.pulseWidth ?? 100e-6) * f : Math.min(Math.max(ch.sym / 100, 1e-9), 1 - 1e-9);
+  const edges = data ? Array.from({ length: data.length }, (_, k) => k / data.length) : [0, corner];
+  const out = [];
+  // Different-frequency sources were already an approximation; keep work bounded.
+  for (let cycle = Math.floor(phase) - 1; cycle <= Math.ceil(f * T + phase) && out.length < MAX_MESH; cycle++) {
+    for (const edge of edges) { const t = (cycle + edge - phase) / f; if (t > 0 && t < T) out.push(t); }
+  }
+  return out;
+}
+
+export function periodMesh(channels, T) {
+  const count = Math.max(M, ...channels.map((c) => meshDensity(c, T)));
+  const points = Array.from({ length: count + 1 }, (_, k) => k / count);
+  for (const ch of channels) for (const t of waveCuts(ch, T)) points.push(t / T);
+  points.sort((a, b) => a - b);
+  const merged = [];
+  for (const p of points) if (!merged.length || p - merged.at(-1) > 2e-14) merged.push(p);
+  if (merged.length > MAX_MESH + 1) throw new RangeError('AFG waveform requires more than 64000 electrical segments');
+  return Float64Array.from(merged, (p) => p * T);
+}
+
+export function meshLocate(mesh, T, t) {
+  const ph = Math.max(0, t - Math.floor(t / T) * T);
+  let lo = 0, hi = mesh.length - 1;
+  while (lo + 1 < hi) { const mid = (lo + hi) >> 1; if (mesh[mid] <= ph) lo = mid; else hi = mid; }
+  return [lo, Math.max(0, ph - mesh[lo])];
+}
+
+export function driveSegment(ch, a, b) {
+  const mid = (a + b) / 2;
+  if (ch.extended?.motion?.mode && ch.extended.motion.mode !== 'CONT') { const epsilon = (b - a) * 1e-8, va = emf(ch, a + epsilon), vb = emf(ch, b - epsilon), slope = (vb - va) / (b - a - 2 * epsilon); return [va - slope * epsilon, slope]; }
+  if (['SQUARE', 'PULSE', 'NOISE', 'ARB'].includes(ch.wave)) return [emf(ch, mid), 0];
+  if (ch.wave === 'RAMP') {
+    const corner = Math.min(Math.max(ch.sym / 100, 1e-9), 1 - 1e-9);
+    const slope = (ch.extended?.inverted ? -1 : 1) * (wavePhase(ch, mid) < corner ? ch.emfVpp * ch.freq / corner : -ch.emfVpp * ch.freq / (1 - corner));
+    return [emf(ch, mid) + slope * (a - mid), slope];
+  }
+  const va = emf(ch, a), vb = emf(ch, b);
+  return [va, (vb - va) / (b - a)];
 }
 
 const LIN_X = 0.5; // h/τ 小於此值用近線性型
@@ -121,7 +187,7 @@ export function solve(bench, afg) {
     if (!node) return;
     if (!afg[ch].output) { warn.push({ level: 'info', text: `AFG CH${ch + 1} 紅夾已接，但輸出是 OFF（按 AFG 的 OUTPUT 開啟）。` }); return; }
     if (grounded(node)) { warn.push({ level: 'bad', text: `AFG CH${ch + 1} 紅夾接在接地點 ${node}：輸出被短路到地。` }); return; }
-    sources.push({ ch, node: find(node), p: afg[ch] });
+    sources.push({ ch, node: find(node), p: { ...afg[ch], carrierFreq: afg[ch].carrierFreq ?? afg[ch].freq, freq: electricalFrequency(afg[ch]) } });
   });
   const circuitGrounded = NODES.some(grounded);
   if (sources.length && !circuitGrounded) warn.push({ level: 'bad', text: '電路沒有接回地：AFG 黑夾和示波器接地夾都沒接到電路，沒有電流回路。' });
@@ -162,31 +228,28 @@ export function solve(bench, afg) {
   const kth = u.map((v) => (capLive ? volt(v, P) - volt(v, Q) : 0));
   const f = sources[0].p.freq;
   if (sources.some((s) => Math.abs(s.p.freq - f) > 1e-9 * f)) warn.push({ level: 'info', text: '兩個 AFG 通道頻率不同：本模擬以 CH1 的週期計算，畫面只是近似。' });
-  const T = 1 / f, h = T / M;
-  const e = sources.map((s) => Float64Array.from({ length: M + 1 }, (_, k) => emf(s.p, k * h)));
-  const vth = Float64Array.from({ length: M + 1 }, (_, k) => sources.reduce((acc, s, j) => acc + kth[j] * e[j][k], 0));
-  // 區間內各訊號源的斜率（方波在跳變前保持原值＝0）與 Vth 的斜率
-  const slope = sources.map((s, j) => Float64Array.from({ length: M }, (_, k) => (s.p.wave === 'SQUARE' ? 0 : (e[j][k + 1] - e[j][k]) / h)));
-  const dv = Float64Array.from({ length: M }, (_, k) => sources.reduce((acc, s, j) => acc + kth[j] * slope[j][k] * h, 0));
-  const vc = new Float64Array(M + 1);
+  const T = simulationPeriod(sources.map((s) => s.p)), h = T / M, mesh = periodMesh(sources.map((s) => s.p), T), K = mesh.length - 1;
+  const dt = Float64Array.from({ length: K }, (_, k) => mesh[k + 1] - mesh[k]);
+  const drives = sources.map((s) => Array.from({ length: K }, (_, k) => driveSegment(s.p, mesh[k], mesh[k + 1])));
+  const e = drives.map((d) => Float64Array.from(d, ([v]) => v));
+  const slope = drives.map((d) => Float64Array.from(d, ([, v]) => v));
+  const vth = Float64Array.from({ length: K }, (_, k) => sources.reduce((acc, s, j) => acc + kth[j] * e[j][k], 0));
+  const dv = Float64Array.from({ length: K }, (_, k) => sources.reduce((acc, s, j) => acc + kth[j] * slope[j][k] * dt[k], 0));
+  const vc = new Float64Array(K + 1);
   let mean = 0;
-  for (let k = 0; k < M; k++) mean += vth[k] / M;
+  for (let k = 0; k < K; k++) mean += (vth[k] + dv[k] / 2) * dt[k] / T;
   const slow = capLive && tau > 1e6 * T; // 時間常數遠大於週期：電容電壓＝輸入平均值
   if (capLive) {
     if (slow) vc.fill(mean);
     else {
-      const step = h / tau, decay = -Math.expm1(-step);
-      // 線性輸入的係數 1−(1−exp(−step))/step；小 step 用級數避免相減失去精度。
-      const ramp = step < 1e-3
-        ? step * (0.5 + step * (-1 / 6 + step * (1 / 24 - step / 120)))
-        : 1 - decay / step;
       const run = (x0) => {
         vc[0] = x0;
-        for (let k = 0; k < M; k++) {
-          // 方波在跳變前保持原值，電容電壓到邊緣仍連續；不要提前一格充放電。
+        for (let k = 0; k < K; k++) {
+          const step = dt[k] / tau, decay = -Math.expm1(-step);
+          const ramp = step < 1e-3 ? step * (0.5 + step * (-1 / 6 + step * (1 / 24 - step / 120))) : 1 - decay / step;
           vc[k + 1] = vc[k] + decay * (vth[k] - vc[k]) + ramp * dv[k];
         }
-        return vc[M];
+        return vc[K];
       };
       const b = run(0), cycleDecay = -Math.expm1(-T / tau);
       run(cycleDecay > 1e-12 ? b / cycleDecay : mean);
@@ -195,15 +258,17 @@ export function solve(bench, afg) {
   // ---- 6. 各接點電壓（對大地）：區間 k 內的解析式（s＝t−k·h），取樣表＝區間起點的值 ----
   const out = {}, co = {};
   const live = capLive && Rth > 0;
-  const lin = !live || slow || h / tau < LIN_X;
+  const lins = Array.from(dt, (h) => !live || slow || h / tau < LIN_X);
+  const lin = lins.every(Boolean);
   for (const x of NODES) {
-    const g = find(x), X = new Float64Array(M), Y = new Float64Array(M), Cc = new Float64Array(M), arr = new Float64Array(M);
+    const g = find(x), X = new Float64Array(K), Y = new Float64Array(K), Cc = new Float64Array(K);
     if (g !== E) {
       const gi = idx[g], zr = live ? z[gi] / Rth : 0;
-      for (let k = 0; k < M; k++) {
+      for (let k = 0; k < K; k++) {
+        const lin = lins[k];
         let a0 = 0, b0 = 0;
         sources.forEach((s, j) => { a0 += e[j][k] * u[j][gi]; b0 += slope[j][k] * u[j][gi]; });
-        const gk = dv[k] / h, dk = vth[k] - vc[k]; // 區間內 Vth 的斜率；Vth−Vc
+        const gk = dv[k] / dt[k], dk = vth[k] - vc[k]; // 區間內 Vth 的斜率；Vth−Vc
         if (!live) { X[k] = a0; Y[k] = b0; } else if (slow) { X[k] = a0 + zr * (vth[k] - mean); Y[k] = b0 + zr * gk; } else if (lin) {
           X[k] = a0 + zr * dk; // 區間起點的值
           Y[k] = b0 + zr * (gk - dk / tau); // 區間起點的斜率
@@ -213,33 +278,30 @@ export function solve(bench, afg) {
           Y[k] = b0;
           Cc[k] = zr * (dk - gk * tau);
         }
-        arr[k] = lin ? X[k] : X[k] + Cc[k];
       }
     }
-    out[x] = arr;
     co[x] = { x: X, y: Y, c: Cc };
   }
   // 電容電壓（週期穩態）在絕對時間 t 的精確值：換線／改設定時接續暫態用（寫成不會大數相消的形式）
   const vcAt = (t) => {
     if (!capLive) return 0;
     if (slow) return mean;
-    const [k, s] = locate({ h, period: T }, t), gk = dv[k] / h, σ = s / tau;
+    const [k, s] = locate({ mesh, period: T }, t), gk = dv[k] / dt[k], σ = s / tau;
     return vc[k] + (vth[k] - vc[k]) * -Math.expm1(-σ) + gk * tau * rq(σ);
   };
-  return { ...common, period: T, h, dc: false, lin, v: out, co, vcAt };
+  const result = { ...common, period: T, h, mesh, dc: false, lin, lins, v: out, co, vcAt };
+  for (const x of NODES) out[x] = Float64Array.from({ length: M }, (_, k) => nodeAt(result, x, k * h));
+  return result;
 }
 
 // 絕對時間 t 落在哪個區間：[k, s]（t 剛好在週期邊界時浮點誤差可能讓相位略小於 0，夾回區間內）
-function locate(sol, t) {
-  const { h, period: T } = sol, ph = t - Math.floor(t / T) * T, k = Math.max(0, Math.min(M - 1, Math.floor(ph / h)));
-  return [k, Math.max(0, ph - k * h)];
-}
+function locate(sol, t) { return meshLocate(sol.mesh, sol.period, t); }
 
 // 某接點在絕對時間 t 的週期穩態電壓（取樣點之間照解析式，不是線性內插）
 export function nodeAt(sol, node, t) {
   if (sol.dc) return 0;
   const q = sol.co[node], [k, s] = locate(sol, t);
-  return segVal(sol.lin, q.x[k], q.y[k], q.c[k], s, sol.tau);
+  return segVal(sol.lins[k], q.x[k], q.y[k], q.c[k], s, sol.tau);
 }
 
 // HI−LO 電壓差的區間係數、一個週期內的累積積分與統計（每個解答、每組 HI／LO 只算一次）
@@ -247,13 +309,14 @@ function diff(sol, hi, lo) {
   const key = `${hi}${lo}`;
   sol.memo ??= {};
   if (sol.memo[key]) return sol.memo[key];
-  const { h, tau, lin } = sol, P = sol.co[hi], Q = sol.co[lo];
+  const { mesh, tau } = sol, K = mesh.length - 1, P = sol.co[hi], Q = sol.co[lo];
   const X = Float64Array.from(P.x, (v, k) => v - Q.x[k]), Y = Float64Array.from(P.y, (v, k) => v - Q.y[k]), C = Float64Array.from(P.c, (v, k) => v - Q.c[k]);
-  const pre = new Float64Array(M + 1);
-  for (let k = 0; k < M; k++) pre[k + 1] = pre[k] + segInt(lin, X[k], Y[k], C[k], h, tau);
-  const T = M * h, mean = pre[M] / T;
+  const pre = new Float64Array(K + 1);
+  for (let k = 0; k < K; k++) pre[k + 1] = pre[k] + segInt(sol.lins[k], X[k], Y[k], C[k], mesh[k + 1] - mesh[k], tau);
+  const T = sol.period, mean = pre[K] / T;
   let S = 0, peak = 0, peakAc = 0;
-  for (let k = 0; k < M; k++) {
+  for (let k = 0; k < K; k++) {
+    const lin = sol.lins[k], h = mesh[k + 1] - mesh[k];
     S += segSq(lin, X[k] - mean, Y[k], C[k], h, tau); // ∫(v−平均)²：先扣平均再平方，避免大直流吃掉交流
     const v = lin ? X[k] : X[k] + C[k]; // 區間起點（脈衝尖峰正好落在跳變點）
     if (Math.abs(v) > peak) peak = Math.abs(v);
@@ -272,10 +335,10 @@ export function diffStats(sol, hi, lo) {
 export function diffMeanOver(sol, hi, lo, t1, t2) {
   if (sol.dc) return 0;
   if (!(t2 > t1)) return diffStats(sol, hi, lo).mean;
-  const { tau, lin, period: T } = sol, d = diff(sol, hi, lo);
-  const part = (t) => { const [k, s] = locate(sol, t); return d.pre[k] + segInt(lin, d.X[k], d.Y[k], d.C[k], s, tau); }; // 從該週期起點積到 t
+  const { tau, period: T } = sol, d = diff(sol, hi, lo);
+  const part = (t) => { const [k, s] = locate(sol, t); return d.pre[k] + segInt(sol.lins[k], d.X[k], d.Y[k], d.C[k], s, tau); }; // 從該週期起點積到 t
   const n = Math.floor(t2 / T) - Math.floor(t1 / T);
-  return (n * d.pre[M] + part(t2) - part(t1)) / (t2 - t1);
+  return (n * d.pre.at(-1) + part(t2) - part(t1)) / (t2 - t1);
 }
 
 // 電表 Ω 檔的直流電阻（電路未通電時）：黑夾、接地夾把接點接到大地；電容開路；
