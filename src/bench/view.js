@@ -1,4 +1,4 @@
-// 實驗台畫面：導線端（AFG 鱷魚夾、示波器探棒、電表測試線）＋ RC 電路板＋三台的即時小螢幕。
+// 實驗台畫面：四台儀器的導線端、RC 電路板與即時小螢幕。
 // 接線：點導線端（變藍）→ 點接點 A／B／G；已接的導線端再點一次（變藍後）再點一次＝拔掉。
 import { LEADS } from './circuit.js';
 import { R_OPTIONS, C_OPTIONS, fmtR, fmtC } from './bench.js';
@@ -18,8 +18,17 @@ const END = {
   'DMM.HI': { x: 352, y: 450, color: '#d32f2f', label: 'HI（V Ω）' },
   'DMM.I': { x: 352, y: 490, color: '#d32f2f', label: 'I（電流）' },
   'DMM.LO': { x: 352, y: 530, color: '#222', label: 'LO（黑）' },
+  'DMM.SHI': { x: 352, y: 300, color: '#d32f2f', label: 'Sense HI' },
+  'DMM.SLO': { x: 352, y: 336, color: '#222', label: 'Sense LO' },
 };
-const LEFT_SIDE = (id) => !id.startsWith('TDS');
+// 直流電源端子位於電路板右側，四路的正負端分別可接線。
+const GPE_Y = [374, 430, 486, 542];
+GPE_Y.forEach((y, i) => {
+  END[`GPE.CH${i + 1}+`] = { x: 686, y, color: '#d32f2f', label: '＋', v: true };
+  END[`GPE.CH${i + 1}-`] = { x: 730, y, color: '#222', label: '−', v: true };
+});
+END['GPE.GND'] = { x: 708, y: 600, color: '#2e7d32', label: 'GND', v: true };
+const LEFT_SIDE = (id) => id.startsWith('AFG') || id.startsWith('DMM');
 
 export function mini(model, x, y, w, h, screen, goto, title) {
   const body = model.isOn() ? model.lcd() : `<rect width="${screen[0]}" height="${screen[1]}" fill="#050505"/>`;
@@ -30,12 +39,16 @@ export function mini(model, x, y, w, h, screen, goto, title) {
 
 function leadEnd(id, bench) {
   const e = END[id], sel = bench.sel === id, on = !!bench.wires[id];
+  const head = `<g class="lead${sel ? ' sel' : ''}${on ? ' on' : ''}" data-lead="${id}" tabindex="0" role="button" aria-label="${esc(LEADS[id].name)}${on ? `（接在 ${bench.wires[id]}）` : '（未接）'}">` +
+    `<title>${esc(LEADS[id].name)}${on ? `：接在 ${bench.wires[id]}（選取後再點一次＝拔掉）` : '：點一下選取，再點電路板上的接點'}</title>`;
+  if (e.v) return head +
+    `<rect x="${e.x - 17}" y="${e.y - 12}" width="34" height="44" rx="14" class="pill"/>` +
+    `<circle cx="${e.x}" cy="${e.y}" r="8" fill="${e.color}" stroke="#fff" stroke-width="2"/>` +
+    `<text x="${e.x}" y="${e.y + 25}" font-size="${e.label.length > 1 ? 11 : 15}" class="pill-t">${esc(e.label)}</text></g>`;
   const w = 92, x0 = LEFT_SIDE(id) ? e.x - w : e.x;
-  const tipX = LEFT_SIDE(id) ? e.x : e.x;
-  return `<g class="lead${sel ? ' sel' : ''}${on ? ' on' : ''}" data-lead="${id}" tabindex="0" role="button" aria-label="${esc(LEADS[id].name)}${on ? `（接在 ${bench.wires[id]}）` : '（未接）'}">` +
-    `<title>${esc(LEADS[id].name)}${on ? `：接在 ${bench.wires[id]}（選取後再點一次＝拔掉）` : '：點一下選取，再點電路板上的接點'}</title>` +
+  return head +
     `<rect x="${x0}" y="${e.y - 13}" width="${w}" height="26" rx="13" class="pill"/>` +
-    `<circle cx="${tipX}" cy="${e.y}" r="9" fill="${e.color}" stroke="#fff" stroke-width="2"/>` +
+    `<circle cx="${e.x}" cy="${e.y}" r="9" fill="${e.color}" stroke="#fff" stroke-width="2"/>` +
     `<text x="${x0 + w / 2 + (LEFT_SIDE(id) ? -6 : 6)}" y="${e.y + 4.5}" font-size="12.5" class="pill-t">${esc(e.label)}</text></g>`;
 }
 
@@ -71,7 +84,7 @@ function capacitor(x1, y1, x2, y2, label) {
 }
 
 export function benchSvg(bench, models) {
-  const { afg, tds, dmm } = models;
+  const { afg, tds, dmm, gpe } = models;
   const [A, B, G] = [POST.A, POST.B, POST.G];
   const top = bench.topo === 'RC' ? resistor(A[0] + 10, A[1], B[0] - 10, B[1], fmtR(bench.R)) : capacitor(A[0] + 10, A[1], B[0] - 10, B[1], fmtC(bench.C));
   const side = bench.topo === 'RC' ? capacitor(B[0], B[1] + 10, G[0], G[1] - 10, fmtC(bench.C)) : resistor(B[0], B[1] + 10, G[0], G[1] - 10, fmtR(bench.R));
@@ -105,11 +118,20 @@ export function benchSvg(bench, models) {
     ${mini(dmm, 26, 406, 230, 152, [480, 318], 'dmm', '34460A')}
     <text x="30" y="579" font-size="11.5" fill="#dfe3e6" style="text-anchor:start">${dmm.scenarios.get() === 'bench' ? '來源：實驗台接線' : '來源：單機情境（非接線）'}</text>
     <text x="30" y="600" font-size="11.5" fill="#dfe3e6" style="text-anchor:start">HI＝V Ω、I＝電流，共用 LO</text>
+    <rect x="760" y="316" width="224" height="308" rx="10" fill="#d4d6d8" stroke="#6f767d"/>
+    <text x="970" y="340" font-size="14" font-weight="700" class="blk" style="text-anchor:end">GPE-4323 直流電源</text>
+    ${mini(gpe, 772, 350, 200, 111, [480, 266], 'gpe', 'GPE-4323')}
+    <text x="776" y="488" font-size="11.5" class="blk" style="text-anchor:start">${gpe.scenarios.get() === 'bench' ? '來源：實驗台接線' : '來源：單機情境（非接線）'}</text>
+    <text x="776" y="514" font-size="11.5" class="blk" style="text-anchor:start">點螢幕設定電壓、限流與 Output</text>
+    <text x="776" y="540" font-size="11.5" class="blk" style="text-anchor:start">直流充電：CH1＋→A、CH1−→G</text>
+    <text x="776" y="566" font-size="11.5" class="blk" style="text-anchor:start">GND 是大地，與各路−端不同</text>
+    <text x="708" y="328" font-size="11.5" font-weight="700" class="blk">輸出端子</text>
+    ${GPE_Y.map((y, i) => `<text x="708" y="${y - 18}" font-size="11" font-weight="700" class="blk">CH${i + 1}</text>`).join('')}
     <rect x="400" y="316" width="240" height="284" rx="10" fill="#f3ead6" stroke="#b39b6a"/>
     <text x="520" y="340" font-size="13" font-weight="700" class="blk">RC 電路板</text>
     ${top}${side}
     ${post('A', '輸入')}${post('B', '')}${post('G', '地')}
-    ${wires}
+    <g pointer-events="none">${wires}</g>
     ${Object.keys(END).map((id) => leadEnd(id, bench)).join('')}
   </svg>`;
 }
@@ -132,11 +154,11 @@ function theory(bench, afg) {
 
 export function benchSide(bench, models, hints) {
   const sol = bench.solution();
-  const rows = Object.keys(LEADS).filter((id) => LEADS[id].inst !== 'gpe').map((id) => `<li><b>${esc(LEADS[id].name)}</b>：${bench.wires[id] ? `接在 ${bench.wires[id]}` : '<span class="muted">未接</span>'}</li>`).join('');
+  const rows = Object.keys(END).map((id) => `<li><b>${esc(LEADS[id].name)}</b>：${bench.wires[id] ? `接在 ${bench.wires[id]}` : '<span class="muted">未接</span>'}</li>`).join('');
   const warn = sol.warn.length ? sol.warn.map((w) => `<li class="w-${w.level}">${esc(w.text)}</li>`).join('') : '<li class="w-ok">接線沒有問題。</li>';
   return `
-    <h2>實驗台（接線）<small>AFG → RC → 示波器＋電表</small></h2>
-    <section><h3>怎麼接線</h3><p class="howto">① 點左右兩側的導線端（變藍）→ ② 點電路板上的 A／B／G 就接上。已接好的導線端選取後再點一次＝拔掉。三台的小螢幕點一下就切到該台面板操作。</p><p class="muted">電流要用 I、LO 串接。固定板的 R／C 內部連線不能拆開，請到麵包板斷開迴路後串入電表；把 I、LO 並接在元件兩端會形成低阻旁路。</p></section>
+    <h2>實驗台（接線）<small>AFG／直流電源 → RC → 示波器＋電表</small></h2>
+    <section><h3>怎麼接線</h3><p class="howto">① 點左右兩側的導線端（變藍）→ ② 點電路板上的 A／B／G 就接上。已接好的導線端選取後再點一次＝拔掉。四台的小螢幕點一下就切到該台面板操作。</p><p class="howto">直流充電：先關 AFG Output；GPE CH1＋接 A、CH1−接 G，電表 HI 接 B、LO 接 G，再點電源小螢幕設定電壓與限流、開 Output。GND 是大地端，不等於各路的−端。</p><p class="muted">電流要用 I、LO 串接。固定板的 R／C 內部連線不能拆開，請到麵包板斷開迴路後串入電表；把 I、LO 並接在元件兩端會形成低阻旁路。</p></section>
     <section><h3>電路</h3>
       <label class="fld">接法 <select name="topo"><option value="RC"${bench.topo === 'RC' ? ' selected' : ''}>R 在上：B 點＝電容電壓（低通）</option><option value="CR"${bench.topo === 'CR' ? ' selected' : ''}>C 在上：B 點＝電阻電壓（高通）</option></select></label>
       <label class="fld">R <select name="R">${opt(R_OPTIONS, bench.R, fmtR)}</select></label>

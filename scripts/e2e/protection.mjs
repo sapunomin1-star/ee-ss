@@ -62,9 +62,15 @@ export async function run() {
     const primitive = (t) => { const n = Math.floor(t), ph = t - n; return n * (high + low) / 2 + high * Math.min(ph, .5) + low * Math.max(0, ph - .5); };
     const expected = (primitive(tr) - primitive(tr - APERTURE)) / APERTURE;
     T.near((await ui.snap('dmm')).view.value, expected, .0002, 'DMM 10PLC 窗符合該時刻受限方波的獨立分段積分');
-    await ui.tab('tds'); await ui.press('TDS.KEY.AUTOSET'); await ui.press('TDS.KEY.SINGLE'); await p.clock.runFor(1500);
-    const scope = await ui.snap('tds');
+    await ui.tab('tds'); await ui.press('TDS.KEY.AUTOSET');
+    // A next rising edge may be a whole period away. The record then needs
+    // five horizontal divisions after the trigger, plus a 200 ms UI poll.
+    const autoScope = await ui.snap('tds');
+    const singleWaitMs = Math.ceil((1 / a.freq + 5 * autoScope.sdiv + .2) * 1000) + 150;
+    await ui.press('TDS.KEY.SINGLE'); await p.clock.runFor(singleWaitMs);
+    const scope = await ui.snap('tds'), capturedAt = await p.evaluate(() => performance.now() / 1000);
     T.ok(scope.status === 'Acq. Complete' && scope.rec?.triggered && Number.isFinite(scope.rec.abs0), '實際含電容受限方波可觸發 Single 並完成擷取');
+    T.ok(Number.isFinite(scope.rec?.endAt) && scope.rec.endAt <= capturedAt + 1e-9, 'Single 完成時間不早於實際記錄的最後樣本');
     T.ok(await p.locator('svg.screen .wave').count() > 0 && !(await ui.lcdText()).includes('NaN'), '擷取後 LCD 波形與數值有限');
     await ui.shot('protection-capacitor-single');
     T.ok(ui.errors.length === 0, `沒有瀏覽器程式錯誤${ui.errors.length ? `：${ui.errors.join('; ')}` : ''}`);

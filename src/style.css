@@ -18,6 +18,12 @@ button { font: inherit; cursor: pointer; }
 .tools { display: flex; gap: 4px; flex-wrap: wrap; }
 .tools button { background: #2d3b4a; color: #fff; border: 1px solid #3e4f61; border-radius: 6px; padding: 5px 10px; }
 .save-status { flex-basis: 100%; color: #b8c8d8; font-size: 12px; }
+@media (max-width: 1200px) {
+  .top { gap: 8px; }
+  .brand, .tabs { flex-basis: 100%; }
+  .tools { flex: 1; }
+  .save-status { flex-basis: auto; }
+}
 
 .stage { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; padding: 12px; align-items: start; }
 @media (max-width: 1000px) { .stage { grid-template-columns: 1fr; } }
@@ -102,7 +108,15 @@ svg.bench-svg { display: block; width: 100%; height: auto; user-select: none; ba
 .side .wiring-history { padding: 0 8px 4px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 8px; background: #f4f6f8; }
 
 /* ---- 實驗台：麵包板 ---- */
-.side .board-sw { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; padding: 6px 10px; border-radius: 8px; background: #f4f6f8; border: 1px solid var(--line); }
+.board-sw { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0 0 10px; padding: 6px 10px; border-radius: 8px; background: #f4f6f8; border: 1px solid var(--line); font-size: 13px; }
+.bb-toolbar { margin-bottom: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 13px; }
+.bb-toolbar-actions, .bb-toolbar-values { display: flex; flex-wrap: wrap; gap: 8px; }
+.bb-toolbar-actions button { padding: 6px 10px; border: 1px solid #99a3ad; border-radius: 6px; background: #f4f6f8; }
+.bb-toolbar-actions button[aria-pressed="true"] { background: #dbeafe; border-color: #0b6bcb; color: #064e96; }
+.bb-toolbar-actions button:disabled { opacity: .5; cursor: default; }
+.bb-toolbar-values { margin-top: 8px; }
+.bb-toolbar-values select { font: inherit; }
+.bb-tool-status { margin: 8px 0 0; color: #34495e; }
 .side .board-sw b { font-size: 12px; color: var(--muted); }
 .side .bbtools { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 4px 0 6px; }
 .bb-svg .bb-board { fill: #f7f4ec; stroke: #c8c0ad; stroke-width: 1.5; }

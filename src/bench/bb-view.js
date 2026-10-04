@@ -31,6 +31,8 @@ const END = {
   'DMM.HI': { x: 330, y: 552, color: RED, label: 'HI（V Ω）', pill: 'L' },
   'DMM.I': { x: 330, y: 588, color: RED, label: 'I（電流）', pill: 'L' },
   'DMM.LO': { x: 330, y: 624, color: BLK, label: 'LO（黑）', pill: 'L' },
+  'DMM.SHI': { x: 510, y: 650, color: RED, label: 'Sense HI', pill: 'L' },
+  'DMM.SLO': { x: 635, y: 650, color: BLK, label: 'Sense LO', pill: 'L' },
 };
 // GPE 輸出端子排成一列（同一路的＋、−靠在一起），上方標路數
 const GPE_X = [380, 474, 568, 662];
@@ -168,6 +170,21 @@ export function boardSwitch(board) {
     [['rc', '固定 RC 板'], ['bb', '麵包板']].map(([v, t]) => `<label><input type="radio" name="board" value="${v}"${board === v ? ' checked' : ''}> ${t}</label>`).join('') + '</div>';
 }
 
+// 主畫面上的元件工具：按鈕即使再次選同一工具，也會退出導線接線模式。
+export function bbToolbar(bench, ui) {
+  const toolNames = [['select', '選取／改值'], ['R', '插電阻'], ['C', '插電容'], ['W', '接跳線']];
+  const status = bench.sel ? `正在接 ${LEADS[bench.sel].name}：點一個孔；要插元件請先點上方工具。`
+    : ui.first ? `${KIND_NAME[ui.tool]}第一腳／端已在 ${ui.first}，請點第二個孔。`
+    : ui.tool === 'select' ? '選取：點元件可改值或刪除；插元件請先選電阻、電容或跳線。'
+    : `${KIND_NAME[ui.tool]}：依序點兩個空孔，放入兩隻腳／端。`;
+  return `<div class="bb-toolbar" aria-label="麵包板元件工具">
+    <div class="bb-toolbar-actions">${toolNames.map(([value, label]) => `<button data-bbtool="${value}" aria-pressed="${!bench.sel && ui.tool === value}">${label}</button>`).join('')}
+      <button data-bbtool="cancel"${bench.sel || ui.first ? '' : ' disabled'}>取消接線／放置</button></div>
+    <div class="bb-toolbar-values"><label>新電阻 <select name="insertR">${opt(R_OPTIONS, ui.newR, fmtR)}</select></label>
+      <label>新電容 <select name="insertC">${opt(C_OPTIONS, ui.newC, fmtC)}</select></label></div>
+    <p class="bb-tool-status" role="status">${esc(status)}</p></div>`;
+}
+
 export function bbSide(bench, ui, hints) {
   const net = bench.bb.netlist(bench.bbWires), p = ui.sel ? bench.bb.get(ui.sel) : null;
   const tools = [['select', '選取'], ['R', '電阻'], ['C', '電容'], ['W', '跳線']]
@@ -186,7 +203,7 @@ export function bbSide(bench, ui, hints) {
   const rows = on.map((id) => `<li><b>${esc(LEADS[id].name)}</b>：${bench.bbWires[id]}（節點 ${esc(net.leads[id])}）</li>`).join('');
   return `
     <h2>實驗台（麵包板）<small>自己插元件、接導線</small></h2>
-    <section><h3>怎麼操作</h3><p class="howto">① 選工具（電阻／電容／跳線）→ 點第一個孔 → 點第二個孔，就插上了。② 「選取」工具：點元件選取，可以改值；按 Delete 或下面的刪除鍵拿掉。③ 接線：點導線端（變藍）→ 點孔；已接的導線端選取後再點一次＝拔掉。滑鼠移到孔上，所有相連的孔會一起亮起來。</p></section>
+    <section><h3>怎麼操作</h3><p class="howto">① 麵包板上方點「插電阻／插電容／接跳線」→ 點第一個空孔 → 點第二個空孔，就插上了。② 「選取／改值」工具：點元件選取，可以改值；按 Delete 或下面的刪除鍵拿掉。③ 接線：點導線端（變藍）→ 點孔；已接的導線端選取後再點一次＝拔掉。滑鼠移到孔上，所有相連的孔會一起亮起來。</p></section>
     <section><h3>工具</h3><div class="bbtools">${tools}</div>
       <label class="fld">新電阻 <select name="bbR">${opt(R_OPTIONS, ui.newR, fmtR)}</select></label>
       <label class="fld">新電容 <select name="bbC">${opt(C_OPTIONS, ui.newC, fmtC)}</select></label></section>

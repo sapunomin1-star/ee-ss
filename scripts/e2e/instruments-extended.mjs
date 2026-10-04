@@ -1,0 +1,134 @@
+import { openApp, Check, sleep } from './lib.mjs';
+
+export async function run() {
+  const T = new Check('DMM/GPE 新增儀器功能 真 UI');
+  const ui = await openApp();
+  const dkey = (name) => ui.press(/^S[1-6]$/.test(name) ? `DMM.SOFT.${name}` : `DMM.KEY.${name}`);
+  const dmm = () => ui.snap('dmm'), gpe = () => ui.snap('gpe');
+  const separated = (text, selector) => ui.page.locator('svg.screen').evaluate((svg, args) => {
+    const a = [...svg.querySelectorAll('text')].find((n) => n.textContent === args.text), b = svg.querySelector(args.selector);
+    if (!a || !b) return false;
+    const p = a.getBoundingClientRect(), q = b.getBoundingClientRect();
+    return p.right <= q.left || q.right <= p.left || p.bottom <= q.top || q.bottom <= p.top;
+  }, { text, selector });
+  try {
+    await ui.tab('dmm');
+    await ui.page.check('input[name=scen][value=acv]'); await dkey('FREQ');
+    T.near((await dmm()).view.value, 1000, 1e-8, 'Freq：1 kHz 單機交流情境讀 1 kHz');
+    T.ok((await ui.lcdText()).includes('Frequency'), 'Freq LCD 顯示 Frequency');
+    await dkey('S1'); T.near((await dmm()).view.value, 0.001, 1e-12, 'S1切Period：1ms');
+    await ui.page.check('input[name=scen][value=dcv]');
+    T.ok((await dmm()).view.state === 'none', '純直流情境沒有頻率／週期，不顯示0Hz');
+    await dkey('DCV'); await dkey('S2'); await dkey('DOWN');
+    T.ok((await dmm()).nplc === 1 && (await ui.lcdText()).includes('1 PLC'), 'Aperture→▼：1 PLC');
+    await dkey('SELECT'); await dkey('S4');
+    T.ok((await dmm()).inputZMode === 'AUTO', 'Input Z 軟鍵切Auto');
+    await dkey('RUN_STOP'); const held = (await dmm()).view.value;
+    await ui.page.check('input[name=scen][value=acv]');
+    T.ok((await dmm()).run === 'stop' && (await dmm()).view.value === held, 'Run/Stop保存最後讀值，輸入變動不重畫讀值');
+    await dkey('RUN_STOP'); T.near((await dmm()).view.value, 0, 1e-12, '再按Run/Stop恢復新DC平均');
+    await dkey('S2'); await dkey('UP'); await dkey('UP'); await dkey('SELECT');
+    await dkey('SINGLE');
+    T.ok((await dmm()).run === 'single', '100 PLC Single仍在真積分，沒有立即完成');
+    await sleep(1800); T.ok((await dmm()).run === 'stop', 'Single積分完成後停止');
+    await dkey('DISPLAY'); await dkey('S1'); await dkey('S2');
+    T.ok((await dmm()).displayMode === 'BAR' && await ui.page.locator('[data-dmm-bar]').count() === 1, 'Display→Bar Meter顯示實際讀值bar');
+    await ui.shot('extended-dmm-bar');
+
+    await dkey('SHIFT'); await dkey('RUN_STOP'); await ui.page.check('input[name=scen][value=dcv]'); await dkey('RUN_STOP');
+    const frozen = await dmm();
+    await dkey('DISPLAY'); await dkey('S6'); await dkey('S4');
+    T.ok((await dmm()).digitMask === 5 && (await dmm()).view.text === '+01.234', 'Digit Mask選4½位：只四捨五入顯示，凍結值仍1.234V');
+    T.ok((await dmm()).view.value === frozen.view.value && (await dmm()).run === 'stop', '調整Digit Mask保留Stopped採集模式與完整凍結讀值');
+    await dkey('S1'); await dkey('S2'); await dkey('DISPLAY'); await dkey('S4'); await dkey('S1'); await dkey('S2');
+    for (let i = 0; i < 3; i++) await dkey('LEFT');
+    for (let i = 0; i < 10; i++) await dkey('UP');
+    await dkey('SELECT');
+    T.ok(!(await dmm()).barAuto && (await dmm()).barLow === 0 && (await dmm()).barHigh === 10, 'Bar Scale Manual→Low箭頭編輯：刻度0..10V');
+    T.near((await dmm()).view.bar, .1234, 1e-10, '手動bar依實際1.234V/10V=12.34%');
+    await dkey('DISPLAY'); await dkey('S4'); await dkey('S4'); await dkey('S2'); await dkey('UP'); await dkey('SELECT');
+    T.ok((await dmm()).barFormat === 'SPAN' && Math.abs(((await dmm()).barLow + (await dmm()).barHigh) / 2 - 5.001) < 1e-9 && Math.abs((await dmm()).barHigh - (await dmm()).barLow - 10) < 1e-9, 'Span/Center調中心仍保留完整span');
+    T.ok(await separated((await dmm()).view.unit, '[data-dmm-bar]'), 'Bar only主單位與bar保持可見且不重疊');
+    await ui.shot('extended-dmm-manual-scale');
+
+    await ui.page.check('input[name=scen][value=acv]'); await dkey('ACV'); await dkey('DISPLAY'); await dkey('S5'); await dkey('S2');
+    T.ok((await dmm()).secondaryOn && await ui.page.locator('[data-dmm-secondary]').count() === 1, 'ACV→2nd Meas開真正Frequency讀值');
+    T.near((await dmm()).view.secondary.values[0].value, 1000, 1e-10, '第二讀值由實際1kHz交流情境取得');
+    await dkey('RUN_STOP'); await ui.page.check('input[name=scen][value=dcv]');
+    T.near((await dmm()).view.secondary.values[0].value, 1000, 1e-10, '停止後輸入改純直流，第二頻率仍凍結為1kHz');
+    await ui.page.check('input[name=scen][value=pt100]'); await dkey('TEMP'); await dkey('DISPLAY'); await dkey('S5'); await dkey('S2');
+    T.near((await dmm()).view.secondary.values[0].value, 109.73465625, 1e-8, 'Temp→Sensor第二讀值為真正PT100電阻');
+    await dkey('SHIFT'); await dkey('NULL'); await dkey('S3'); await dkey('S1'); await dkey('SELECT');
+    await dkey('DISPLAY'); await dkey('S1'); await dkey('S2'); await dkey('DISPLAY'); await dkey('S4'); await dkey('S1'); await dkey('SELECT');
+    T.ok(await ui.page.locator('[data-dmm-secondary]').count() === 1 && await ui.page.locator('[data-dmm-bar]').count() === 1 && await ui.page.locator('[data-dmm-stats]').count() === 1, '第二讀值、Bar Meter、Statistics各有實際且獨立的畫面區域');
+    T.ok(await ui.page.locator('svg.screen').evaluate((svg) => {
+      const p = svg.querySelector('[data-dmm-secondary]').getBoundingClientRect(), b = svg.querySelector('[data-dmm-bar]').getBoundingClientRect(), s = svg.querySelector('[data-dmm-stats]').getBoundingClientRect();
+      return p.bottom <= b.top && b.bottom <= s.top;
+    }), '第二讀值、Bar與Stats的真SVG區域沒有互相覆蓋');
+    await ui.shot('extended-dmm-secondary-bar-statistics');
+
+    await dkey('SHIFT'); await dkey('RUN_STOP');
+    await ui.page.check('input[name=scen][value=cap]'); await dkey('SHIFT'); await dkey('FREQ');
+    T.near((await dmm()).view.value, 1e-6, 1e-14, 'Shift→Freq：Cap從1µF相容情境讀值');
+    await ui.page.check('input[name=scen][value=diode]'); await dkey('SHIFT'); await dkey('CONT');
+    T.ok((await dmm()).fn === 'DIODE' && (await dmm()).view.beep, 'Shift→Cont：Diode 0.65V指示');
+    await ui.page.check('input[name=scen][value=pt100]'); await dkey('TEMP'); await dkey('S5');
+    T.near((await dmm()).view.value, 77, 1e-8, 'Temp→Units：25°C轉77°F');
+    await ui.shot('extended-dmm-temperature');
+    await dkey('NULL'); T.near((await dmm()).view.value, 0, 1e-8, 'Temp Null：77°F當下有效讀值歸零');
+    await dkey('S5'); T.near((await dmm()).view.value, 0, 1e-8, 'Temp Null切K仍是0K溫差');
+    await dkey('SHIFT'); await dkey('RUN_STOP');
+    T.ok((await dmm()).fixture === 'pt100' && (await dmm()).fn === 'DCV', '前面板Reset回量測預設但保留外部PT100情境');
+    await ui.page.check('input[name=scen][value=r4w]'); await dkey('SHIFT'); await dkey('OHM_2W');
+    T.ok((await dmm()).fn === 'OHM4' && (await dmm()).view.value === 1000, 'Shift→Ω2W切4W獨立接線情境');
+    await ui.page.check('input[name=scen][value=ratio]'); await dkey('DCV'); await dkey('S5');
+    T.near((await dmm()).view.value, 2, 1e-12, 'DCV Ratio：2V/1V=2 V/V');
+    await dkey('NULL'); T.ok(!(await dmm()).view.nullOn && (await dmm()).view.value === 2, '原廠DCV Ratio不提供Null，按Null保留比值');
+    await dkey('S5'); await dkey('SHIFT'); await dkey('NULL'); await dkey('S2'); await dkey('S2');
+    T.ok((await dmm()).dbMode === 'DBM' && (await dmm()).view.unit === 'dBm', 'Math→dB/dBm使用實際dBm計算');
+    await dkey('DCV'); await dkey('SHIFT'); await dkey('NULL'); await dkey('S3'); await dkey('S1');
+    await sleep(450);
+    T.ok((await dmm()).statsOn && await ui.page.locator('[data-dmm-stats]').count() === 1, 'Statistics顯示已取得樣本');
+    T.ok(await separated((await dmm()).view.unit, '[data-dmm-stats]'), 'Number+Stats保留完整主讀值單位');
+    await dkey('SELECT'); await dkey('DISPLAY'); await dkey('S1'); await dkey('S4');
+    T.ok((await dmm()).displayMode === 'HIST' && await ui.page.locator('[data-dmm-bin]').count() > 0, 'Histogram以讀值記憶分箱');
+    T.ok(await separated((await dmm()).view.histogram.unit, '[data-dmm-stats]') && await ui.page.locator('svg.screen').evaluate((svg) => {
+      const s = svg.querySelector('[data-dmm-stats]').getBoundingClientRect();
+      return [...svg.querySelectorAll('[data-dmm-bin], [data-dmm-hist-axis]')].every((n) => n.getBoundingClientRect().bottom <= s.top);
+    }), 'Histogram+Stats保留可見柱體、軸與基本單位刻度');
+    await ui.shot('extended-dmm-histogram');
+    await dkey('ACQUIRE');
+    const [download] = await Promise.all([ui.page.waitForEvent('download'), dkey('S6')]);
+    T.ok(download.suggestedFilename() === '34460A-readings.csv', 'Acquire→Save Readings產生真實CSV下載');
+    await dkey('SELECT'); await dkey('SHIFT'); await dkey('SINGLE'); await sleep(750);
+    T.ok((await dmm()).probeHold && (await ui.lcdText()).includes('Probe Hold'), 'Probe Hold穩定序列清單可見');
+    await ui.shot('extended-dmm-probe-hold');
+    await dkey('SHIFT'); await dkey('SINGLE');
+    await dkey('SHIFT'); await dkey('DISPLAY'); await dkey('S1'); await dkey('S1');
+    await dkey('ACV'); await dkey('SHIFT'); await dkey('DISPLAY'); await dkey('S1'); await dkey('S2');
+    T.ok((await dmm()).fn === 'DCV', 'Utility Store/Recall真的保存並叫回量測功能');
+    await dkey('ACV'); await dkey('SHIFT'); await dkey('DISPLAY'); await dkey('S1'); await dkey('S1'); await dkey('S4');
+    await dkey('CONT'); await ui.press('DMM.PWR.POWER'); await ui.press('DMM.PWR.POWER');
+    T.ok((await dmm()).powerOnMode === 'LAST' && (await dmm()).fn === 'CONT', 'Power On Last重新開機回關機時的Cont設定');
+    await dkey('SHIFT'); await dkey('DISPLAY'); await dkey('S1'); await dkey('S4');
+    await ui.press('DMM.PWR.POWER'); await ui.press('DMM.PWR.POWER');
+    T.ok((await dmm()).powerOnMode === 'USER' && (await dmm()).fn === 'ACV', 'Power On UserDefined重新開機回已保存ACV槽');
+    await dkey('SHIFT'); await dkey('DISPLAY'); await dkey('S1'); await dkey('S4');
+    await ui.press('DMM.PWR.POWER'); await ui.press('DMM.PWR.POWER');
+    T.ok((await dmm()).powerOnMode === 'FACTORY' && (await dmm()).fn === 'DCV' && (await dmm()).fixture === 'ratio', 'Power On FactoryDefaults回DCV量測預設且保留外部fixture');
+
+    await ui.tab('gpe');
+    await ui.page.click('[data-act=gpe-setup-output]');
+    T.ok((await gpe()).setup?.kind === 'output' && !(await gpe()).output, '開機Output教學入口：設定中輸出OFF');
+    await ui.press('GPE.KEY.SET_VIEW'); await ui.press('GPE.KEY.OUTPUT_ON_OFF');
+    T.ok((await gpe()).startupOutput && !(await gpe()).output, 'Set View選ON、On/Off保存，這次不開輸出');
+    await ui.press('GPE.PWR.POWER'); await ui.press('GPE.PWR.POWER');
+    T.ok((await gpe()).output, '下次POWER開機依保存偏好輸出ON');
+    await ui.page.click('[data-act=gpe-setup-digits]');
+    await ui.press('GPE.KEY.SET_VIEW'); await ui.press('GPE.KEY.OUTPUT_ON_OFF');
+    T.ok((await gpe()).digits === 3 && (await gpe()).display[0].v === '0.0', '3位選項保存并改LCD顯示小數位');
+    await ui.shot('extended-gpe-3digits');
+    T.ok(ui.errors.length === 0, `沒有JS錯誤：${ui.errors.join('; ')}`);
+  } finally { await ui.close(); }
+  return T;
+}

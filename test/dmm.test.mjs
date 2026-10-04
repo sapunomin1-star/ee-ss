@@ -94,7 +94,7 @@ test('F06 Ω2W：1 kΩ Auto 1 kΩ 檔；手動 100 Ω 超量程；開路是超�
   assert.equal(lcd(m), '+000.500 0 Ω'); assert.equal(range(m), 'Auto 100Ω');
 });
 
-test('F07 導通：0.5 Ω 有 ·)) 指示；1 kΩ 顯示電阻無指示；開路 OPEN；量程鍵與 S1 不改量程', () => {
+test('F07 導通：0.5 Ω 有 ·)) 指示；1 kΩ 顯示電阻無指示；開路 OPEN；量程鍵不改量程，S1控制Beeper', () => {
   const m = fresh('short');
   assert.ok(run(m, 'CONT').text.includes('≤ 10 Ω'));
   assert.equal(m.view().beep, true); assert.equal(lcd(m), '+0.000 500 kΩ');
@@ -103,10 +103,11 @@ test('F07 導通：0.5 Ω 有 ·)) 指示；1 kΩ 顯示電阻無指示；開路
   m.scenarios.set('open');
   assert.equal(m.view().state, 'open'); assert.equal(lcd(m), 'OPEN'); assert.equal(m.view().beep, false);
   const before = JSON.stringify(m.snapshot());
-  assert.equal(run(m, 'RANGE').kind, 'approx');
-  run(m, 'UP DOWN S1');
+  assert.equal(run(m, 'RANGE').kind, 'info');
+  run(m, 'UP DOWN');
   assert.equal(JSON.stringify(m.snapshot()), before);
-  assert.deepEqual(m.view().soft, []); // 導通畫面不顯示 Range
+  assert.equal(m.view().soft[0].label, 'Beeper');
+  run(m, 'S1'); assert.equal(m.beeper, false); assert.equal(m.view().beep, false);
 });
 
 test('F10／F11 不相容：沒有讀值、讀值欄留空，也不沿用上一功能的讀值', () => {
@@ -117,7 +118,7 @@ test('F10／F11 不相容：沒有讀值、讀值欄留空，也不沿用上一�
   assert.ok(h.text.includes('未提供相容測試輸入'));
   assert.ok(!m.lcd().includes('1.234'));
   // 相容表：電壓→DCV／ACV、電阻→Ω2W／Cont、電流→DCI／ACI；未接情境→全部沒有讀值
-  const ok = { none: [], dcv: ['DCV', 'ACV'], acv: ['DCV', 'ACV'], r1k: ['OHM', 'CONT'], short: ['OHM', 'CONT'], open: ['OHM', 'CONT'], dci: ['DCI', 'ACI'], aci: ['DCI', 'ACI'], bench: [] }; // bench：單元測試沒有接實驗台電路，全部沒有讀值
+  const ok = { none: [], dcv: ['DCV', 'ACV'], acv: ['DCV', 'ACV', 'FREQ', 'PER'], r1k: ['OHM', 'CONT'], r4w: ['OHM', 'OHM4', 'CONT'], short: ['OHM', 'CONT'], open: ['OHM', 'CONT'], dci: ['DCI', 'ACI'], aci: ['DCI', 'ACI'], bench: [], cap: ['CAP'], 'cap-open': ['CAP'], diode: ['DIODE'], 'diode-open': ['DIODE'], pt100: ['OHM', 'OHM4', 'CONT', 'TEMP'], thermistor: ['OHM', 'OHM4', 'CONT'], ratio: ['DCV', 'ACV'] }; // bench：單元測試沒有接實驗台電路，全部沒有讀值
   for (const { id } of D1) {
     for (const fn of Object.keys(FUNCS)) {
       const t = fresh(id);
@@ -159,27 +160,26 @@ test('F09 Null：超量程、開路、無輸入時不能開', () => {
   run(m, 'RANGE NULL'); assert.equal(m.st.nullOn, true); assert.equal(lcd(m), '+00.000 00 VDC'); // 回 Auto 有讀值後才能開
 });
 
-test('F12 Shift：執行次功能後自動解除；再按取消；Ω4W／二極體／Math 未納入不改狀態', () => {
+test('F12 Shift：執行次功能後解除；4W、Diode、Math有各自狀態', () => {
   const m = fresh('dcv');
   run(m, 'SHIFT'); assert.equal(m.shift, true);
   run(m, 'SHIFT'); assert.equal(m.shift, false);
-  run(m, 'DCV'); assert.equal(m.fn, 'DCV');
-  for (const k of ['OHM', 'CONT', 'NULL']) {
-    const before = JSON.stringify({ ...m.snapshot(), shift: false });
-    const h = run(m, `SHIFT ${k}`);
-    assert.equal(h.kind, 'out', k); assert.equal(m.shift, false);
-    assert.equal(JSON.stringify(m.snapshot()), before, `Shift→${k} 不改狀態`);
-  }
-  run(m, 'SHIFT RANGE'); assert.equal(m.shift, false); assert.equal(m.st.auto, false); // 無次標籤鍵：執行主功能並解除
-  assert.ok(!m.lcd().includes('Shift')); // Shift 狀態不上 LCD
+  run(m, 'SHIFT OHM'); assert.equal(m.fn, 'OHM4'); assert.equal(m.shift, false);
+  run(m, 'SHIFT CONT'); assert.equal(m.fn, 'DIODE'); assert.equal(m.shift, false);
+  run(m, 'SHIFT NULL'); assert.equal(m.menu, 'MATH'); assert.equal(m.st.nullOn, false); assert.equal(m.shift, false);
+  run(m, 'SHIFT RANGE'); assert.equal(m.shift, false); assert.equal(m.st.auto, true); // Diode固定範圍
+  assert.ok(!m.lcd().includes('Shift'));
 });
 
-test('F13 未納入鍵：Freq、S2、Run/Stop、方向鍵回傳 out 且不改狀態', () => {
-  const m = fresh('dcv');
+test('F13 Temp、AutoZero與方向鍵可操作；Reset回復前面板預設', () => {
+  const m = fresh('pt100');
+  run(m, 'DMM.KEY.TEMP'); assert.equal(m.fn, 'TEMP'); near(m.view().value, 25);
+  run(m, 'DCV'); assert.equal(m.autoZero, true);
+  run(m, 'DMM.SOFT.S3'); assert.equal(m.autoZero, false);
   const before = JSON.stringify(m.snapshot());
-  for (const k of ['FREQ', 'S2', 'RUN', 'UP_ARROW']) assert.equal(run(m, k).kind, 'out', k);
+  for (const k of ['DMM.KEY.LEFT', 'DMM.KEY.RIGHT']) assert.equal(run(m, k).kind, 'info');
   assert.equal(JSON.stringify(m.snapshot()), before);
-  assert.ok(run(m, 'SHIFT RUN').text.includes('Reset')); assert.equal(m.shift, false);
+  assert.ok(run(m, 'SHIFT RUN').text.includes('Reset')); assert.equal(m.shift, false); assert.equal(m.fn, 'DCV'); assert.equal(m.autoZero, true);
   const svg = m.lcd();
   for (const bad of ['10A', 'Front', 'Rear', 'Trend']) assert.ok(!svg.includes(bad), bad);
 });
@@ -268,12 +268,12 @@ test('輸入電阻（實驗台負載）：DCV 10 MΩ、ACV 1 MΩ、Ω 與關機�
   run(m, 'DCV POWER'); assert.equal(m.inputZ(), null);
 });
 
-test('接在實驗台上就定時重畫（任何功能）；單機情境或關機不重畫', () => {
+test('接在實驗台上就定時重畫（任何功能）；單機情境也重畫以記錄讀值，關機不重畫', () => {
   const m = fresh('bench');
   m.setBenchSource(() => ({ v: null, ohm: null, why: '' }));
   assert.equal(m.isLive(), true);
   run(m, 'ACV'); assert.equal(m.isLive(), true);
   run(m, 'OHM'); assert.equal(m.isLive(), true);
   run(m, 'POWER'); assert.equal(m.isLive(), false);
-  assert.equal(fresh('dcv').isLive(), false);
+  assert.equal(fresh('dcv').isLive(), true);
 });

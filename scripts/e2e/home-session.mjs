@@ -76,7 +76,7 @@ export async function run() {
       await upload(content); await hintIs('沒有載入實驗');
       T.ok(JSON.stringify(await doc()) === keep && (await ui.snap('afg')).ch[0].freq === 3500, `${name}：拒絕且保留現有接線與設定`);
     }
-    await upload(' '.repeat(1024 * 1024 + 1)); await hintIs('超過 1 MB');
+    await upload(' '.repeat(4 * 1024 * 1024 + 1)); await hintIs('超過 4 MB');
     T.ok((await ui.snap('afg')).ch[0].freq === 3500, '超大檔案拒絕且保留現況');
     await ui.shot('home-session-restored');
 

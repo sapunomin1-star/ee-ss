@@ -271,13 +271,12 @@ test('F14：Return 捨棄半截輸入；F2 選單依情境', () => {
   assert.equal(m.menu, 'FREQ');
 });
 
-test('F15：Pulse、Noise、Phase 不改狀態', () => {
-  const m = fresh();
-  const before = JSON.stringify(m.snapshot());
-  assert.equal(run(m, 'WAVE F3').kind, 'out');
-  assert.equal(run(m, 'F5').kind, 'out');
-  run(m, 'CH CH'); assert.equal(run(m, 'F4').kind, 'out');
-  const after = m.snapshot();
-  assert.equal(after.ch[0].wave, 'SINE');
-  assert.deepEqual(after.ch.map((c) => c.emfVpp), JSON.parse(before).ch.map((c) => c.emfVpp));
+test('F15：Pulse、Noise與Phase 已可實際選取/編輯', () => {
+  const m = new AfgModel();
+  run(m, 'WAVE F3'); assert.equal(m.c.wave, 'PULSE');
+  run(m, 'F1 250 F3'); assert.equal(m.c.extended.pulseWidth, 250e-6);
+  run(m, 'WAVE F5'); assert.equal(m.c.wave, 'NOISE');
+  assert.match(run(m, 'FREQ').text, /Noise/); assert.equal(m.hl, null);
+  run(m, 'WAVE F1 CH CH F4 F1 45 F5'); assert.equal(m.c.phase, 45);
+  assert.equal(m.descriptor(0).phase, 45);
 });

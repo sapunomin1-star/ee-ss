@@ -87,6 +87,9 @@ export class GpeModel {
     this.lock = false;
     this.viewAt = null; // Set View 最後一次操作的時間；null＝沒在看設定
     this.last = null;   // 上一格旋鈕 {id, dir, t}，判斷快轉
+    this.startupOutput = false;
+    this.digits = 4;
+    this.setup = null;
   }
 
   isOn() { return this.on; }
@@ -99,10 +102,23 @@ export class GpeModel {
   touch() { if (this.viewAt != null) this.viewAt = this.setViewLeft() > 0 ? this.now() : null; }
 
   // ---- 按鍵 ----
-  press(id, { long = false, ms } = {}) {
+  press(id, { long = false, ms, held } = {}) {
     if (ms != null) long = ms >= 2000; // 手冊 p.27：LOCK 要按住超過 2 秒（GAP-GPE-01 定案 ≥2.0 s）
-    if (id === K.POWER) return this.power();
+    if (id === K.POWER) return this.power({ held });
     if (!this.on) return { kind: 'info', text: '電源關閉中，先按 POWER。' };
+    if (this.setup) {
+      if (id === K.SET) {
+        this.setup.value = this.setup.kind === 'output' ? !this.setup.value : this.setup.value === 4 ? 3 : 4;
+        return { kind: 'info', text: `開機設定：${this.setup.kind === 'output' ? `Output ${this.setup.value ? 'ON' : 'OFF'}` : `${this.setup.value} 位顯示`}；按 On/Off 確認。` };
+      }
+      if (id === K.OUT) {
+        const { kind, value } = this.setup;
+        if (kind === 'output') this.startupOutput = value; else this.digits = value;
+        this.setup = null; this.output = false;
+        return { kind: 'info', text: `已保存${kind === 'output' ? `下次開機 Output ${value ? 'ON' : 'OFF'}` : `${value} 位顯示`}（手冊 p.27–29）。本次輸出保持 OFF。` };
+      }
+      return { kind: 'info', text: '開機設定中：Set View 選擇、On/Off 確認；POWER 取消。' };
+    }
     this.touch();
     switch (id) {
       case K.OUT: return this.toggleOutput();
@@ -116,14 +132,25 @@ export class GpeModel {
   }
 
   // 模式鍵是按下／彈起的機械鍵（p.25「the right key is not pressed」、GAP-GPE-07），關開機不會改變它們的位置
-  power() {
-    if (this.on) { this.on = false; return { kind: 'approx', text: '模擬電源關：LCD 全暗、四路都沒有輸出。' }; }
-    const { keyL, keyR } = this;
+  power({ held } = {}) {
+    if (this.on) { this.on = false; this.setup = null; return { kind: 'approx', text: '模擬電源關：LCD 全暗、四路都沒有輸出。' }; }
+    const { keyL, keyR, startupOutput, digits } = this;
     this.reset();
-    Object.assign(this, { keyL, keyR });
+    Object.assign(this, { keyL, keyR, startupOutput, digits, output: startupOutput });
+    if (held === K.OUT || held === 'output') return this.beginSetup('output');
+    if (held === K.SET || held === 'digits') return this.beginSetup('digits');
     this.bootAt = this.now();
     const mode = { INDEP: 'Independent', SER: 'Series', PARA: 'Parallel' }[this.mode];
-    return { kind: 'approx', text: `模擬電源開：LCD 全段亮 1 秒後顯示設定值；四路 0.00 V、CH1／CH2 限流 0.100 A、Output OFF、Lock 解除（模擬器定義，不是校機開機記憶）。模式鍵是機械鍵，位置不變：${mode}。` };
+    return { kind: 'approx', text: `模擬電源開：LCD 全段亮 1 秒；四路 0.00 V、CH1／CH2 限流 0.100 A、Output ${this.output ? 'ON' : 'OFF'}（已保存的開機輸出設定）、${digits} 位顯示、Lock 解除。V／I 值是模擬器定義，不是校機開機記憶。模式鍵位置不變：${mode}。` };
+  }
+
+  // Outside-panel entry reproduces the manual's hold-a-key-at-power-up chord.
+  // Configuration never energizes a circuit; Output selects/commits the value.
+  beginSetup(kind) {
+    if (!['output', 'digits'].includes(kind)) return { kind: 'reject', text: '沒有此開機設定。' };
+    this.on = true; this.output = false; this.viewAt = null; this.bootAt = -Infinity;
+    this.setup = { kind, value: kind === 'output' ? this.startupOutput : this.digits };
+    return { kind: 'info', text: `${kind === 'output' ? '按住 Output 開機' : '按住 Set View 開機'}：已進入${kind === 'output' ? '開機輸出' : '3／4 位顯示'}設定；Set View 選擇、On/Off 保存；POWER 可取消。` };
   }
 
   // GPE-F05：一鍵開關四路；Lock 不影響
@@ -182,6 +209,7 @@ export class GpeModel {
   turn(id, dir) {
     const k = KNOBS[id];
     if (!this.on || !k) return null;
+    if (this.setup) return { kind: 'info', text: '請先用 On/Off 確認開機設定，再調旋鈕。' };
     this.touch();
     const s = this.stepSize(id, dir);
     const name = `CH${k.ch} ${k.q === 'v' ? 'Voltage' : 'Current'}`;
@@ -251,17 +279,21 @@ export class GpeModel {
 
   // LCD 一列（GPE-F04）：Output OFF 或 Set View → 設定值；ON → 讀回＋CV／CC。show：'auto'｜'set'｜'read'
   rowView(ch, show = 'auto') {
+    const digits = this.setup?.kind === 'digits' ? this.setup.value : this.digits;
+    const fmtVolt = (v) => fmtFixed(v, digits === 3 ? 1 : 2);
+    const fmtCurrent = (i) => fmtFixed(i, digits === 3 ? 2 : 3);
     const rb = this.readback();
     if (!rb || show === 'set' || (show === 'auto' && this.setViewLeft() > 0)) {
       const e = this.eff(ch);
-      return { ch, v: fmtFixed(e.vs, 2), a: e.is == null ? '---' : fmtFixed(e.is, 3), mode: null, set: !!rb };
+      return { ch, v: fmtVolt(e.vs), a: e.is == null ? '---' : fmtCurrent(e.is), mode: null, set: !!rb };
     }
     const o = rb[ch];
-    return { ch, v: fmtFixed(o.v, 2), a: fmtFixed(o.i, 3), mode: o.rb ? 'RB' : o.cc ? 'CC' : 'CV', set: false };
+    return { ch, v: fmtVolt(o.v), a: fmtCurrent(o.i), mode: o.rb ? 'RB' : o.cc ? 'CC' : 'CV', set: false };
   }
 
   lcdState(show = 'auto') {
-    return { rows: this.rows.map((ch) => this.rowView(ch, show)), ser: this.mode === 'SER', para: this.mode === 'PARA', lock: this.lock, out: this.output };
+    return { rows: this.rows.map((ch) => this.rowView(ch, show)), ser: this.mode === 'SER', para: this.mode === 'PARA', lock: this.lock,
+      out: this.setup?.kind === 'output' ? this.setup.value : this.output, setup: this.setup };
   }
 
   // ---- 輸出 ----
@@ -282,6 +314,7 @@ export class GpeModel {
       ['Output', this.output ? 'ON（四路輸出中）' : 'OFF（LCD 顯示設定值）'],
       ['LCD', `第一列 ${CIRCLED[this.rows[0]]}、第二列 ${CIRCLED[this.rows[1]]}${this.setViewLeft() > 0 ? '；Set View 中' : ''}`],
       ['Lock', this.lock ? '上鎖（CH1／CH2 Voltage 不動作，近似）' : '未鎖'],
+      ['開機設定', `Output ${this.startupOutput ? 'ON' : 'OFF'}、${this.digits} 位顯示${this.setup ? '；設定中：Set View 選擇、On/Off 保存' : ''}`],
       ['CH1 設定', `${fmtV(this.vset[1])}／限流 ${fmtA(this.iset[1])}`],
       ['CH2 設定', `${fmtV(this.vset[2])}／限流 ${fmtA(this.iset[2])}${m === 'SER' ? '（電壓跟 CH1）' : m === 'PARA' ? '（停用，跟 CH1）' : ''}`],
       ['CH3 設定', `${fmtV(this.vset[3])}（沒有限流旋鈕）`],
@@ -301,6 +334,7 @@ export class GpeModel {
       setView: this.setViewLeft() > 0, rows: [...this.rows], load: this.load,
       vset: per(this.vset, 100), iset: per(this.iset, 1000),
       display: this.on ? this.lcdState().rows : null, readback: this.readback(),
+      startupOutput: this.startupOutput, digits: this.digits, setup: this.setup ? { ...this.setup } : null,
     };
   }
 }

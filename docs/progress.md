@@ -4,7 +4,23 @@
 
 直接用瀏覽器開 `dist/index.html`（離線可用，不必架站）。改了程式要重建：`npm install` 一次，之後 `npm run build`。
 
-## 最新：2026-10-02 電流、復原與週期保護補強
+## 最新：2026-10-04 第二輪驗收修正
+
+接續功能補強版，修正實際時間軸上的示波器後觸發採集／因果濾波、電表歷史讀值／跨分頁背景量測、AFG 的波形驗證與 Manual 起始相位；並補齊示波器 Setup JSON 叫回與電表顯示設定。詳細反例、相容性及驗收範圍見 [第二輪報告](reviews/2026-10-04-quality-pass.md)。
+
+最終模型 449／449、25 組真 UI 合计 543／543、190 列控制矩陣與 12／12 負向案例通過。交付 HTML 與全部原始碼以同一個本地提交保存；桌面版本說明記錄提交與檔案雜湊。
+
+## 2026-10-04 四台儀器功能補強
+
+依使用者指定，補齊可由虛擬實驗台執行的前面板功能：AFG Pulse／Noise／ARB／Phase／Duty、Memory／Dual Channel／Counter／DSO Link、MOD／Sweep／Burst；TDS Math／FFT／XY／Peak／Average／Persistence、Pulse Trigger／Holdoff／Trig View／Fine、AutoRange／Ref／Setup／Limit Test／Logging；DMM 四線電阻／Cap／Freq／Period／Temp、NPLC／Single／Ratio／dB／統計／Limits／Histogram／Probe Hold／Memory／開機設定；GPE 開機 Output 及顯示位數設定。
+
+兩種實驗台新增 Sense HI／LO；明確儲存的 Setup、Ref、Limit Template、AFG Memory 與 DMM 設定進入實驗存檔。舊 v1 檔案兼容；載入會重新開始電容與採集歷史。ARB 波形檔、讀值 CSV、LCD SVG 為真正的瀏覽器下載／載入。
+
+跨儀器審查補驗 Manual Burst 截止排程、電容連續、Single 歷史 RMS、極短限流充電數值穩定與 ARB 原地編輯不改寫舊 hybrid 歷史。完整功能、驗證統計與有界近似見 [本輪報告](reviews/2026-10-04-instrument-functions.md)。實體外部輸入、硬體校正、韌體及通訊介面仍依報告明示限制；不假設原廠所有硬體已模擬。
+
+最終模型 387／387、真 UI 496／496、190 列控制矩陣與 12／12 負向案例通過。離線 HTML 重建後有限窗峰值／RMS 的 10 個回歸也通過。
+
+## 2026-10-02 電流、復原與週期保護補強
 
 依使用者指定優先順序，新增實驗台 DMM I 3A–LO 串接電流量測，支援 DCI／ACI、正負電流、手動／Auto 量程，等效分流負載參與電路求解。麵包板新增「電流串接」示範；固定 RC 板無法拆開內部元件，串接練習請使用麵包板。
 

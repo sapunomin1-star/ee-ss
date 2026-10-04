@@ -109,6 +109,30 @@ test('紅夾接在接地點：輸出被短路', () => {
 import { diffStats, diffMeanOver, nodeAt, ohms } from '../src/bench/circuit.js';
 import { Bench, DEMO } from '../src/bench/bench.js';
 import { DmmModel, APERTURE as APERTURE_S } from '../src/instruments/dmm/model.js';
+test('固定 RC 板以 GPE 5 V 供電：100 nF 充電、電表積分與電源讀回符合解析式', () => {
+  let t = 0;
+  const afg = { on: true, ch: [{ ...off }, { ...off }] }, dmm = new DmmModel(), gpe = new GpeModel();
+  const b = new Bench(afg, dmm, gpe); b.now = () => t;
+  dmm.setBenchSource(() => b.dmmInput()); dmm.fixture = 'bench';
+  gpe.setBenchSource(() => b.gpeInput()); gpe.load = 'bench';
+  b.connect('GPE.CH1+', 'A'); b.connect('GPE.CH1-', 'G');
+  b.connect('DMM.HI', 'B'); b.connect('DMM.LO', 'G'); b.solution();
+  assert.equal(b.build().warn.some((x) => x.text.includes('還沒有接')), false, 'GPE 已接時不要求再接 AFG');
+  gpe.vset[1] = 500; gpe.iset[1] = 100; gpe.output = true; b.solution();
+  assert.equal(b.build().gpe.length, 1);
+  const sourceR = 1000 + 0.01, meterR = 10e6;
+  const target = 5 * meterR / (sourceR + meterR), tau = 100e-9 / (1 / sourceR + 1 / meterR);
+  for (const time of [0, 100e-6, 1e-3, .5]) {
+    t = time;
+    const voltage = target * -Math.expm1(-time / tau), readback = gpe.readback()[1];
+    near(b.dmmInput().v.dc, voltage, 1e-7, '電容電壓');
+    near(readback.i, (5 - voltage) / sourceR, 1e-9, 'GPE 供給電阻與電表的電流');
+    near(readback.v, 5 - readback.i * .01, 1e-10, 'CV 含 0.01 Ω 輸出內阻');
+    assert.equal(readback.cc, false); assert.equal(readback.rb, false);
+  }
+  const reading = dmm.reading();
+  assert.equal(reading.state, 'value'); near(reading.raw, target, 1e-7, '充飽後的電表 DCV 讀值');
+});
 
 test('窄脈衝（τ 比取樣間隔短）：有效值照區間解析式積分，等於解析值；區間內照指數衰減取值', () => {
   // CR 高通 100 Ω／1 nF、1 kHz 方波：τ＝150 ns，取樣間隔 250 ns

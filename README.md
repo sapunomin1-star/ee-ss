@@ -24,9 +24,15 @@ npm run e2e        # 真滑鼠／鍵盤操作測試（用本機 Google Chrome）
 
 ## 目前狀態
 
+最新「2026.10.04 驗收修正版」修正示波器真實後觸發採集與歷史濾波、電表 Single 歷史及背景採集、AFG 波形限制與 Manual Burst 相位；補上示波器 Setup 檔案叫回及電表顯示選項。詳見 [第二輪驗收報告](docs/reviews/2026-10-04-quality-pass.md)。
+
+2026-10-04 四台儀器功能補強：AFG 新增 Pulse／Noise／ARB 編輯與波形檔、Phase／Duty、十組記憶、Dual Channel、Counter／DSO Link，以及實際 AM／FM／FSK／PM／SUM／Sweep／Burst。TDS 新增 Math／FFT、XY、Peak／Average、Persistence、Pulse Trigger／Holdoff／Trig View、AutoRange、Setup／Ref、Limit Test、Data Logging 與檔案匯出。DMM 新增四線電阻／電容／頻率週期／溫度、NPLC／Single、Ratio／dB、Histogram／Probe Hold／統計／Limits、記憶及自訂開機設定；GPE 補上開機 Output 與顯示位數設定。兩種實驗台都有獨立 Sense HI／LO。操作入口、驗證與硬體限制見 [功能補強報告](docs/reviews/2026-10-04-instrument-functions.md)。
+
+新存檔保留明確存入的儀器記憶、Setup／Ref／Limit Template，兼容舊 v1 檔案；重開仍從零電容電荷與新的採集時間軸開始。以下日期段落為各輪歷史，不代表最新版本仍缺上面已補的功能。
+
 2026-10-02 電流、復原與保護補強：實驗台新增 `I 3A` 表筆，可拆開迴路串入 I–LO，量 DCI／ACI；量程對應的等效分流負載會實際影響電路。麵包板「電流串接」示範可直接練習。兩種板子可復原／重做接線、元件與改值，每塊板保留 100 步；按鈕或 Ctrl／Cmd+Z、Ctrl／Cmd+Shift+Z 均可操作。含電容的 AFG／GPE 共同驅動網路新增單一／同頻率 AFG 的 CV／CC／逆灌開路切換，電容電壓及量測時間窗連續。驗證與使用限制見 [本輪補強報告](docs/reviews/2026-10-02-current-undo-protection.md)。
 
-本輪完整回歸：模型 261／261、真 UI 373／373；190 列控制矩陣及 12 項負向檢查通過。極端高頻與多電容長暫態的首次計算仍可能需數秒，詳見報告。
+2026-10-02 該輪完整回歸：模型 261／261、真 UI 373／373；190 列控制矩陣及 12 項負向檢查通過。極端高頻與多電容長暫態的首次計算仍可能需數秒，詳見報告。
 
 接線、元件、探棒與四台儀器設定會自動保存在同一瀏覽器，可用上方「匯出實驗／載入實驗」攜帶 JSON 實驗檔。載入後重新開始模擬，電容從 0 V 開始，不保存舊波形、電荷或復原歷史；瀏覽器不允許自動保存時仍可匯出。此前的儀器操作與保存補強，模型 225 項、真 UI 301 項全過，詳見 [居家練習複核](docs/reviews/2026-10-02-home-lab.md)。
 

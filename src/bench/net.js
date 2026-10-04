@@ -8,7 +8,9 @@
 //      φ 函數精確積分：y(s)＝y₀＋(p₀−λy₀)·s·φ₁(λs)＋p₁·s²·φ₂(λs)（對任何 λ 都不會大數相消）。
 //   3. 一般把時間常數短於 1 ns 的模態視為瞬間跟上；實驗台有 GPE 時保留這些模態，先以真實初始電荷判斷限流。
 //   節點電壓在區間內＝A＋B·s＋Σ_m w_m·(a_m·s·φ₁(λ_m s)＋b_m·s²·φ₂(λ_m s))；平方積分用分段 Gauss–Legendre（快模態在區間開頭分級）。
-import { emf } from './circuit.js';
+import { periodMesh, meshLocate, driveSegment, waveCuts } from './circuit.js';
+import { simulationPeriod } from '../instruments/afg/motion.js';
+import { electricalFrequency } from '../instruments/afg/extensions.js';
 
 export const M = 4000;          // 每週期取樣點（與固定 RC 板相同）
 export const R_OUT = 50;        // AFG 輸出內阻
@@ -120,7 +122,7 @@ export function solveNet(net, { retainFastModes = false } = {}) {
   for (const L of net.loads || []) if (at(L.a) !== at(L.b)) stamp(G, L.a, L.b, 1 / L.r);
   // 電源的 Norton 等效：AFG＝EMF/50 注入紅夾節點；GPE CV＝V/R_GPE 注入＋、流出−（並聯 1/R_GPE）；CC＝定電流
   const inj = (a, b, amp) => { const v = new Float64Array(n); const i = at(a), j = at(b); if (i >= 0) v[i] += amp; if (j >= 0) v[j] -= amp; return v; };
-  const afg = (net.afg || []).filter((s) => at(s.node) >= 0);
+  const afg = (net.afg || []).filter((s) => at(s.node) >= 0).map((s) => ({ ...s, p: { ...s.p, carrierFreq: s.p.carrierFreq ?? s.p.freq, freq: electricalFrequency(s.p) } }));
   for (const s of afg) stamp(G, s.node, 'E', 1 / R_OUT);
   const nAfg = afg.map((s) => inj(s.node, 'E', 1 / R_OUT)); // 乘上 EMF
   const nDc = new Float64Array(n);
@@ -182,9 +184,11 @@ export function solveNet(net, { retainFastModes = false } = {}) {
 
   // ---- 週期與輸入 ----
   const periodic = afg.length > 0;
-  const T = periodic ? 1 / afg[0].p.freq : 1, h = T / M;
-  const e = afg.map((s) => Float64Array.from({ length: M + 1 }, (_, k) => emf(s.p, k * h)));
-  const ed = afg.map((s, j) => Float64Array.from({ length: M }, (_, k) => (s.p.wave === 'SQUARE' ? 0 : (e[j][k + 1] - e[j][k]) / h)));
+  const T = periodic ? simulationPeriod(afg.map((s) => s.p)) : 1, h = T / M, mesh = periodMesh(afg.map((s) => s.p), T), K = mesh.length - 1;
+  const dt = Float64Array.from({ length: K }, (_, k) => mesh[k + 1] - mesh[k]);
+  const drives = afg.map((s) => Array.from({ length: K }, (_, k) => driveSegment(s.p, mesh[k], mesh[k + 1])));
+  const e = drives.map((d) => Float64Array.from(d, ([v]) => v));
+  const ed = drives.map((d) => Float64Array.from(d, ([, slope]) => slope));
   const R = slow.length, lamS = slow.map((m) => lam[m]), PhiS = slow.map((m) => Phi[m]);
   const nodeModes = names.map((_, i) => PhiS.map((p) => p[i])), zeroModes = lamS.map(() => 0);
   const beta = slow.map((m, si) => rAfg.map((x) => x.beta[si])), kappa = slow.map((m, si) => rDc.beta[si]);
@@ -192,34 +196,34 @@ export function solveNet(net, { retainFastModes = false } = {}) {
   // kappa/λ 可達 10¹² V；不能把這個巨大常數沿 4000 格反覆累積捨入。
   const Y0 = [], Aco = [], Bco = [], dcModal = lamS.map((l, si) => l > 0 ? kappa[si] / l : 0);
   slow.forEach((m, si) => {
-    const l = lamS[si], E1 = Math.exp(-l * h), f1 = h * phi(1, l * h), f2 = h * h * phi(2, l * h);
-    const p0 = new Float64Array(M), p1 = new Float64Array(M);
-    for (let k = 0; k < M; k++) { let a = 0, b = 0; afg.forEach((_, j) => { a += beta[si][j] * e[j][k]; b += beta[si][j] * ed[j][k]; }); p0[k] = a; p1[k] = b; }
-    const y = new Float64Array(M + 1);
-    const run = (y0) => { y[0] = y0; for (let k = 0; k < M; k++) y[k + 1] = y[k] * E1 + p0[k] * f1 + p1[k] * f2; return y[M]; };
+    const l = lamS[si];
+    const p0 = new Float64Array(K), p1 = new Float64Array(K);
+    for (let k = 0; k < K; k++) { let a = 0, b = 0; afg.forEach((_, j) => { a += beta[si][j] * e[j][k]; b += beta[si][j] * ed[j][k]; }); p0[k] = a; p1[k] = b; }
+    const y = new Float64Array(K + 1);
+    const run = (y0) => { y[0] = y0; for (let k = 0; k < K; k++) { const h = dt[k]; y[k + 1] = y[k] * Math.exp(-l * h) + p0[k] * h * phi(1, l * h) + p1[k] * h * h * phi(2, l * h); } return y[K]; };
     const b0 = run(0), cyc = -Math.expm1(-l * T);
     run(cyc > 1e-300 ? b0 / cyc : 0);
     Y0.push(y);
-    Aco.push(Float64Array.from({ length: M }, (_, k) => p0[k] - l * y[k]));
+    Aco.push(Float64Array.from({ length: K }, (_, k) => p0[k] - l * y[k]));
     Bco.push(p1);
   });
 
   // ---- 節點的區間係數：A（起點值）、B（輸入的一次項）；模態權重＝PhiS[si][i] ----
-  const Aof = (w, wsrc, wdc, includeDC = true) => Float64Array.from({ length: M }, (_, k) => { // w：各慢模態權重；wsrc：各 AFG 權重；wdc：直流
+  const Aof = (w, wsrc, wdc, includeDC = true) => Float64Array.from({ length: K }, (_, k) => { // w：各慢模態權重；wsrc：各 AFG 權重；wdc：直流
     let v = wdc;
     for (let si = 0; si < R; si++) v += w[si] * (Y0[si][k] + (includeDC ? dcModal[si] : 0));
     for (let j = 0; j < afg.length; j++) v += wsrc[j] * e[j][k];
     return v;
   });
-  const Bof = (wsrc) => Float64Array.from({ length: M }, (_, k) => { let v = 0; for (let j = 0; j < afg.length; j++) v += wsrc[j] * ed[j][k]; return v; });
+  const Bof = (wsrc) => Float64Array.from({ length: K }, (_, k) => { let v = 0; for (let j = 0; j < afg.length; j++) v += wsrc[j] * ed[j][k]; return v; });
   const nodeWeights = new Map();
   const nodeW = (x) => { const i = at(x); if (i < 0) return null; if (!nodeWeights.has(x)) nodeWeights.set(x, { w: nodeModes[i], wsrc: hAfg.map((v) => v[i]), wdc: hDc[i] }); return nodeWeights.get(x); };
   const tables = new Map();
-  const table = (x) => {
-    if (!tables.has(x)) { const W = nodeW(x); tables.set(x, W ? Aof(W.w, W.wsrc, W.wdc) : new Float64Array(M)); }
+  const tableInternal = (x) => {
+    if (!tables.has(x)) { const W = nodeW(x); tables.set(x, W ? Aof(W.w, W.wsrc, W.wdc) : new Float64Array(K)); }
     return tables.get(x);
   };
-  const locate = (t) => { const ph = t - Math.floor(t / T) * T, k = Math.max(0, Math.min(M - 1, Math.floor(ph / h))); return [k, Math.max(0, ph - k * h)]; };
+  const locate = (t) => meshLocate(mesh, T, t);
   // 區間 k、偏移 s 的值（權重組 W；A、B 已算好的陣列）
   const valAt = (W, A, B, k, s) => {
     let v = A[k] + B[k] * s;
@@ -232,8 +236,8 @@ export function solveNet(net, { retainFastModes = false } = {}) {
     return v;
   };
   const bCache = new Map();
-  const Bnode = (x) => { if (!bCache.has(x)) { const W = nodeW(x); bCache.set(x, W ? Bof(W.wsrc) : new Float64Array(M)); } return bCache.get(x); };
-  const nodeAtFast = (x, t) => { const W = nodeW(x); if (!W) return 0; const [k, s] = locate(t); return valAt(W, table(x), Bnode(x), k, s); };
+  const Bnode = (x) => { if (!bCache.has(x)) { const W = nodeW(x); bCache.set(x, W ? Bof(W.wsrc) : new Float64Array(K)); } return bCache.get(x); };
+  const nodeAtFast = (x, t) => { const W = nodeW(x); if (!W) return 0; const [k, s] = locate(t); return valAt(W, tableInternal(x), Bnode(x), k, s); };
   const acTables = new Map();
   const nodeAcAt = (x, t) => {
     const W = nodeW(x); if (!W) return 0;
@@ -252,16 +256,16 @@ export function solveNet(net, { retainFastModes = false } = {}) {
     const W = { w: a.w.map((x, i) => x - b.w[i]), wsrc: a.wsrc.map((x, i) => x - b.wsrc[i]), wdc: acOnly ? 0 : a.wdc - b.wdc };
     const dcBaseline = acOnly ? 0 : W.w.reduce((sum, w, si) => sum + w * dcModal[si], W.wdc);
     const A = Aof(W.w, W.wsrc, 0, false), B = Bof(W.wsrc);
-    const pre = new Float64Array(M + 1);
-    for (let k = 0; k < M; k++) pre[k + 1] = pre[k] + intAt(W, A, B, k, h);
-    const meanAc = pre[M] / T, mean = dcBaseline + meanAc;
+    const pre = new Float64Array(K + 1);
+    for (let k = 0; k < K; k++) pre[k + 1] = pre[k] + intAt(W, A, B, k, dt[k]);
+    const meanAc = pre[K] / T, mean = dcBaseline + meanAc;
     // 平方積分：每個「銳利」模態（λh ≥ 0.5）都在區間開頭分級切段（0.5／λ…32／λ），各段 8 點 Gauss–Legendre；
     //   只看最快的一個會漏掉較慢的尖峰（兩個時間常數差很多時）
-    const cutSet = new Set([0, h]);
-    lamS.forEach((l, si) => { if (W.w[si] && l * h >= 0.5) for (const c of [0.5, 1, 2, 4, 8, 16, 32]) { const s = c / l; if (s < h) cutSet.add(s); } });
-    const cuts = [...cutSet].sort((a, b) => a - b);
     let S = 0, peak = 0, peakAc = 0;
-    for (let k = 0; k < M; k++) {
+    for (let k = 0; k < K; k++) {
+      const h = dt[k], cutSet = new Set([0, h]);
+      lamS.forEach((l, si) => { if (W.w[si] && l * h >= 0.5) for (const c of [0.5, 1, 2, 4, 8, 16, 32]) { const s = c / l; if (s < h) cutSet.add(s); } });
+      const cuts = [...cutSet].sort((a, b) => a - b);
       for (let c = 0; c + 1 < cuts.length; c++) {
         const s0 = cuts[c], s1 = cuts[c + 1], half = (s1 - s0) / 2;
         for (const [u, wgt] of GL8) { const v = valAt(W, A, B, k, s0 + (u + 1) * half) - meanAc; S += wgt * half * v * v; }
@@ -280,7 +284,7 @@ export function solveNet(net, { retainFastModes = false } = {}) {
     if (!(t2 > t1)) return d.stats.mean;
     const part = (t) => { const [k, s] = locate(t); return d.pre[k] + intAt(d.W, d.A, d.B, k, s); };
     const nn = Math.floor(t2 / T) - Math.floor(t1 / T);
-    return d.dcBaseline + (nn * d.pre[M] + part(t2) - part(t1)) / (t2 - t1);
+    return d.dcBaseline + (nn * d.pre[K] + part(t2) - part(t1)) / (t2 - t1);
   };
   const meanChangeOver = (hi, lo, t1, t2, t0) => meanOver(hi, lo, t1, t2, true) - (nodeAcAt(hi, t0) - nodeAcAt(lo, t0));
 
@@ -320,11 +324,17 @@ export function solveNet(net, { retainFastModes = false } = {}) {
     const a = nodeW(hi), b = nodeW(lo), wa = a?.w || lamS.map(() => 0), wb = b?.w || lamS.map(() => 0);
     let bound = 0;
     afg.forEach(({ p }, j) => {
-      const amplitude = p.emfVpp / 2;
-      bound += Math.abs((a?.wsrc[j] || 0) - (b?.wsrc[j] || 0)) * amplitude;
+      const motion=p.extended?.motion, advanced=motion&&motion.mode!=='CONT', gain=advanced&&motion.mode==='MOD'&&(motion.type==='AM'||motion.type==='SUM')?1+(motion.type==='AM'?motion.depth:motion.sum)/100:1, amplitude = p.emfVpp / 2 * gain;
+      const square = p.wave === 'SQUARE' || p.wave === 'PULSE', tabulated = p.wave === 'NOISE' || p.wave === 'ARB';
+      const duty = p.wave === 'PULSE' ? (p.extended?.pulseWidth ?? 100e-6) * p.freq : (p.duty ?? 50) / 100;
+      bound += Math.abs((a?.wsrc[j] || 0) - (b?.wsrc[j] || 0)) * amplitude * (advanced ? 2 : square ? 2 * Math.max(duty, 1 - duty) : tabulated ? 2 : 1);
       lamS.forEach((l, m) => {
-        const response = p.wave === 'SINE' ? 1 / Math.hypot(l, 2 * Math.PI / T) + (l > 0 ? (2 * Math.PI / M) ** 2 / (8 * l) : T * (2 * Math.PI / M) ** 2 / 8)
-          : p.wave === 'SQUARE' ? (l > 0 ? Math.tanh(l * T / 4) / l : T / 4) : Math.min(l > 0 ? 1 / l : Infinity, T);
+        const response = advanced ? Math.min(l>0?2/l:Infinity,2*T) : p.wave === 'SINE' ? 1 / Math.hypot(l, 2 * Math.PI / T) + (l > 0 ? (2 * Math.PI / M) ** 2 / (8 * l) : T * (2 * Math.PI / M) ** 2 / 8)
+          : square ? (duty === .5 ? (l > 0 ? Math.tanh(l * T / 4) / l : T / 4)
+            // Centered forcing has primitive range 2*d*(1-d)*T. Integration
+            // by parts and the DC gain each give a conservative ripple bound.
+            : Math.min(l > 0 ? 2 * Math.max(duty, 1 - duty) / l : Infinity, 2 * duty * (1 - duty) * T))
+            : Math.min(l > 0 ? (tabulated ? 2 : 1) / l : Infinity, (tabulated ? 2 : 1) * T);
         bound += Math.abs((wa[m] - wb[m]) * beta[m][j]) * amplitude * response;
       });
     });
@@ -337,19 +347,13 @@ export function solveNet(net, { retainFastModes = false } = {}) {
   // whose GMIN-only equilibrium can be trillions of volts.
   const driveCuts = new Set([0, T]);
   afg.forEach(({ p }) => {
-    if (p.wave === 'SINE') for (let k = 1; k < M; k++) driveCuts.add(k * h);
-    else driveCuts.add(T * (p.wave === 'SQUARE' ? 0.5 : Math.min(Math.max(p.sym / 100, 1e-9), 1 - 1e-9)));
+    if (p.extended?.motion?.mode && p.extended.motion.mode !== 'CONT' || p.wave === 'SINE') for (let k = 1; k < K; k++) driveCuts.add(mesh[k]);
+    else for (const t of waveCuts(p, T)) driveCuts.add(t);
   });
   const drive = (t0, t1) => afg.map(({ p }, j) => {
-    const mid = (t0 + t1) / 2;
-    if (p.wave === 'SQUARE') return [emf(p, mid), 0];
-    if (p.wave === 'RAMP') {
-      const ph = mid / T, corner = Math.min(Math.max(p.sym / 100, 1e-9), 1 - 1e-9);
-      const slope = ph < corner ? p.emfVpp / (corner * T) : -p.emfVpp / ((1 - corner) * T);
-      return [emf(p, mid) + slope * (t0 - mid), slope];
-    }
-    const k = Math.max(0, Math.min(M - 1, Math.floor(mid / h)));
-    return [e[j][k] + ed[j][k] * (t0 - k * h), ed[j][k]];
+    if (p.wave !== 'SINE') return driveSegment(p, t0, t1);
+    const [k] = locate((t0 + t1) / 2);
+    return [e[j][k] + ed[j][k] * (t0 - mesh[k]), ed[j][k]];
   });
   const capProject = (target) => projectCaps(target);
   const capsFromCoordinates = (y) => D.map((w) => w.reduce((s, x, m) => s + x * y[m], 0));
@@ -416,6 +420,12 @@ export function solveNet(net, { retainFastModes = false } = {}) {
     return { caps: capEnd, capTransition, nodeAt, nodeIntegral, integralGradient, projectColumns };
   };
 
+  const sampleTables = new Map();
+  const table = (node) => {
+    if (!sampleTables.has(node)) sampleTables.set(node, Float64Array.from({ length: M }, (_, k) => nodeAtFast(node, k * h)));
+    return sampleTables.get(node);
+  };
+
   // 直流工作點（週期平均）；瞬間的 GPE 讀回與模式判斷另用 nodeAt。
   const dcOut = (net.dc || []).map((s) => {
     const vt = at(s.pos) === at(s.neg) ? 0 : stats(s.pos, s.neg).mean;
@@ -423,7 +433,7 @@ export function solveNet(net, { retainFastModes = false } = {}) {
   });
 
   return {
-    names, periodic, period: T, h, M, lam: lamS, caps: caps.map((c) => c.id), capKeys: caps.map((c) => c.key), capIdx: caps,
+    names, periodic, period: T, h, M, mesh, lam: lamS, caps: caps.map((c) => c.id), capKeys: caps.map((c) => c.key), capIdx: caps,
     table, nodeAt: nodeAtFast, nodeChange, stats, meanOver, meanChangeOver, capSS, modalFromCaps, initialStateFromCaps, modeW, dcOut, capD: D,
     driveCuts: [...driveCuts].sort((a, b) => a - b), linearStep, periodFlow, capProject, capsFromCoordinates, acBound,
     tauMax: lamS.length ? 1 / Math.min(...lamS) : 0,

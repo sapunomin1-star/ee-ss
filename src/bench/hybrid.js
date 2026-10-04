@@ -3,6 +3,7 @@
 // Sine inputs use the same 4000 linear pieces as solveNet. Long transients use
 // checked step-doubling of the period map, with a 2 nV capacitor error target.
 import { solveNet, R_GPE, M } from './net.js';
+import { analyticPieceRange } from './window-peak.js';
 
 const TOL = 2e-9;
 const GL8 = [[.1834346424956498, .362683783378362], [.525532409916329, .3137066458778873],
@@ -194,7 +195,7 @@ export function hybridSeg(seg, now) {
       let g = 1e-12 + built.net.afg.length / 50;
       for (const e of built.net.elements) if (e.kind === 'R' && e.a !== e.b) g += 1 / e.value;
       for (const load of built.net.loads || []) g += 1 / load.r;
-      const current = built.net.afg.reduce((s, { p }) => s + (Math.abs(p.emfOffset) + p.emfVpp / 2) / 50, 0) + channels.reduce((s, c) => s + c.ilim, 0);
+      const current = built.net.afg.reduce((sum, {p}) => {const s=p.extended?.motion,gain=s?.mode==='MOD'&&['AM','SUM'].includes(s.type)?1+(s.type==='AM'?s.depth:s.sum)/100:1;return sum+(Math.abs(p.emfOffset)+p.emfVpp/2*gain)/50;},0) + channels.reduce((s, c) => s + c.ilim, 0);
       const change = (current + g * Math.abs(v)) * T / C * Math.exp(g * T / C);
       const modes = channels.map((c) => v + change < c.v - c.ilim * R_GPE ? 'CC' : v - change > c.v ? 'RB'
         : v - change > c.v - c.ilim * R_GPE && v + change < c.v ? 'CV' : null);
@@ -356,6 +357,99 @@ export function hybridSeg(seg, now) {
     }
     return sum / (b - a);
   };
+  // Squared voltage is quadratic in the incoming capacitor coordinates while
+  // the limiter itinerary is fixed. Integrate each analytic piece with the same
+  // exponential cuts as stats(), then sum whole periods by a moment matrix.
+  const squareCache = new WeakMap();
+  const quadratic = (record, hi, lo, center, a=record.start, b=record.end, withGradient=false) => {
+    const cacheKey=`${hi}|${lo}|${center}`;
+    if(withGradient&&squareCache.get(record)?.has(cacheKey))return squareCache.get(record).get(cacheKey);
+    const r=base.lam.length, result={constant:0,linear:Array(r).fill(0),matrix:identity(r).map(row=>row.map(()=>0))};
+    let H=coordinateMatrix.map(row=>[...row]);
+    const pieces=record.flow?[{from:0,to:T,step:record.flow,modes:record.modes,whole:true}]:record.pieces;
+    for(const p of pieces){
+      const dt=p.to-p.from,x=Math.max(a,p.from),y=Math.min(b,p.to),solver=variant(p.modes),lam=p.whole?solver.lam:p.step.lam;
+      if(y>x){
+        const begin=x-p.from,end=y-p.from,split=new Set([begin,end]);
+        if(p.whole)for(const t of cuts)if(t>begin&&t<end)split.add(t);
+        for(const l of lam)if(l>0)for(const q of [.125,.25,.5,1,2,4,8,16,32,64])if(q/l>begin&&q/l<end)split.add(q/l);
+        const ts=[...split].sort((a,b)=>a-b),w=solver.modeW(hi).map((v,k)=>v-solver.modeW(lo)[k]);
+        for(let j=1;j<ts.length;j++){const half=(ts[j]-ts[j-1])/2;
+          for(const [u,weight]of GL8){const t=ts[j-1]+(u+1)*half,v=p.step.nodeAt(hi,t)-p.step.nodeAt(lo,t)-center,wt=weight*half;result.constant+=wt*v*v;
+            if(withGradient){const gradient=Array.from({length:r},(_,k)=>H.reduce((sum,row,c)=>sum+row[k]*w.reduce((v,x,m)=>v+x*Math.exp(-lam[m]*t)*p.step.projectColumns[c][m],0),0));
+              for(let k=0;k<r;k++){result.linear[k]+=2*wt*v*gradient[k];for(let l=0;l<r;l++)result.matrix[k][l]+=wt*gradient[k]*gradient[l];}
+            }
+          }
+        }
+      }
+      if(withGradient)H=mul(p.whole?p.step.capTransition:p.step.capTransition(dt),H);
+    }
+    if(withGradient){if(!squareCache.has(record))squareCache.set(record,new Map());squareCache.get(record).set(cacheKey,result);}
+    return result;
+  };
+  const squareAdvance=(caps,record,count,pair)=>{
+    const q=quadratic(record,...pair,record.start,record.end,true),x=base.capProject(caps),y=base.capProject(record.caps),J=jacobian(record),r=x.length,n=r+1,size=n*n,B=identity(n);
+    for(let i=0;i<r;i++){for(let j=0;j<r;j++)B[i][j]=J[i][j];B[i][r]=y[i]-x[i];}
+    const A=identity(size+1),Q=identity(n).map(row=>row.map(()=>0));
+    for(let i=0;i<r;i++){for(let j=0;j<r;j++)Q[i][j]=q.matrix[i][j];Q[i][r]=Q[r][i]=q.linear[i]/2;}Q[r][r]=q.constant;
+    for(let i=0;i<n;i++)for(let j=0;j<n;j++)for(let k=0;k<n;k++)for(let l=0;l<n;l++)A[i*n+j][k*n+l]=B[i][k]*B[j][l];
+    for(let i=0;i<n;i++)for(let j=0;j<n;j++)A[size][i*n+j]=Q[i][j];
+    let out=Array(size+1).fill(0),power=A,left=count;out[r*n+r]=1;
+    while(left>0){if(left%2)out=mv(power,out);left=Math.floor(left/2);if(left)power=mul(power,power);}
+    return {caps:affineAdvance(caps,record,count).caps,square:Math.max(0,out[size])};
+  };
+  const squareBlock=(caps,count,pair,origin=null)=>{
+    if(distance(caps,ssCaps)<TOL)return {caps:ssCaps,square:count*quadratic(steady,...pair).constant};
+    const record=flowMap(caps);if(count===1)return {caps:record.caps,square:quadratic(record,...pair).constant};
+    if(fixedGuards(caps,record,count))return squareAdvance(caps,record,count,pair);
+    const full=squareAdvance(caps,record,count,pair),n=Math.floor(count/2),left=squareAdvance(caps,record,n,pair),next=flowMap(left.caps),right=squareAdvance(left.caps,next,count-n,pair),sum=left.square+right.square;
+    const voltageError=distance(full.caps,right.caps),squareError=Math.abs(full.square-sum)/(count*T),endpoint=voltageError<=TOL&&squareError<=1e-8*(1+sum/(count*T))?flowMap(right.caps):null;
+    if(base.lam.length===1&&endpoint&&endpoint.signature===record.signature&&endpoint.signature===next.signature){saveFlow(origin,n,caps,record);saveFlow(origin==null?null:origin+n,count-n,left.caps,next);return {caps:right.caps,square:sum};}
+    const a=squareBlock(caps,n,pair,origin),b=squareBlock(a.caps,count-n,pair,origin==null?null:origin+n);return {caps:b.caps,square:a.square+b.square};
+  };
+  const actualCenteredSquareOver=(hi,lo,a,b,center=0)=>{
+    const value=t=>{const v=actualNodeAt(hi,t)-actualNodeAt(lo,t)-center;return v*v;};if(!(b>a))return value(a);
+    if(b-a<128*Number.EPSILON*Math.max(1,Math.abs(a),Math.abs(b)))return GL8.reduce((sum,[u,w])=>sum+w*value(a+(u+1)*(b-a)/2)/2,0);
+    let sum=0,cursor=a;if(cursor<t0){const end=Math.min(b,t0);sum+=(end-cursor)*center*center;cursor=end;}
+    if(cursor<b&&cursor<boundary){const end=Math.min(b,boundary);sum+=quadratic(first,hi,lo,center,firstPhase+cursor-t0,firstPhase+end-t0).constant;cursor=end;}
+    if(cursor<b){const loc=timeLocation(cursor);let n=Math.max(0,loc.cycle-firstCycle),p=loc.phase;
+      if(p>T*1e-10){const end=Math.min(b,boundary+(n+1)*T);sum+=quadratic(actualRecord(cursor).record,hi,lo,center,p,p+end-cursor).constant;cursor=end;n++;}
+      const count=Math.max(0,Math.floor((b-cursor)/T+1e-10));if(count){const caps=capsAtCycle(n);sum+=settledAt!=null&&n>=settledAt?count*quadratic(steady,hi,lo,center).constant:squareBlock(caps,count,[hi,lo,center],n).square;cursor+=count*T;n+=count;}
+      if(cursor<b)sum+=quadratic(actualRecord(cursor).record,hi,lo,center,0,b-cursor).constant;
+    }
+    return Math.max(0,sum/(b-a));
+  };
+  const recordPeak=(record,hi,lo,center,a=record.start,b=record.end)=>{
+    if(!(b>a))return 0;let peak=0;
+    if(record.flow){const value=t=>record.flow.nodeAt(hi,t)-record.flow.nodeAt(lo,t)-center,r=analyticPieceRange(value,a,b,cuts,variant(record.modes).lam);return Math.max(Math.abs(r.min),Math.abs(r.max));}
+    for(const p of record.pieces){const x=Math.max(a,p.from),y=Math.min(b,p.to);if(!(y>x))continue;const value=t=>p.step.nodeAt(hi,t)-p.step.nodeAt(lo,t)-center,r=analyticPieceRange(value,x-p.from,y-p.from,[],p.step.lam);peak=Math.max(peak,Math.abs(r.min),Math.abs(r.max));}
+    return peak;
+  };
+  const actualPeakOver=(hi,lo,a,b,center=0)=>{
+    if(!(b>a))return Math.abs(actualNodeAt(hi,a)-actualNodeAt(lo,a)-center);
+    let peak=0,cursor=a;if(cursor<t0){peak=Math.abs(center);cursor=Math.min(b,t0);}
+    if(cursor<b&&cursor<boundary){const end=Math.min(b,boundary);peak=Math.max(peak,recordPeak(first,hi,lo,center,firstPhase+cursor-t0,firstPhase+end-t0));cursor=end;}
+    if(cursor<b){const loc=timeLocation(cursor);let n=Math.max(0,loc.cycle-firstCycle),p=loc.phase;
+      if(p>T*1e-10){const end=Math.min(b,boundary+(n+1)*T);peak=Math.max(peak,recordPeak(actualRecord(cursor).record,hi,lo,center,p,p+end-cursor));cursor=end;n++;}
+      const count=Math.max(0,Math.floor((b-cursor)/T+1e-10));
+      if(count){
+        const startCaps=capsAtCycle(n);
+        if(settledAt!=null&&n>=settledAt)peak=Math.max(peak,recordPeak(steady,hi,lo,center));
+        else{
+          // The grounded scalar RC limiter preserves order. Every intermediate
+          // cycle voltage at the same phase lies between the first and last
+          // cycle, so their true piece extrema contain the whole-window peak.
+          const scalar=base.names.length===1&&base.lam.length===1&&channels.every(c=>c.pos===base.names[0]&&c.neg==='E')&&[hi,lo].every(node=>node==='E'||node===base.names[0]);
+          if(scalar){const last=n+count-1,caps=capsAtCycle(last),record=settledAt!=null&&last>=settledAt?steady:cycle(last,caps);peak=Math.max(peak,recordPeak(cycle(n,startCaps),hi,lo,center),recordPeak(record,hi,lo,center));}
+          else if(count<=64){for(let k=0;k<count;k++){const caps=capsAtCycle(n+k),record=settledAt!=null&&n+k>=settledAt?steady:cycle(n+k,caps);peak=Math.max(peak,recordPeak(record,hi,lo,center));}}
+          else return NaN; // A bound is useful for search, never a measured peak.
+        }
+        cursor+=count*T;n+=count;
+      }
+      if(cursor<b)peak=Math.max(peak,recordPeak(actualRecord(cursor).record,hi,lo,center,0,b-cursor));
+    }
+    return peak;
+  };
   const nodeAt = (node, t) => nodeIn(steady, node, phase(t));
   const pairs = new Map(), tables = new Map();
   const stats = (hi, lo) => {
@@ -398,7 +492,7 @@ export function hybridSeg(seg, now) {
         let conductance = 1e-12 + built.net.afg.length / 50;
         for (const e of built.net.elements) if (e.kind === 'R' && e.a !== e.b) conductance += 1 / e.value;
         for (const load of built.net.loads || []) conductance += 1 / load.r;
-        const input = (side) => built.net.afg.reduce((s, { p }) => s + (p.emfOffset + side * p.emfVpp / 2) / 50, 0);
+        const input = (side) => built.net.afg.reduce((sum, {p}) => {const s=p.extended?.motion,gain=s?.mode==='MOD'&&['AM','SUM'].includes(s.type)?1+(s.type==='AM'?s.depth:s.sum)/100:1;return sum+((p.extended?.inverted?-1:1)*p.emfOffset+side*p.emfVpp/2*gain)/50;},0);
         const start = actualNodeAt(node, Math.max(t0, a)), dt = Math.max(0, b - Math.max(t0, a));
         const evolve = (injection) => {
           let v = start, remaining = dt;
@@ -428,7 +522,7 @@ export function hybridSeg(seg, now) {
     // repeating orbit. It deliberately does not assume one global decay mode.
     return [-4 * base.names.length * bound, 4 * base.names.length * bound];
   };
-  const sol = { ...base, get warn() { return unsupported ? [...warn, failure] : warn; }, nodeAt, table, stats, meanOver, capSS, actualNodeAt, actualMeanOver, capActual, actualRange,
+  const sol = { ...base, get warn() { return unsupported ? [...warn, failure] : warn; }, nodeAt, table, stats, meanOver, capSS, actualNodeAt, actualMeanOver, actualCenteredSquareOver, actualPeakOver, capActual, actualRange,
     nodeChange: (node, t, origin) => nodeAt(node, t) - nodeAt(node, origin),
     meanChangeOver: (hi, lo, a, b, origin) => meanOver(hi, lo, a, b) - nodeAt(hi, origin) + nodeAt(lo, origin),
     hybrid: { get converged() { return converged && !unsupported; }, voltageTolerance: TOL, pieces: steady.pieces.length, get checkpoints() { return checkpoints.size; } } };

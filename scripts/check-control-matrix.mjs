@@ -11,8 +11,9 @@ const EVIDENCE = new Set(['PH', 'OT', 'DS', 'IX', 'PD', 'UN']);
 const STATUS = new Set(['CORE', 'APPROX', 'OUT', 'STATIC']);
 const CARD_RE = /^(I0[1-5]|J01)(\/(I0[1-5]|J01))*$/;
 export const HEADER = ['ID', '照片位置', '面板標籤', '類型／動作', '功能／影響設定', '可見回饋', '參數範圍', '來源頁', '證據', '狀態', '卡', '備註'];
-// Source IDs from docs/sources.md. M-DMM (34460A operating guide) was NOT obtained.
-const SOURCE_IDS = new Set(['P1', 'P2', 'M-AFG', 'M-TDS-13', 'M-TDS-11', 'M-GPE', 'D-DMM']);
+// Source IDs from docs/sources.md, including the 2020 Truevolt guide obtained
+// during the instrument function completion work.
+const SOURCE_IDS = new Set(['P1', 'P2', 'M-AFG', 'M-TDS-13', 'M-TDS-11', 'M-GPE', 'D-DMM', 'M-DMM-2020']);
 const SOURCE_TOKEN_RE = /\b(P[0-9]+|[MD]-[A-Z]+(?:-[0-9]+)?)\b/g;
 
 // Exact sets and order taken from photos P1/P2 (see docs/control-matrix.md 照片核對).

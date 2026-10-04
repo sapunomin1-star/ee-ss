@@ -29,20 +29,21 @@ function digit(x, y) {
 }
 
 // 4 位欄位，例 '5.00'、'0.050'、'---'、'8.8.8.8.'：右對齊、無前導零（GAP-GPE-10）
-function field(x, y, text) {
+function field(x, y, text, blinkDp = false) {
   const cells = [];
   for (const ch of text) {
     if (ch === '.' && cells.length) cells[cells.length - 1].dp = true;
     else cells.push({ ch, dp: false });
   }
   while (cells.length < 4) cells.unshift({ ch: ' ', dp: false });
-  let ghost = '', lit = '';
+  let ghost = '', lit = '', points = '';
   cells.slice(-4).forEach((c, i) => {
     const S = digit(x + i * PITCH, y);
     ghost += Object.values(S).join('');
-    lit += [...(PAT[c.ch] ?? '')].map((s) => S[s]).join('') + (c.dp ? S.p : '');
+    lit += [...(PAT[c.ch] ?? '')].map((s) => S[s]).join('');
+    if (c.dp) points += S.p;
   });
-  return `<path d="${ghost}" fill="${GHOST}"/><path d="${lit}" fill="${INK}"/>`;
+  return `<path d="${ghost}" fill="${GHOST}"/><path d="${lit}" fill="${INK}"/><path d="${points}" fill="${INK}"${blinkDp ? ' style="animation:gpeBlink 1s steps(1) infinite"' : ''}/>`;
 }
 
 // 圖示字樣：點亮的加 class="lit"（e2e 讀這個）
@@ -54,14 +55,14 @@ const unit = (x, y, s) => `<text x="${x}" y="${y}" font-size="20" font-weight="6
 const ROW_Y = [36, 134];         // 兩列數字上緣
 const ROW_CH = [[1, 4], [2, 3]]; // 第一列 ①／④、第二列 ②／③
 
-function row(k, r, all) {
+function row(k, r, all, setup) {
   const y = ROW_Y[k], [a, b] = ROW_CH[k];
   const v = all ? '8.8.8.8.' : r.v, A = all ? '8.8.8.8.' : r.a;
   return circ(26, y + 2, a, all || r.ch === a) + txt(26, y + 31, k ? 'Out' : 'Set', false, 12) + circ(26, y + 50, b, all || r.ch === b) +
     txt(120, y - 9, 'Set', all || r.set) + txt(200, y - 9, 'CV', all || r.mode === 'CV') + txt(252, y - 9, 'CC', all || r.mode === 'CC') +
     txt(330, y - 9, 'OVP', false) + txt(416, y - 9, 'OCP', false) +
     `<g data-row="${k + 1}" data-ch="${all ? '' : r.ch}" data-v="${v}" data-a="${A}" data-mode="${all ? '' : r.mode ?? ''}" data-set="${!all && r.set ? 1 : 0}">` +
-    `${field(60, y, v)}${field(268, y, A)}</g>` + unit(240, y + H, 'V') + unit(448, y + H, 'A');
+    `${field(60, y, v, setup?.kind === 'digits' && r.ch === 1)}${field(268, y, A)}</g>` + unit(240, y + H, 'V') + unit(448, y + H, 'A');
 }
 
 // 分隔線與恆暗的列（GPE-3323 CH3 固定列）
@@ -70,12 +71,15 @@ const LINES = `<g stroke="${INK}" stroke-opacity=".55" fill="none"><path d="M48 
 
 function frame(st) {
   const all = !!st.all;
-  return LINES + st.rows.map((r, k) => row(k, r, all)).join('') +
+  const rows = st.rows.map((r, k) => row(k, r, all, st.setup)).join('');
+  const state =
     txt(84, 254, 'SER', all || st.ser, 15) + txt(148, 254, 'PARA', all || st.para, 15) + txt(212, 254, 'OTP', false, 15) +
-    txt(278, 254, 'Lock', all || st.lock, 15) + txt(376, 246, 'ON', all || st.out, 28) + txt(440, 246, 'OFF', all || !st.out, 28);
+    txt(278, 254, 'Lock', all || st.lock, 15);
+  const onoff = txt(376, 246, 'ON', all || st.out, 28) + txt(440, 246, 'OFF', all || !st.out, 28);
+  return LINES + rows + state + (st.setup?.kind === 'output' ? `<g style="animation:gpeBlink 1s steps(1) infinite">${onoff}</g>` : onoff);
 }
 
-const CSS = '<style>@keyframes gpeHide{to{visibility:hidden}}@keyframes gpeShow{to{visibility:visible}}</style>';
+const CSS = '<style>@keyframes gpeHide{to{visibility:hidden}}@keyframes gpeShow{to{visibility:visible}}@keyframes gpeBlink{50%{opacity:.15}}</style>';
 // 先顯示 before，ms 毫秒後換成 after
 const swap = (before, after, ms) => `<g data-layer="before" style="animation:gpeHide 1ms ${Math.round(ms)}ms forwards">${before}</g>` +
   `<g data-layer="after" style="visibility:hidden;animation:gpeShow 1ms ${Math.round(ms)}ms forwards">${after}</g>`;

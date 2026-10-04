@@ -1,5 +1,5 @@
 {
- "instrument": "Tektronix TDS2001C 雙通道數位儲存示波器（TDS2000C 系列；型號條標示 50 MHz、500 MS/s）。主要來源 M-TDS-13＝TDS2000C and TDS1000C-EDU Series User Manual 077-0826-00（2013，官方支援頁 https://www.tek.com/en/oscilloscope/tds2000-digital-storage-oscilloscope-manual/tds2000c-and-tds1000c-edu-series-0 ，PDF https://download.tek.com/manual/TDS2000C-and-TDS1000C-EDU-Oscilloscope-User-Manual-EN_077082600.pdf ，SHA-256 9db1d514…7ecc）；交叉核對 M-TDS-11＝071-2722-03 Revision A（2011，https://download.tek.com/manual/071272203Web_RevA.pdf ，SHA-256 d10f4dce…a5ac）。網址與雜湊取自資料包 DOWNLOAD_SOURCES.json／04；本次未連網。只採 TDS2001C 適用內容：2 通道機欄位、CH3/CH4/REFC/REFD 等『Available only on a 4-channel oscilloscope』項目一律排除。",
+ "instrument": "Tektronix TDS2001C 雙通道數位儲存示波器（TDS2000C 系列；型號條標示 50 MHz、500 MS/s）。主要來源 M-TDS-13＝TDS2000C and TDS1000C-EDU Series User Manual 077-0826-00（2013，官方支援頁 https://www.tek.com/en/oscilloscope/tds2000-digital-storage-oscilloscope-manual/tds2000c-and-tds1000c-edu-series-0 ，PDF https://download.tek.com/manual/TDS2000C-and-TDS1000C-EDU-Oscilloscope-User-Manual-EN_077082600.pdf ，SHA-256 9db1d514…7ecc）；交叉核對 M-TDS-11＝071-2722-03 Revision A（2011，https://download.tek.com/manual/071272203Web_RevA.pdf ，SHA-256 d10f4dce…a5ac）。網址與雜湊取自資料包 DOWNLOAD_SOURCES.json／04；2026-10-04 implementation verified against official 077082600 PDF。只採 TDS2001C 適用內容：2 通道機欄位、CH3/CH4/REFC/REFD 等『Available only on a 4-channel oscilloscope』項目一律排除。",
  "page_map": "兩版（M-TDS-13 077-0826-00、M-TDS-11 071-2722-03）都是 161 個 PDF 頁，版面頁序完全相同。PDF 1–8：封面、版權、保固，無頁碼。PDF 9–24：前置頁 i–xvi（核對：PDF 9＝i、PDF 11＝iii、PDF 21＝xiii、PDF 22＝xiv、PDF 24＝xvi）。PDF 25–161：印刷頁 1–137，印刷頁＝PDF 頁序−24。核對方式：用腳本抓兩版所有頁尾的阿拉伯數字，69 個頁尾的差值全部是 24。人工抽查：PDF 28＝p.4（Functional Check）、PDF 31＝p.7（Manual Probe Compensation）、PDF 33＝p.9（Operating Basics 面板圖）、PDF 103＝p.79（Autoset）、PDF 110＝p.86（Horizontal）、PDF 120＝p.96（Trigger Controls）、PDF 128＝p.104（Vertical Controls）、PDF 134＝p.110（Table 4 Horizontal）、PDF 151＝p.127（Appendix E Default Setup）、PDF 161＝p.137。與 04 所寫『印刷頁＋24＝PDF 頁序』一致。兩版全文 diff 只有 99 行不同：文件號、Revision A、安全摘要的大小寫、RoHS 文句、前言的附錄代號、標準配件文句、各語言手冊件號。操作章節文字相同；抽查 15 頁的文字雜湊也相同。圖頁像素比對：PDF 28、33、39、152 有極小的反鋸齒差異，目視內容相同；PDF 34、35、37、41、42、57、60、129 完全相同。本輸出引用格式為『M-TDS-13 p.印刷頁 (PDF 頁序)』，M-TDS-11 同頁同文，不另重複。",
  "photo_checks": "P2（02_校機_TDS2001C.jpeg，768×1024，LCD 全暗；下列座標為原圖約略像素）。型號：螢幕上方標示條印『Tektronix  TDS 2001C  TWO CHANNEL DIGITAL STORAGE OSCILLOSCOPE』，右端深藍底『50 MHz / 500 MS/s』，與 M-TDS-13 p.1 (PDF 25) 的 TDS2001C 列一致。通道：只有 BNC『1』『2』加『Ext Trig』共 3 個 BNC；垂直區只有 1（黃）、Math（粉紅）、2（藍）三鍵，沒有 CH3/CH4 的按鍵、旋鈕或 BNC。旋鈕共 8 顆：多功能 1、垂直位置 2、垂直刻度 2、水平位置 1、水平刻度 1、觸發位準 1。按鍵共 29 顆：頂排 13 顆（第一列 自動調整/Save/Recall/Measure/Acquire/Help/Auto Set，第二列 Ref/Utility/Cursor/Display/Default Setup/單一，另有 Run/Stop）、儲存（印表機圖示）1、垂直 3、水平 2（Horiz、Set to Zero）、觸發 4（Trig Menu、Set To 50%、Force Trig、Trig View）、螢幕右側 5 顆方形 option 鍵加 1 顆圓鍵（旁邊直書 Probe Check）。指示燈 3 顆：多功能旋鈕左上、自動調整鍵左側、『儲存』字左側。端子與插口：CH1 BNC、CH2 BNC、Ext Trig BNC、Probe Comp 兩片金屬接片（上下排列，標示『Probe Comp ~5V@1kHz』加方波符號與接地符號）、USB Flash Drive 口 1 個。面板下緣由左到右：USB Flash Drive 口 → Probe Comp 兩片 → CH1 → CH2 → Ext Trig。照片上沒有的：CH3/CH4、Menu On/Off 鍵（原廠也沒有）；電源鍵（手冊 p.4 圖示在機殼頂部）與後面板 USB Device 口不在畫面內。中文貼字：自動調整、參考值、自動設定、單一、執行/停止、儲存、垂直、水平、觸發、位置（×2）、功能表、刻度（×2）、選單（×2）、設置為零、位準、設置為 50%、強制觸發、觸發監看。英文印字：Save/Recall、Measure、Acquire、Help、Utility、Cursor、Display、Default Setup、鍵面 Auto Set、Ref、Run/Stop、Math、Horiz、Set to Zero、Trig Menu、Set To 50%、Force Trig、Trig View、Ext Trig、300 V / 300V CAT II、USB Flash Drive、Probe Check、Probe Comp。另有手寫『13』（非原廠）。控制項數量、分組與相對位置和 M-TDS-13 p.9 (PDF 33) 的 2-channel 面板圖一致；字樣差異列在 discrepancies。",
  "controls": [
@@ -10,7 +10,7 @@
    "label": "旋鈕本體無字；左上方有 LED，以短折線連向旋鈕（照片無中文貼字）",
    "kind": "旋鈕（手冊未提按壓功能）",
    "action": "旋轉",
-   "function": "手冊名 Multipurpose Knob：『The function is determined by the displayed menu or selected menu option.』核心用途：Cursor 選單中移動 Cursor 1／Cursor 2；Measure 子選單選 Type；Trig Menu（Edge）選 Source；1/2 ►Probe ►Voltage ►Attenuation 輸入倍率值。手冊另列 Help 捲動、Holdoff、Math 位置／刻度、Save/Recall 選檔、Video 行號、Pulse Width、File Utilities、GPIB、日期時間，本輪未納入",
+   "function": "Menu-selected control for Probe attenuation, Trigger source/Pulse Width/Holdoff, measurement type, cursors, Average count and Math position/scale. Limit Test tolerance/stop count and Data Logging duration.",
    "feedback": "作用中時旁邊 LED 亮；LCD 提示列會說明旋鈕目前可用（p.13）；游標／數值隨旋轉更新",
    "range": "依目前選單項目而定；游標步進與範圍手冊未載（見 GAP-TDS-15）",
    "sources": "P2；M-TDS-13 p.15–17 (PDF 39–41) 功能對照表；p.13 (PDF 37)；p.36–39 (PDF 60–63)；p.83 (PDF 107)",
@@ -43,13 +43,13 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "AutoRange：『Displays the Autorange Menu, and activates or deactivates the autoranging function.』持續追蹤訊號並調整設定；選項有 Autoranging、Vertical and Horizontal、Vertical Only、Horizontal Only、Undo Autoranging",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：啟用時左側 LED 亮",
+   "feedback": "Active tracking LED; continuously adjusts selected axes; Undo restores the previous setup.",
    "range": "Off／On；開機時一律 inactive",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.19 (PDF 43)；p.77–79 (PDF 101–103)；p.127 (PDF 151)；p.9 面板圖 (PDF 33)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "APPROX",
    "card": "I03",
-   "notes": "02 規定 AutoRange 本輪先 OUT，不可拿 AutoSet 代替。按下只在儀器外顯示『本輪未納入』說明，LED 保持熄滅，不改任何設定"
+   "notes": "2026-10-04: continuous tracking, axes selection, manual-control deactivation and Undo implemented; scale-selection thresholds are teaching approximations."
   },
   {
    "id": "TDS.LED.AUTORANGE",
@@ -75,13 +75,13 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays the Save/Recall Menu for setups and waveforms.』Action 有 Save All、Save Image、Save Setup、Save Waveform、Recall Setup、Recall Waveform",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：右側選單",
+   "feedback": "Simulator: opens the corresponding menu and applies supported actions to acquired records.",
    "range": "Setup 1–10、USB 檔案",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.91–95 (PDF 115–119)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "APPROX",
    "card": "I03",
-   "notes": "儲存與 USB 不納入；按下顯示範圍說明，不可假裝已儲存"
+   "notes": "2026-10-04: Basic Math, Display, internal Setup/Ref memory implemented. Menu button order follows the manual tables; hardware USB/FFT are excluded."
   },
   {
    "id": "TDS.KEY.MEASURE",
@@ -123,13 +123,13 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays the Help Menu.』內容感應說明、索引、超連結",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：LCD 顯示說明文字，多功能旋鈕 LED 亮",
+   "feedback": "Contextual English teaching help for supported front-panel operations; this is not a verbatim copy of the firmware Help system.",
    "range": "—",
    "sources": "P2；M-TDS-13 p.xiv (PDF 22)；p.17 (PDF 41)；p.86 (PDF 110)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "APPROX",
    "card": "I03",
-   "notes": "不製作原廠 Help 內容；教學說明放在儀器外"
+   "notes": "Contextual English teaching help for supported front-panel operations; this is not a verbatim copy of the firmware Help system."
   },
   {
    "id": "TDS.KEY.AUTOSET",
@@ -155,13 +155,13 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays the Reference Menu to quickly display and hide reference waveforms stored in the oscilloscope non-volatile memory.』2 通道機只有 RefA、RefB",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：白色參考波形",
+   "feedback": "Simulator: opens the corresponding menu and applies supported actions to acquired records.",
    "range": "RefA、RefB",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.91 (PDF 115)；p.95 (PDF 119)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "APPROX",
    "card": "I03",
-   "notes": "參考波形不納入"
+   "notes": "2026-10-04: Basic Math, Display, internal Setup/Ref memory implemented. Menu button order follows the manual tables; hardware USB/FFT are excluded."
   },
   {
    "id": "TDS.KEY.UTILITY",
@@ -171,13 +171,13 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays the Utility Menu.』包括 System Status、Options（Printer Setup、GPIB、Date/Time）、Error Log、Do Self Cal、File Utilities、Language、Data Logging、Limit Test",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：右側選單",
+   "feedback": "System Status shows model settings. Virtual Limit Test reports captured pass/fail results, and Data Logging exports bounded record summaries as browser CSV. English LCD only; physical USB/GPIB/calibration/firmware Error Log are unavailable.",
    "range": "—",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.101–104 (PDF 125–128)；p.52–54 (PDF 76–78)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "APPROX",
    "card": "I03",
-   "notes": "LCD 語言在 Utility ►Language（p.102）；校機語言未知（GAP-TDS-01）"
+   "notes": "System Status, virtual Limit Test and Data Logging are active; hardware calibration/USB/GPIB/printer and firmware Error Log remain explicitly unavailable."
   },
   {
    "id": "TDS.KEY.CURSOR",
@@ -203,13 +203,13 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays the Display Menu.』Type（Vectors/Dots）、Persist、Format（YT/XY）",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：右側選單",
+   "feedback": "Simulator: opens the corresponding menu and applies supported actions to acquired records.",
    "range": "—",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.83–85 (PDF 107–109)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "APPROX",
    "card": "I03",
-   "notes": "固定 YT、Vectors、Persist Off（即 Default Setup 值）"
+   "notes": "2026-10-04: Basic Math, Display, internal Setup/Ref memory implemented. Menu button order follows the manual tables; hardware USB/FFT are excluded."
   },
   {
    "id": "TDS.KEY.DEFAULT_SETUP",
@@ -267,13 +267,13 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Starts the print operation to a PictBridge compatible printer, or performs the Save function to the USB flash drive.』",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：Save 功能時左上 LED 亮；USB 存取中螢幕顯示時鐘符號",
+   "feedback": "Downloads the current LCD as SVG through the browser; no physical PictBridge printer is simulated.",
    "range": "Prints／Saves All to Files／Saves Image to File",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.67–69 (PDF 91–93)；p.73 (PDF 97)；p.90 (PDF 114)；p.92 (PDF 116)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "APPROX",
    "card": "I03",
-   "notes": "手冊說按住 Trig View 時，這是唯一仍可用的按鍵（p.100）"
+   "notes": "Downloads the current LCD as SVG through the browser; no physical PictBridge printer is simulated."
   },
   {
    "id": "TDS.LED.SAVE",
@@ -347,13 +347,13 @@
    "kind": "按鍵",
    "action": "按一下",
    "function": "『Displays waveform math operations menu and toggles the display of the math waveform on and off.』2 通道機可用 CH1+CH2、CH1−CH2、CH2−CH1、CH1×CH2、FFT",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：Math 波形與 Math 選單",
+   "feedback": "Simulator: opens the corresponding menu and applies supported actions to acquired records.",
    "range": "—",
    "sources": "P2；M-TDS-13 p.14 (PDF 38)；p.87–88 (PDF 111–112)；p.55–57 (PDF 79–81)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "APPROX",
    "card": "I03",
-   "notes": "FFT 與 Math 不納入"
+   "notes": "2026-10-04: Basic Math, Display, internal Setup/Ref memory implemented. Menu button order follows the manual tables; hardware USB/FFT are excluded."
   },
   {
    "id": "TDS.KEY.CH2_MENU",
@@ -603,13 +603,13 @@
    "kind": "按鍵（需按住）",
    "action": "按住",
    "function": "『Displays the trigger waveform in place of the channel waveform while you hold down the Trig View button.』手冊說這是唯一需要按住的鍵；按住時除 print 鍵外其他按鍵停用，旋鈕仍有效",
-   "feedback": "模擬器：按下只在儀器外顯示範圍說明，LCD 與狀態不變。原廠：顯示經觸發耦合處理後的觸發訊號",
+   "feedback": "Hold to show the conditioned trigger signal; release restores channel traces. Other keys except Print are locked; knobs remain active.",
    "range": "—",
    "sources": "P2；M-TDS-13 p.15 (PDF 39)；p.18 (PDF 42)；p.100 (PDF 124)",
    "evidence": "PH+OT",
-   "status": "OUT",
+   "status": "APPROX",
    "card": "I03",
-   "notes": "不在 02 核心內；按下顯示範圍說明"
+   "notes": "Hold to show the conditioned trigger signal; release restores channel traces. Other keys except Print are locked; knobs remain active."
   },
   {
    "id": "TDS.LCD.MAIN",
@@ -858,8 +858,8 @@
    "softkeys": "OPT1 Coupling：每按一次依 DC→AC→Ground 循環；OPT2 BW Limit：20MHz／Off；OPT3 Volts/Div：Coarse／Fine；OPT4 Probe：進入子選單（格內顯示如『10X Voltage』）；OPT5 Invert：On／Off",
    "source": "M-TDS-13 p.10 (PDF 34) 顯示區圖中的 CH1 選單 5 格；p.12–13 (PDF 36–37)『push the 1 (channel 1 menu) button and then push the top option button to cycle through the Vertical (channel) Coupling options』；p.104–105 (PDF 128–129) 選項表",
    "evidence": "OT",
-   "status": "Coupling CORE；Probe CORE；Volts/Div 的 Coarse CORE、Fine OUT；BW Limit APPROX（一階 20 MHz 低通，響應形狀 PD）；Invert OUT",
-   "notes": "OPT1–OPT5 由 p.10 圖逐格對應。『There is a separate vertical menu for each channel. Each option is set individually for each channel.』"
+   "status": "APPROX: Coupling, BW Limit, Coarse/Fine, Probe attenuation and Invert",
+   "notes": "Fine steps change gain by approximately 2%; switch back to Coarse preserves gain until the next 1-2-5 knob step."
   },
   {
    "path": "2（CH2 功能表）→ 右側 CH2 垂直選單",
@@ -882,48 +882,48 @@
    "softkeys": "OPT1 Type：Edge→Video→Pulse；Edge 頁其餘項目：Source（CH1、CH2、Ext、Ext/5、AC Line）、Slope（Rising、Falling）、Mode（Auto、Normal）、Coupling（AC、DC、Noise Reject、HF Reject、LF Reject）",
    "source": "M-TDS-13 p.12 (PDF 36)『when you push the top button in the Trigger Menu, the oscilloscope cycles through the Edge, Video, and Pulse Width trigger submenus』；p.13 (PDF 37) 圖；p.96 (PDF 120) Edge 表；p.16 (PDF 40) Edge 時可用旋鈕選 Source；p.41 (PDF 65)『Push Slope ►Rising』",
    "evidence": "OT（項目與可選值）+PD（Source／Slope／Mode／Coupling 分別對應 OPT2–OPT5，依 p.96 表列順序推定）",
-   "status": "Type=Edge CORE；Source 的 CH1/CH2 CORE、Ext/Ext5/AC Line OUT；Slope CORE；Mode CORE；Coupling 的 DC CORE、AC APPROX、其餘 OUT；Video/Pulse OUT",
-   "notes": "觸發耦合只影響觸發訊號（p.21、p.98）。未納入值的處理見 GAP-TDS-17"
+   "status": "APPROX: Edge/Pulse; CH1/CH2; both slopes/modes; DC/AC/Noise/HF/LF coupling",
+   "notes": "HF Reject first-order 80kHz low-pass; LF Reject first-order 300kHz high-pass. Noise Reject hysteresis is a teaching approximation. Video and external/line sources remain excluded."
   },
   {
    "path": "Measure → OPTn（Measure n；由上而下 n=1…5）→ Measure n 選單：Source → CH1/CH2；Type → Freq／Period／Pk-Pk（也可用多功能旋鈕）→ Back",
    "softkeys": "頂層：OPT1＝Measure 1（top）、OPT2＝Measure 2（second from top）、OPT3＝Measure 3（middle）、OPT4＝Measure 4（second from bottom）、OPT5＝Measure 5（bottom），每格顯示 Source／Type／Value。子選單：Source、Type、Back",
    "source": "M-TDS-13 p.31 (PDF 55) 步驟 1–16；p.33–34 (PDF 57–58)『Push Source ►CH1』『Push Type ►Pk-Pk』與圖；p.16 (PDF 40) Measure Type 可用旋鈕；p.89 (PDF 113)",
    "evidence": "OT（頂層鍵位、類型）+UN（子選單內 Source／Type／Back 的鍵位）",
-   "status": "CORE：Freq、Period、Pk-Pk、None；APPROX：Mean、Cyc RMS（TDS-F21）；其餘 11 種 OUT",
-   "notes": "Default Setup 後所有量測為 Source CH1、Type None（p.127）"
+   "status": "APPROX: all 16 measurements plus None",
+   "notes": "Recorded values only; missing edges or required channels return ?. Noise sources do not claim cache-repetition frequency."
   },
   {
    "path": "Cursor → OPT1 Type → OPT2 Source → OPT4 Cursor 1（旋鈕移動）→ OPT5 Cursor 2（旋鈕移動）",
    "softkeys": "OPT1 Type：Time／Amplitude／Off；OPT2 Source：CH1、CH2（2 通道機另有 MATH、REFA、REFB）；OPT3 Δ 讀值格（Time：Δt、1/Δt、ΔV；Amplitude：ΔV）；OPT4 Cursor 1（位置讀值）；OPT5 Cursor 2（位置讀值）",
    "source": "M-TDS-13 p.36 (PDF 60) 步驟與側選單圖；p.37–39 (PDF 61–63)；p.82–83 (PDF 106–107)",
    "evidence": "OT",
-   "status": "CORE（Time、Amplitude、Off；Source CH1/CH2）；MATH/REF 來源 OUT",
-   "notes": "按 OPT3 有無作用手冊未載，暫定只是讀值格（PD）"
+   "status": "APPROX: Time/Amplitude; CH1/CH2/Math/RefA/RefB; FFT Frequency/Magnitude",
+   "notes": "Cursor values use acquired records, frozen reference scales or actual FFT bins."
   },
   {
    "path": "AutoSet →（依偵測到的訊號）右側 AutoSet 選單",
    "softkeys": "正弦：Multi-cycle sine、Single-cycle sine、FFT、Undo Autoset；方波／脈波：Multi-cycle square、Single-cycle square、Rising edge、Falling edge、Undo Autoset；Video：Fields ►All Fields、Lines ►All Lines、Lines ►Number、Odd Fields、Even Fields、Undo Autoset",
    "source": "M-TDS-13 p.80–82 (PDF 104–106)；p.44 (PDF 68)『Push the single cycle option button in the AutoSet Menu』",
    "evidence": "OT（選項）+UN（鍵位與按下後預設選中哪一項）",
-   "status": "Multi-cycle 為 AutoSet 後的預設呈現 CORE（預設選中為 PD）；Undo Autoset APPROX；其餘 OUT",
-   "notes": "Undo Autoset：『Causes the oscilloscope to recall the previous setup』"
+   "status": "APPROX: Multi/Single-cycle, FFT, Rising/Falling edge and Undo",
+   "notes": "Manual pp.80-81 measurement definitions; scale-selection thresholds are approximate. Video options require an absent video source."
   },
   {
    "path": "Acquire → Sample／Peak Detect／Average（Radio）→ Averages",
    "softkeys": "OPT1 Sample、OPT2 Peak Detect、OPT3 Average（p.13 圖 Radio 例）；Averages：4、16、64、128",
    "source": "M-TDS-13 p.13 (PDF 37)；p.75–76 (PDF 99–100)",
    "evidence": "OT（前 3 格依圖）+UN（Averages 鍵位）",
-   "status": "APPROX：Sample 固定；Peak Detect、Average、Averages OUT",
-   "notes": ""
+   "status": "APPROX: Sample, Peak Detect, Average, Averages",
+   "notes": "Peak Detect uses 1250 min/max intervals at 5ms/div or slower, falls back to Sample at 2.5ms/div or faster. Average aligns and combines 4/16/64/128 acquired records; Single stops after N records. Peak extrema use the simulated source; no 10ns hardware sensitivity claim."
   },
   {
    "path": "Horiz → Main／Window Zone／Window／Set Holdoff",
    "softkeys": "選項名稱依 p.86 表；鍵位未載",
    "source": "M-TDS-13 p.86 (PDF 110)；p.48 (PDF 72)；p.101 (PDF 125)『Horiz ►Set Trigger Holdoff』",
    "evidence": "OT+UN",
-   "status": "Main APPROX；其餘 OUT",
-   "notes": "Appendix E 另列『Trig Knob: Level』，與 p.86 表不一致（見 discrepancies）"
+   "status": "APPROX: Main, Window Zone, Window, Set Holdoff",
+   "notes": "Stopped Window rescales the existing record. Holdoff suppresses actual bench triggers until the interval ends; resolution follows time scale (approximate)."
   },
   {
    "path": "Default Setup（無側選單）",
@@ -954,64 +954,64 @@
    "softkeys": "Operation（+、-、×、FFT）、Sources、Position、Vertical Scale",
    "source": "M-TDS-13 p.87–88 (PDF 111–112)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": ""
+   "status": "APPROX: arithmetic and FFT",
+   "notes": "FFT transforms central 2048 samples into 1024 bins. Hanning/Flattop/Rectangular; X1/2/5/10. DC uses Vrms, AC bins use single-sided RMS with coherent-gain normalization; 0dB=1Vrms. These numerical window definitions are simulator approximations."
   },
   {
    "path": "Save/Recall（只列頂層）",
-   "softkeys": "Action：Save All、Save Image、Save Setup、Save Waveform、Recall Setup、Recall Waveform",
+   "softkeys": "Action Save Setup/Save Waveform/Recall Setup; target Internal/File; Setup 1-10 or Source CH1/CH2; RefA/B; Save/Recall",
    "source": "M-TDS-13 p.91–95 (PDF 115–119)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": ""
+   "status": "APPROX: ten persisted internal setups, two references, browser setup JSON/waveform CSV",
+   "notes": "Explicit saved slots survive experiment save/load and browser autosave. Runtime acquisitions are not persisted. Dedicated setup-file import and physical USB are excluded."
   },
   {
    "path": "Ref（只列頂層）",
    "softkeys": "RefA、RefB",
    "source": "M-TDS-13 p.91 (PDF 115)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": ""
+   "status": "APPROX: RefA/RefB on/off",
+   "notes": "Saved acquired waveform retains its scale, position and probe factor; a missing reference cannot display a fake waveform."
   },
   {
    "path": "Utility（只列頂層）",
-   "softkeys": "System Status、Options、Error Log、Do Self Cal、File Utilities、Language、Data Logging、Limit Test",
+   "softkeys": "System Status / Options / Do Self Cal / Limit Test / More; second page Data Logging / File Utilities / Language / Back / More",
    "source": "M-TDS-13 p.101–104 (PDF 125–128)；p.52–54 (PDF 76–78)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": "Data Logging、Limit Test 註明 TDS1000C-EDU 不提供；TDS2001C 屬 TDS2000C，有此功能，但本輪不納入"
+   "status": "APPROX: System Status and explicit hardware limits",
+   "notes": "Limit Test applies recorded waveform masks with adjustable V/H tolerance and real 2500-point pass/fail statistics. Data Logging retains recent 2000 completed triggered record summaries and downloads CSV. Menu pages and browser transport are teaching approximations."
   },
   {
    "path": "Display（只列頂層）",
    "softkeys": "Type（Vectors、Dots）、Persist（OFF、1 sec、2 sec、5 sec、Infinite）、Format（YT、XY）",
    "source": "M-TDS-13 p.83–85 (PDF 107–109)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": ""
+   "status": "APPROX",
+   "notes": "XY runs at 1MS/s in untriggered Sample/dots; switching to XY while stopped keeps the original record. Measurements, cursors, Math, Ref, time-base and trigger controls are unavailable in XY."
   },
   {
    "path": "Help（只列頂層）",
-   "softkeys": "Index、Show Topic、Back、Page Up、Page Down、Exit",
+   "softkeys": "Contextual teaching topic and Back",
    "source": "M-TDS-13 p.xiv (PDF 22)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": ""
+   "status": "APPROX: contextual English help",
+   "notes": "Teaching summaries for supported menus; not the complete original firmware Help index."
   },
   {
    "path": "AutoRange（只列頂層）",
    "softkeys": "Autoranging、Vertical and Horizontal、Vertical Only、Horizontal Only、Undo Autoranging",
    "source": "M-TDS-13 p.77–78 (PDF 101–102)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": ""
+   "status": "APPROX",
+   "notes": "Tracks signal every tick; not an Autoset alias. Manual scale turns disable affected axis; trigger/channel/Single/XY/persistence/recall disable tracking."
   },
   {
    "path": "Trig Menu → Type = Video／Pulse（只列頂層）",
    "softkeys": "Video：Source、Polarity、Sync、Standard；Pulse：Source、When、Pulse Width、Polarity、Mode、Coupling、More",
    "source": "M-TDS-13 p.98–99 (PDF 122–123)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": ""
+   "status": "APPROX: Pulse; Video OUT",
+   "notes": "Pulse evaluates actual completed width (33ns-10s); =/not equal within 5%, less/greater, both polarities. Bench Single never completes on a future predicted pulse."
   },
   {
    "path": "PROBE CHECK（精靈，只列頂層）",
@@ -1023,11 +1023,11 @@
   },
   {
    "path": "PRINT（儲存）鍵（只列頂層）",
-   "softkeys": "經由 Save/Recall ►Save All ►PRINT Button，或 Utility ►Options ►Printer Setup 設定",
+   "softkeys": "Downloads the current screen as SVG",
    "source": "M-TDS-13 p.67 (PDF 91)；p.73 (PDF 97)；p.90 (PDF 114)",
    "evidence": "OT",
-   "status": "OUT",
-   "notes": ""
+   "status": "APPROX: current LCD SVG download",
+   "notes": "Browser export; no PictBridge/physical printer claimed."
   }
  ],
  "specs": [
@@ -1483,7 +1483,7 @@
   {
    "id": "TDS-F14",
    "feature": "Single",
-   "rule": "每按一次開始一次新採集，等到觸發後完成並停止（狀態 Acq. Complete），之後 fixture 改變不影響畫面。Auto 模式下的行為見 GAP-TDS-07 例外：右下角觸發頻率讀值不凍結，停止時仍追蹤目前的觸發源（p.112「including when oscilloscope acquisition is halted」）。凍結的是波形紀錄與 Measure 量測欄。",
+   "rule": "每按一次開始一次新採集，等到觸發後完成並停止（狀態 Acq. Complete），之後 fixture 改變不影響畫面。Auto 模式下的行為見 GAP-TDS-07 例外：右下角觸發頻率讀值不凍結，停止時仍追蹤目前的觸發源（p.112「including when oscilloscope acquisition is halted」）。凍結的是波形紀錄與 Measure 量測欄。 實驗台觸發後顯示Trig'd並等待全部後觸發樣本發生，完成前保持舊整筆；完成後才顯示Acq. Complete。回復Single設定會清除上一筆完成旗標並重新等待。",
    "source": "M-TDS-13 p.11 (PDF 35)、p.41 (PDF 65)、p.77 (PDF 101)",
    "evidence": "OT",
    "acceptance": "I03-6：S1 按 Single 得到一幀後停止；改 fixture 畫面不變；再按 Single 再取一幀"
@@ -1531,7 +1531,7 @@
   {
    "id": "TDS-F20",
    "feature": "多功能旋鈕與 LED",
-   "rule": "只有在手冊列出的核心選單項目（Cursor 1/2、Measure Type、Edge Source、Probe Attenuation）中，旋鈕才有作用且 LED 亮；其他狀態下旋轉無效",
+   "rule": "Multipurpose knob activates Probe/Trigger Source/Pulse Width/Holdoff/Measure Type/Cursors/Average count/Math position and scale; LED reflects an active target.",
    "source": "M-TDS-13 p.13 (PDF 37)、p.16–17 (PDF 40–41)",
    "evidence": "OT+PD",
    "acceptance": "I03-4、I03-8：進入 Probe ►Attenuation 或選 Cursor 1 時 LED 亮並可調整；離開選單後 LED 熄滅、旋轉不改任何值"
@@ -1539,37 +1539,125 @@
   {
    "id": "TDS-F21",
    "feature": "AutoSet 自動量測的有限例外：Mean、Cyc RMS",
-   "rule": "AutoSet 偵測到 multi-cycle sine 時顯示 Cycle RMS、Frequency、Period、Pk-Pk；multi-cycle square 顯示 Pk-Pk、Mean、Period、Frequency；無法判定時顯示 Mean、Pk-Pk（p.80–81）。Mean 與 Cyc RMS 由目前採集資料計算（APPROX：演算法為模擬器定義，Cyc RMS 取第一個完整週期），Measure 選單也可選這兩項；其餘 11 種量測仍 OUT。波形辨識演算法（PD）：扣掉基頻後 THD < 2%＝正弦；≥ 70% 的點落在距極值 20% 峰對峰以內＝方波／脈波（選單 Multi-cycle square 選取中，Single-cycle square、Rising edge、Falling edge 為 OUT，Undo Autoset 在 OPT5）；其他＝無法判定。",
+   "rule": "AutoSet wave classification remains approximate. Manual p.80-81 multi/single-cycle sine and square, rising/falling edge, FFT and Undo options are implemented with their documented measurement groups and approximate scale selection. Unknown waveform: Mean and Pk-Pk.",
    "source": "M-TDS-13 p.80 (PDF 104)、p.81 (PDF 105)",
    "evidence": "OT+PD",
    "acceptance": "I03-7：S1 按 AutoSet 後出現 Cyc RMS、Freq、Period、Pk-Pk，數值由採集算出（S1 的 Cyc RMS 應接近 AC 部分 0.707 V 與 DC 0.5 V 的合成值，依耦合而定）。"
+  },
+  {
+   "id": "TDS-F22",
+   "feature": "Invert and basic Math",
+   "rule": "Channel inversion changes waveform, Mean and cursor readings. Math computes CH1+CH2, CH1-CH2, CH2-CH1, CH1*CH2 from acquired records and applies probe factors; multiplication unit is VV. FFT central 2048 samples, 1024 bins, Hanning/Flattop/Rectangular with X1/2/5/10; source-channel vertical controls change 10dB/div zoom and position. FFT Frequency/Magnitude cursors read recorded spectrum bins. Exact hardware coefficients are not claimed.",
+   "source": "M-TDS-13 p.87-88,104-105",
+   "evidence": "OT+PD (menu positions, alignment, extrema algorithm and page-session memory)",
+   "acceptance": "test/tds-extended.test.mjs; scripts/e2e/tds-extended.mjs"
+  },
+  {
+   "id": "TDS-F23",
+   "feature": "Display and XY",
+   "rule": "Vectors/Dots; Persist Off/1/2/5 sec/Infinite; YT/XY. XY runs untriggered Sample at 1MS/s and disables Math/Ref/measure/cursors/time-base/trigger controls. Autoset returns to YT. Stopped XY uses the frozen record.",
+   "source": "M-TDS-13 p.83-85",
+   "evidence": "OT+PD (menu positions, alignment, extrema algorithm and page-session memory)",
+   "acceptance": "test/tds-extended.test.mjs; scripts/e2e/tds-extended.mjs"
+  },
+  {
+   "id": "TDS-F24",
+   "feature": "Average and Peak Detect",
+   "rule": "Average combines 4/16/64/128 trigger-aligned records; Single completes after N records and never invents future triggers. Peak Detect uses 1250 min/max intervals at >=5ms/div and Sample at <=2.5ms/div; simulated extrema do not promise hardware 10ns glitch sensitivity.",
+   "source": "M-TDS-13 p.75-77",
+   "evidence": "OT+PD (menu positions, alignment, extrema algorithm and page-session memory)",
+   "acceptance": "test/tds-extended.test.mjs; scripts/e2e/tds-extended.mjs"
+  },
+  {
+   "id": "TDS-F25",
+   "feature": "Setup and Ref memory",
+   "rule": "Ten explicit internal Setup slots and RefA/B save acquired waves. Saved references retain scales/positions/probe factors. Slots persist with experiment save/load and browser autosave; replacing the experiment restores only its own memories. Browser setup JSON save/validated recall and waveform CSV exports are available; physical USB/hardware nonvolatile memory are not simulated.",
+   "source": "M-TDS-13 p.91-95",
+   "evidence": "OT+PD (menu positions, alignment, extrema algorithm and page-session memory)",
+   "acceptance": "test/tds-extended.test.mjs; scripts/e2e/tds-extended.mjs"
+  },
+  {
+   "id": "TDS-F26",
+   "feature": "Continuous AutoRange",
+   "rule": "Tracks changing signals every tick, independently in BOTH/VERTICAL/HORIZONTAL axes; Undo restores previous settings. Manual scale turns disable corresponding axes, and trigger/channel display/Single/XY/persistence/recall deactivate tracking. On power-on AutoRange is Off.",
+   "source": "M-TDS-13 p.77-79",
+   "evidence": "OT+PD (thresholds, edge association and FFT numeric windows)",
+   "acceptance": "test/tds-advanced.test.mjs; scripts/e2e/tds-extended.mjs"
+  },
+  {
+   "id": "TDS-F27",
+   "feature": "All 16 automatic measurements",
+   "rule": "RMS uses all 2500 recorded values; Cursor RMS uses time-cursor interval; Min/Max use recorded extrema; Rise/Fall use first complete 10-90% edge; Width/Duty use 50% edges; Phase/Delay use two visible acquired channels. Missing edges, XY/Scan or invalid cursor spans show ?. Phase/Delay sign and edge association are teaching approximations.",
+   "source": "M-TDS-13 p.89",
+   "evidence": "OT+PD (thresholds, edge association and FFT numeric windows)",
+   "acceptance": "test/tds-advanced.test.mjs; scripts/e2e/tds-extended.mjs"
+  },
+  {
+   "id": "TDS-F28",
+   "feature": "Pulse width, trigger conditioning and Holdoff",
+   "rule": "Completed Pulse compares measured width at its end, never a predicted future end. Edge/Pulse support both modes/polarities and DC/AC/Noise/HF/LF conditioning. Holdoff suppresses actual bench triggers. Filter shapes and knob resolution are approximate.",
+   "source": "M-TDS-13 p.96-101",
+   "evidence": "OT+PD (virtual export, menu layout, filter response and step resolution)",
+   "acceptance": "test/tds-front-panel.test.mjs; scripts/e2e/tds-extended.mjs"
+  },
+  {
+   "id": "TDS-F29",
+   "feature": "Window, Fine and Trig View",
+   "rule": "Window Zone and Window select/expand a bounded region; stopped display preserves samples. Fine changes gain continuously (2% teaching steps). Hold Trig View shows conditioned trigger input and disables buttons except Print.",
+   "source": "M-TDS-13 p.86,100,104-105",
+   "evidence": "OT+PD (virtual export, menu layout, filter response and step resolution)",
+   "acceptance": "test/tds-front-panel.test.mjs; scripts/e2e/tds-extended.mjs"
+  },
+  {
+   "id": "TDS-F30",
+   "feature": "Cursors for Math, Ref and FFT",
+   "rule": "Math/Ref Time and Amplitude cursors use acquired data and correct V/VV units. FFT Frequency and Magnitude cursors use the spectrum frequency/dB axes. Missing or hidden source suppresses cursor readouts.",
+   "source": "M-TDS-13 p.82",
+   "evidence": "OT+PD (virtual export, menu layout, filter response and step resolution)",
+   "acceptance": "test/tds-front-panel.test.mjs; scripts/e2e/tds-extended.mjs"
+  },
+  {
+   "id": "TDS-F31",
+   "feature": "Virtual file export, System Status and Help",
+   "rule": "Print exports current LCD SVG; File Save exports setup JSON or 2500-point CSV. File Recall validates the exported JSON through the same strict setup schema before applying it; corrupt files preserve current settings. Utility System Status displays actual model settings, and Help supplies contextual English teaching guidance. Hardware operations state their limits.",
+   "source": "M-TDS-13 p.90-104",
+   "evidence": "OT+PD (virtual export, menu layout, filter response and step resolution)",
+   "acceptance": "test/tds-front-panel.test.mjs; scripts/e2e/tds-extended.mjs; test/tds-setup-file.test.mjs; scripts/e2e/tds-setup-file.mjs"
+  },
+  {
+   "id": "TDS-F32",
+   "feature": "Virtual Limit Test and Data Logging",
+   "rule": "Apply Template stores 2500-point lower/upper bounds from displayed CH1/CH2/time-domain Math with V/H division tolerance. Compare every completed acquired record by time interpolation and physical V/VV units; stop manually or after waveforms/violations/time. Retain latest violation CSV/SVG for browser download. Logger includes only triggered completed records, retains recent 2000 summaries, supports manual duration 0.5-24h or Infinite, and exports timestamp/Min/Max/Mean/RMS CSV. Mask/configuration persist; counters/logs are runtime and restart on Recall.",
+   "source": "M-TDS-13 p.52-54,101",
+   "evidence": "OT+PD (template dilation, browser export, bounded summary memory, menu pagination)",
+   "acceptance": "test/tds-utility.test.mjs; scripts/e2e/tds-extended.mjs"
   }
  ],
  "out_of_scope": [
   {
-   "item": "Math（+、−、×）與 Math FFT",
-   "reason": "02 明列 FFT 本輪未納入，Math 運算也不在核心清單",
-   "ui_treatment": "Math 鍵可以按，但只在儀器外顯示『本輪未納入』範圍說明，不產生 Math 波形，也不改狀態"
+   "item": "Exact hardware FFT DSP/window coefficients",
+   "reason": "Standard numeric FFT and three coherent-gain-normalized windows are implemented; exact firmware DSP coefficients are unavailable.",
+   "ui_treatment": "FFT spectrum, zoom, aliases and Frequency/Magnitude cursors are active."
   },
   {
-   "item": "Video、Pulse Width 觸發",
-   "reason": "02 明列不納入",
-   "ui_treatment": "Trig Menu OPT1 維持 Edge；嘗試切到 Video/Pulse 時顯示範圍說明，不切換觸發類型"
+   "item": "Video trigger and AutoSet video options",
+   "reason": "No NTSC/PAL/SECAM synchronization source exists.",
+   "ui_treatment": "Type cycles Edge/Pulse and explains the absent Video source."
   },
   {
-   "item": "Trigger Holdoff、Horiz 的 Window Zone／Window",
-   "reason": "不在 02 核心",
-   "ui_treatment": "Horiz 選單只啟用 Main，其餘選項灰階並附說明"
+   "item": "Exact hardware Holdoff resolution and Window timing",
+   "reason": "Basic Window/Holdoff are implemented; physical acquisition timing is approximate.",
+   "ui_treatment": "Window uses selected scale/position; Holdoff acts on real bench event times."
   },
   {
-   "item": "Ext、Ext/5、AC Line 觸發源；Noise Reject、HF Reject、LF Reject 觸發耦合",
-   "reason": "單機階段沒有對應 fixture，也沒有精準濾波模型",
-   "ui_treatment": "依 GAP-TDS-17：循環中略過並在儀器外列出，不假裝有效"
+   "item": "Ext, Ext/5 and AC Line trigger inputs",
+   "reason": "No corresponding source/terminal model.",
+   "ui_treatment": "CH1/CH2 only; Noise/HF/LF reject are available with explicit first-order approximations."
   },
   {
-   "item": "Peak Detect、Average、Averages；500 MS/s 上限與 sin(x)/x 內插、雜訊、8-bit 量化、50 MHz 類比頻寬（Sample 模式的混疊已於 2026-09-30 依使用者要求納入，見 GAP-TDS-24）",
-   "reason": "02 明列所有 acquisition mode 與精準取樣／雜訊模型不納入",
-   "ui_treatment": "Acquire 選單只能選 Sample；型號條上的 50 MHz／500 MS/s 只是標示，儀器外註明模擬器不承諾"
+   "item": "Hardware acquisition precision",
+   "reason": "Peak Detect and Average added as teaching models; hardware 10ns sensitivity, ADC noise/quantization, 500MS/s interpolation and 50MHz front-end remain excluded",
+   "ui_treatment": "Acquire offers Sample/Peak Detect/Average and 4/16/64/128 averages"
   },
   {
    "item": "Scan（Roll）模式的完整行為",
@@ -1577,29 +1665,29 @@
    "ui_treatment": "依 GAP-TDS-08 以明示近似呈現，量測顯示無效"
   },
   {
-   "item": "Display 選單（Vectors/Dots、Persist、XY）",
-   "reason": "不在核心",
-   "ui_treatment": "固定 YT／Vectors／Persist Off；按鍵顯示範圍說明"
+   "item": "Exact analog display brightness/persistence",
+   "reason": "Basic Display added as SVG approximation",
+   "ui_treatment": "Vectors/Dots/XY and finite/infinite persistence are available"
   },
   {
-   "item": "Ref 參考波形、Save/Recall、USB Flash Drive、PRINT/儲存鍵、PictBridge、USB Device",
-   "reason": "02 明列完整 USB 存取不納入",
-   "ui_treatment": "按鍵顯示範圍說明；儲存 LED 恆滅；USB 口只作外觀"
+   "item": "Physical USB/PictBridge/USB Device and hardware nonvolatile memory",
+   "reason": "Virtual browser SVG/CSV/JSON exports and experiment-persisted memories are provided; actual hardware transport is absent.",
+   "ui_treatment": "Save/Recall, Ref and Print work as documented virtual operations."
   },
   {
-   "item": "Utility（Language、System Status、Self Cal、File Utilities、Error Log、Data Logging、Limit Test、日期時間、GPIB）",
-   "reason": "不在核心",
-   "ui_treatment": "按鍵顯示範圍說明"
+   "item": "Utility hardware calibration/GPIB/date-clock/ErrorLog",
+   "reason": "System Status, virtual Limit Test and summary Data Logging are implemented. Physical calibration, hardware clock/GPIB and firmware error records have no real source.",
+   "ui_treatment": "Live summaries, two persisted masks, pass/fail statistics and browser CSV logger are active. Logging is bounded runtime summary memory, not original USB full-waveform storage."
   },
   {
-   "item": "Help 說明系統",
-   "reason": "不在核心",
-   "ui_treatment": "教學說明放在儀器外；Help 鍵顯示範圍說明"
+   "item": "Complete firmware Help index and translated LCD languages",
+   "reason": "Only contextual teaching summaries in English are implemented.",
+   "ui_treatment": "Help displays supported operations; no exact firmware help content or language translation is claimed."
   },
   {
-   "item": "AutoRange",
-   "reason": "02 規定先 OUT，且不可用 AutoSet 代替",
-   "ui_treatment": "按鍵顯示範圍說明，LED 恆滅"
+   "item": "Exact hardware AutoRange selection thresholds",
+   "reason": "Continuous AutoRange added 2026-10-04; manual provides outcomes rather than complete thresholds.",
+   "ui_treatment": "BOTH/Vertical/Horizontal axes, Undo and deactivation implemented and marked approximate."
   },
   {
    "item": "Probe Check 精靈",
@@ -1607,14 +1695,14 @@
    "ui_treatment": "圓鍵顯示範圍說明；Probe Comp 端子只作外觀與 J01 預留"
   },
   {
-   "item": "Trig View",
-   "reason": "不在核心",
-   "ui_treatment": "按住時顯示範圍說明，不停用其他鍵"
+   "item": "Physical trigger-view front-end fidelity",
+   "reason": "Trig View conditioning and hold behavior are implemented using simulated paths.",
+   "ui_treatment": "Hold to view trigger coupling effects, including hidden trigger source; release returns to normal display."
   },
   {
-   "item": "電流探棒 Scale、Invert、Volts/Div Fine",
-   "reason": "不在核心，Fine 步幅也無來源",
-   "ui_treatment": "CH 選單中這些選項保持預設值（Voltage、Off、Coarse），按下顯示範圍說明"
+   "item": "Current probe Scale",
+   "reason": "No physical current-probe source and sensitivity model.",
+   "ui_treatment": "Voltage probe attenuation and Fine gain are active; Current remains explicitly excluded."
   },
   {
    "item": "BW Limit 的精確響應形狀",
@@ -1622,14 +1710,14 @@
    "ui_treatment": "APPROX：一階 20 MHz 低通（正弦用解析增益與相位；實驗台訊號表格夠細時濾表格，太粗時對精確解做卷積，低頻方波邊緣也會圓化），儀器外標示近似"
   },
   {
-   "item": "AutoSet 的 Single-cycle、Rising/Falling edge、FFT、Video 選項",
-   "reason": "不在核心",
-   "ui_treatment": "選項可見但停用並附說明；Undo Autoset 以 APPROX 提供"
+   "item": "Exact AutoSet detection and hardware scale-selection thresholds",
+   "reason": "Manual-documented single/multiple cycles, edges and FFT are implemented using approximate detection/scaling.",
+   "ui_treatment": "AutoSet options change waveform presentation and documented measurement groups."
   },
   {
-   "item": "Freq／Period／Pk-Pk／Mean／Cyc RMS 以外的 11 種量測；以 MATH、REF 作游標來源",
-   "reason": "02 核心只有 Vpp、頻率、週期；Mean 與 Cyc RMS 因為 AutoSet 會自動顯示（p.80–81），列為有限例外（APPROX）",
-   "ui_treatment": "不列入選擇，或選到時顯示『未納入』，不輸出數值"
+   "item": "Exact firmware phase/edge association and numeric precision",
+   "reason": "All 16 measurements and Math/Ref/FFT cursors are implemented.",
+   "ui_treatment": "Phase/Delay require two valid periodic acquired channels and use a signed lag within half a period."
   },
   {
    "item": "關機前「等 5 秒（p.20）／3 秒（p.95）才保存」的時間條件",
@@ -1730,7 +1818,7 @@
    "id": "GAP-TDS-12",
    "gap": "AC 耦合的濾波模型。手冊只有『attenuates signals below 10 Hz』、下限頻率 ≤10 Hz（10X 被動探棒 ≤1 Hz）、串接電容（p.104、p.107、p.109）",
    "impact": "AC 耦合下的波形與 DC 位移",
-   "provisional": "一階高通 fc＝10 Hz；fixture 實際探棒為 10× 時 fc＝1 Hz。切換後直接呈現穩態，不模擬暫態。S1、S2 都是 1 kHz，實際效果等於扣掉 DC 平均。實驗台表格訊號同樣用一階高通的週期穩態解（y＝x－LPF(x)，低頻方波會看到平台傾斜）；觸發耦合 AC 用 10 Hz 一階高通（不隨探棒倍率），只影響觸發",
+   "provisional": "一階高通 fc＝10 Hz；實際探棒10×時fc＝1 Hz。單機fixture採週期穩態；實驗台採實際歷史的因果濾波（y＝x－LPF(x)），跨電路變更保留先前濾波狀態，預觸發不捏造新電路。週期部分由穩態LP邊界精確積分、線性暫態由模態指數解析積分；非線性CC／保護以穩定電壓切段數值積分，屬教學近似，非實體前端頻譜／響應驗證。觸發AC為額外10 Hz高通，重複極點保留兩階響應；HF/LF/BW亦作用於歷史訊號。 物理探棒改變時，以最多三級濾波內部狀態的矩陣指數傳遞連續狀態；不能重算成新倍率／新角頻率的舊歷史。",
    "rationale": "取規格上限，對核心 fixture 的影響可以忽略",
    "verify_method": "到校以 1–100 Hz 方波觀察 AC 耦合下的下垂"
   },
@@ -1826,7 +1914,7 @@
    "id": "GAP-TDS-24",
    "gap": "模擬器採集模型與量測容差（02／03 要求明訂解析度）",
    "impact": "I03 所有數值測試",
-   "provisional": "每筆紀錄 2500 點涵蓋 10 div（p.75、p.110）；取樣間隔＝s/div/250，最快 2 ns（500 MS/s）；更快的時基以內插補滿 2500 點（p.76）；不加雜訊與量化；容差以 1 個取樣間隔、1/25 div 為基礎。2026-09-30：每筆採集相對觸發點有隨機次取樣相位（固定種子），欠取樣的訊號自然混疊，連續採集又欠取樣時以 4 幀輪播呈現不穩定畫面；採集時超出 10 格動態範圍的部分削頂並記旗標，停止後縮放也回不來（p.108）。實驗台：DC 耦合、BW 關時紀錄用絕對時間的實際電壓（含電容暫態與改變前的電路），連續採集取改變後 50 ms 的電路狀態（模擬器取樣策略，不代表真機採集時序）；Single 等待中或 Normal 模式下電路改變時，從改變時刻往後找第一個觸發並擷取暫態，Single 擷取後停止、Normal 沒有新觸發就保留（PD）；未觸發時的隨機相位只在一個訊號週期內",
+   "provisional": "每筆2500點涵蓋10div，取樣間隔s/div÷250，快速時基直接求模型訊號（不宣稱真機500MS/s內插細節）。保留固定種子次取樣相位、採集當下前端削頂與停止後縮放。單機fixture為事件驅動的週期穩態；有時鐘的實驗台只讀截至目前的真實歷史。Single／Normal／Force先確認實際觸發，再等待最後一個Sample或PeakDetect區間結束後發布整筆；輸出在後觸發期間改變也記入。採集忙碌期間與Holdoff中的觸發不計入，Average只累計不同已完成紀錄。Auto無觸發／Scan／XY整筆結束在現在，XY兩通道同時取樣。物理探棒衰減倍率按各歷史段保存；CH Probe菜單仍只換算顯示。通道AC/BW及觸發耦合使用歷史因果濾波；非線性保護數值積分為教學近似。",
    "rationale": "採用手冊的記錄結構，但不宣稱真機精度",
    "verify_method": "I03 實作者記錄演算法；以 S1、S2 反推驗證"
   }

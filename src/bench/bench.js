@@ -8,6 +8,9 @@ import { stats, LEADS, NODES, M } from './circuit.js';
 import { solveNet, ohmsNet, R_GPE } from './net.js';
 import { hybridSeg } from './hybrid.js';
 import { APERTURE } from '../instruments/dmm/model.js';
+import { fourWireResistance, equivalentCapacitance } from './measure.js';
+import { centeredSquareIntegral } from './window-rms.js';
+import { nodePairPeakOver } from './window-peak.js';
 
 export const R_OPTIONS = [100, 470, 1000, 2200, 4700, 10000, 47000, 100000];
 export const C_OPTIONS = [0.001e-6, 0.01e-6, 0.047e-6, 0.1e-6, 0.47e-6, 1e-6, 10e-6];
@@ -74,6 +77,32 @@ function capsAt(g, t) {
     out[id] = v;
   });
   return out;
+}
+function noiseAffects(built, nodes) {
+  const seen = new Set(built.net.afg.filter((s) => s.p.wave === 'NOISE').map((s) => s.node));
+  if (!seen.size) return false;
+  const edges = [...built.net.elements, ...built.net.loads, ...built.gpe.map((s) => ({ a: s.pos, b: s.neg }))];
+  // Ideal earth cannot carry a voltage perturbation from an unrelated circuit.
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const e of edges) if (e.a !== 'E' && e.b !== 'E' && seen.has(e.a) !== seen.has(e.b)) {
+      seen.add(e.a); seen.add(e.b); changed = true;
+    }
+  }
+  return nodes.some((n) => n !== 'E' && seen.has(n));
+}
+function frequencyClues(built, nodes) {
+  const seen = new Set(nodes.filter((n) => n && n !== 'E'));
+  const edges = [...built.net.elements, ...built.net.loads, ...built.gpe.map((s) => ({ a: s.pos, b: s.neg }))];
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const e of edges) if (e.a !== 'E' && e.b !== 'E' && seen.has(e.a) !== seen.has(e.b)) {
+      seen.add(e.a); seen.add(e.b); changed = true;
+    }
+  }
+  const sources = built.net.afg.filter((s) => seen.has(s.node));
+  return { carrierFreq: Math.max(0, ...sources.map((s) => s.p.carrierFreq ?? s.p.freq)),
+    maxFreq: Math.max(0, ...sources.map((s) => s.p.maxCarrierFreq ?? s.p.freq)) };
 }
 
 // GPE 第 k 路在某一段、時刻 t 的端電壓與輸出電流（瞬間週期電壓＋暫態）。
@@ -164,8 +193,12 @@ export class Bench {
     return this.segs[0];
   }
 
-  afgParams() {
-    return this.afg.ch.map((c) => ({ wave: c.wave, freq: c.freq, sym: c.sym, emfVpp: c.emfVpp, emfOffset: c.emfOffset, output: c.output && this.afg.on }));
+  afgParams(time) {
+    return this.afg.ch.map((c, i) => {
+      const driver = this.afg.driverDescriptor?.(i, time);
+      if (driver) return { ...driver, output: driver.output && this.afg.on };
+      return { wave: c.wave, freq: c.freq, sym: c.sym, duty: c.duty ?? 50, phase: ['SQUARE', 'PULSE', 'NOISE'].includes(c.wave) ? 0 : c.phase ?? 0, extended: c.extended, emfVpp: c.emfVpp, emfOffset: c.emfOffset, output: c.output && this.afg.on };
+    });
   }
 
   // GPE 四路輸出的設定（開機、Output ON 才輸出）。各路的有效電壓／限流照 GPE 模型的 eff()：
@@ -186,6 +219,9 @@ export class Bench {
     [0, 1].forEach((i) => { if (W[`TDS.CH${i + 1}.TIP`]) L.push({ a: `TDS.CH${i + 1}.TIP`, b: null, r: PROBE_R[this.probeX[i]] }); });
     const z = this.dmm?.inputZ?.();
     if (z && W['DMM.HI'] && W['DMM.LO']) L.push({ a: 'DMM.HI', b: 'DMM.LO', r: z });
+    const senseZ = this.dmm?.senseInputZ?.();
+    if (senseZ && W['DMM.LO']) for (const id of ['DMM.SHI', 'DMM.SLO'])
+      if (W[id]) L.push({ a: id, b: 'DMM.LO', r: senseZ });
     const shunt = this.dmm?.currentShunt?.();
     if (shunt && W['DMM.I'] && W['DMM.LO']) L.push({ a: 'DMM.I', b: 'DMM.LO', r: shunt, current: true });
     return L;
@@ -197,7 +233,7 @@ export class Bench {
   }
 
   // ---- 電路描述：把接地的導線（AFG 黑夾、示波器接地夾、GPE GND）併到大地 'E' ----
-  build() {
+  build(afgParams = this.afgParams(this.now())) {
     const W = this.leadMap(), warn = [];
     let nodes, elements, raw; // raw：導線 → 原始節點
     if (this.board === 'bb') {
@@ -239,7 +275,9 @@ export class Bench {
       for (const [id, n] of grounds) if (id.startsWith('TDS') && n !== 'G') warn.push({ level: 'bad', text: `${LEADS[id].name}接在 ${n}：示波器接地夾就是大地，${n} 點被直接接地（量元件兩端時不能把接地夾夾在中間點）。` });
     }
     // AFG：紅夾接在哪一點（Output ON 才算）；黑夾＝大地
-    const afgP = this.afgParams(), afg = [];
+    // Each circuit segment owns its waveform settings. Later ARB edits and
+    // motion changes must never change a lazy historical protection solution.
+    const afgP = afgParams.map((p) => ({ ...p, extended: p.extended ? JSON.parse(JSON.stringify(p.extended)) : undefined })), afg = [];
     [0, 1].forEach((ch) => {
       const red = leadNode[`AFG.CH${ch + 1}+`];
       if (!red) return;
@@ -248,8 +286,7 @@ export class Bench {
       afg.push({ node: red, p: afgP[ch], ch });
     });
     if (afg.length && !Object.values(leadNode).includes('E')) warn.push({ level: 'bad', text: '電路沒有接回地：AFG 黑夾和示波器接地夾都沒接到電路，沒有電流回路。' });
-    if (!Object.keys(W).some((id) => id.startsWith('AFG') && id.endsWith('+') && W[id]) && this.board !== 'bb') warn.push({ level: 'info', text: '還沒有接 AFG 紅夾（訊號源）。' });
-    if (afg.length > 1 && Math.abs(afg[0].p.freq - afg[1].p.freq) > 1e-9 * afg[0].p.freq) warn.push({ level: 'info', text: '兩個 AFG 通道頻率不同：本模擬以 CH1 的週期計算，畫面只是近似。' });
+    if (!Object.keys(W).some((id) => (id.startsWith('AFG') || id.startsWith('GPE.CH')) && id.endsWith('+') && W[id]) && this.board !== 'bb') warn.push({ level: 'info', text: '還沒有接訊號源：可接 AFG 紅夾，或 GPE 的＋、−端子。' });
     // GPE：兩條導線都接上的通道才形成迴路
     const gp = this.gpeParams(), gpe = [];
     if (gp.active && gp.mode !== 'INDEP' && Object.keys(W).some((id) => id.startsWith('GPE.CH') && W[id])) {
@@ -286,7 +323,7 @@ export class Bench {
     afg.forEach((s) => cu(s.node, 'E')); gpe.forEach((s) => cu(s.pos, s.neg));
     const live = new Set([...afg.map((s) => cf(s.node)), ...gpe.map((s) => cf(s.pos))]);
     const powered = (x) => x != null && live.has(cf(x));
-    return { net: { nodes: netNodes, elements, loads, afg }, gpe, leadNode, current, warn, find: node, powered };
+    return { net: { nodes: netNodes, elements, loads, afg }, gpe, leadNode, current, probeX: [...this.probeX], warn, find: node, powered };
   }
 
   // 一段電路狀態：從 t0 起，GPE 各路用 modes（CV／CC／RB）。模式依「t0 當下」的狀態決定（含電容電壓），
@@ -327,10 +364,10 @@ export class Bench {
       return variants.get(key);
     };
     const operatingPoint = (t) => resolveModes(built.gpe, built.gpe.map(() => 'CV'), t, variant);
-    const T = seg.sol.period, h = seg.sol.h, intervals = [];
-    for (let k = 0; k < M; k++) {
-      let a = k * h;
-      const b = (k + 1) * h, eps = h * 1e-8;
+    const T = seg.sol.period, h = T / M, mesh = seg.sol.mesh, intervals = [];
+    for (let k = 0; k + 1 < mesh.length; k++) {
+      let a = mesh[k];
+      const b = mesh[k + 1], eps = (b - a) * 1e-8;
       for (let it = 0; it < 16 && a < b; it++) {
         const ga = operatingPoint(a + eps), gb = operatingPoint(b - eps);
         if (ga === gb) { intervals.push({ from: a, to: b, g: ga }); break; }
@@ -390,7 +427,7 @@ export class Bench {
     });
     const nodeChange = (n, t, t0) => nodeAt(n, t) - nodeAt(n, t0);
     const meanChangeOver = (hi, lo, a, b, t0) => meanOver(hi, lo, a, b) - (nodeAt(hi, t0) - nodeAt(lo, t0));
-    const sol = { ...seg.sol, nodeAt, nodeChange, table, stats: (hi, lo) => pair(hi, lo).stats, meanOver, meanChangeOver, warn };
+    const sol = { ...seg.sol, nodeAt, nodeChange, table, mesh: [...new Set([...seg.sol.mesh, ...intervals.map((s) => s.from)])].sort((a, b) => a - b), stats: (hi, lo) => pair(hi, lo).stats, meanOver, meanChangeOver, warn };
     if (this.board !== 'bb') sol.v = Object.fromEntries(NODES.map((x) => [x, table(built.find(x))]));
     const modeAt = (t) => locate(t).interval.g.modes;
     return { ...seg, sol, modeAt, get modes() { return modeAt(thisBench.now()); } };
@@ -436,7 +473,7 @@ export class Bench {
     };
     const nodeChange = (n, t, t0) => source(n).nodeChange(n, t, t0);
     const meanChangeOver = (hi, lo, a, b, t0) => source(hi).meanChangeOver(hi, 'E', a, b, t0) - source(lo).meanChangeOver(lo, 'E', a, b, t0);
-    const sol = { ...base, nodeAt, nodeChange, table, meanOver, meanChangeOver, stats, warn: [...base.warn, ...periodic.sol.warn] }, thisBench = this;
+    const sol = { ...base, nodeAt, nodeChange, table, meanOver, meanChangeOver, stats, mesh: [...new Set([...base.mesh, ...periodic.sol.mesh])].sort((a, b) => a - b), warn: [...base.warn, ...periodic.sol.warn] }, thisBench = this;
     return { ...seg, sol, modeAt, periodicIndices: groups.indices, get modes() { return modeAt(thisBench.now()); } };
   }
 
@@ -478,6 +515,23 @@ export class Bench {
     return { t: best.t, modes };
   }
 
+  appendBuilt(built, before, t, prev) {
+    const groups = periodicGroups(built);
+    const commonFrequency = built.net.afg.every((s) => Math.abs(s.p.freq - built.net.afg[0].p.freq) <= 1e-9 * s.p.freq);
+    if (groups.dynamic.length && !commonFrequency) built.warn.push({ level: 'bad', text: '目前不支援不同頻率 AFG 與 GPE 共同驅動含電容的週期保護：本輪僅支援單一或同頻率 AFG，波形及保護讀回僅為近似。' });
+    const initial = this.makeSeg(built, before, t, null);
+    let seg = groups.dynamic.length && commonFrequency ? hybridSeg(initial, () => this.now()) : this.withPeriodicGroups(initial, groups);
+    if (!prev) seg.from = -Infinity;
+    this.segs.push(seg);
+    for (let ev = 0; ev < 8; ev++) {
+      const nx = this.nextEvent(seg);
+      if (!nx) break;
+      seg.to = nx.t;
+      seg = this.withPeriodicGroups(this.makeSeg(built, capsAt(seg, nx.t), nx.t, nx.modes), groups);
+      this.segs.push(seg);
+    }
+  }
+
   solution() {
     const k = this.key();
     if (k !== this.cacheKey) {
@@ -488,19 +542,16 @@ export class Bench {
       // 之前排好但還沒到的模式切換作廢
       this.segs = this.segs.filter((g) => g.from <= t || g.from === -Infinity);
       if (prev) prev.to = t;
-      const built = this.build(), groups = periodicGroups(built);
-      const commonFrequency = built.net.afg.every((s) => Math.abs(s.p.freq - built.net.afg[0].p.freq) <= 1e-9 * s.p.freq);
-      if (groups.dynamic.length && !commonFrequency) built.warn.push({ level: 'bad', text: '目前不支援不同頻率 AFG 與 GPE 共同驅動含電容的週期保護：本輪僅支援單一或同頻率 AFG，波形及保護讀回僅為近似。' });
-      const initial = this.makeSeg(built, before, t, null);
-      let seg = groups.dynamic.length && commonFrequency ? hybridSeg(initial, () => this.now()) : this.withPeriodicGroups(initial, groups);
-      if (!prev) seg.from = -Infinity;
-      this.segs.push(seg);
-      for (let ev = 0; ev < 8; ev++) { // 依序排出之後的模式切換（例：CC 充電 → CV）
-        const nx = this.nextEvent(seg);
-        if (!nx) break;
-        seg.to = nx.t;
-        seg = this.withPeriodicGroups(this.makeSeg(built, capsAt(seg, nx.t), nx.t, nx.modes), groups);
-        this.segs.push(seg);
+      this.appendBuilt(this.build(this.afgParams(t)), before, t, prev);
+      // One-shot drivers end at their actual deadline even if the next UI poll
+      // is much later. Capacitor state and all pre-trigger/history queries use
+      // this scheduled transition, rather than stopping the source at poll time.
+      const cuts = [...new Set(this.afg.driverTransitionTimes?.(t) ?? [])].filter((x) => Number.isFinite(x) && x > t).sort((a, b) => a - b);
+      for (const deadline of cuts) {
+        const previous = this.segAt(deadline), charge = capsAt(previous, deadline);
+        this.segs = this.segs.filter((s) => s.from < deadline);
+        previous.to = deadline;
+        this.appendBuilt(this.build(this.afgParams(deadline)), charge, deadline, previous);
       }
       // 保留已發生的電路變更，讓慢時基與任意水平位置的預觸發查詢
       // 仍用真正的歷史；不得拿最早剩下的 ON 電路向 OFF 的過去外插。
@@ -560,14 +611,30 @@ export class Bench {
   tdsInput() {
     this.solution();
     const now = this.now(), tView = Math.max(now, this.changeT + SCOPE_SETTLE), g = this.segAt(tView), sol = g.sol;
+    const historyCuts = (a, b) => this.segs.map((s) => s.from).filter((t) => Number.isFinite(t) && a < t && t < b);
     const sig = [0, 1].map((i) => {
       const lead = `TDS.CH${i + 1}.TIP`, node = g.built.leadNode[lead];
       if (!node) return null;
+      const noise = noiseAffects(g.built, [node]);
       // Hybrid 的連續採集 at 是週期穩態；實際暫態由 abs 提供。
       // 不必先求 tView 的實際狀態，且舊歷史段相對此 at 的偏移應為零。
       const hybrid = !!sol.actualNodeAt, off = hybrid ? 0 : devNode(g, node, tView);
       const atView = hybrid ? 0 : nodeIn(g, node, tView), at = hybrid ? (t) => sol.nodeAt(node, t) : (t) => atView + sol.nodeChange(node, t, tView);
       const abs = (t) => { const h = this.segAt(t); return nodeIn(h, h.built.leadNode[lead], t); };
+      const probeAt = (t) => this.segAt(t).built.probeX[i];
+      const history = (a, b) => this.segs.filter((s) => s.from < b && s.to > a).map((s) => {
+        const n = s.built.leadNode[lead], grounded = !n || n === 'E';
+        return { from: s.from, to: s.to, t0: s.t0, probe: s.built.probeX[i], period: s.sol.period, periodic: !!s.sol.periodic,
+          // A flat lookup table can miss narrow pulses. Only source parameters
+          // can certify that the steady drive has zero time derivative.
+          steadyConstant: grounded || s.built.net.afg.every(({ p }) => p.emfVpp === 0),
+          at: grounded ? () => 0 : (t) => s.sol.nodeAt(n, t), table: grounded ? new Float64Array(M) : s.sol.table(n),
+          lam: grounded ? [] : [...s.sol.lam], coeff: grounded ? [] : s.sol.modeW(n).map((w, k) => w * (s.amp[k] || 0)),
+          // CC/GMIN and hybrid trajectories use the stable absolute evaluator;
+          // a huge steady solution minus its modal offset loses precision.
+          actual: !!s.sol.actualNodeAt || !s.sol.periodic,
+          abs: (t) => nodeIn(s, n, t) };
+      });
       // abs(t) 相對連續採集的 at(t) 的保守範圍：每個模態分別取兩端
       // 最大／最小值，避免多模態互相抵消後讓觸發搜尋跳過真正的交越。
       const transientRange = (a, b) => {
@@ -598,8 +665,8 @@ export class Bench {
         }
         return min === Infinity ? [0, 0] : [min, max];
       };
-      if (node === 'E') return { table: new Float64Array(M), period: sol.period, at: () => 0, abs, transientRange };
-      return { table: Float64Array.from({ length: M }, (_, k) => at(k * sol.period / M)), period: sol.period, at, abs, transientRange };
+      if (node === 'E') return { table: new Float64Array(M), period: sol.period, at: () => 0, abs, transientRange, historyCuts, history, probeAt };
+      return { table: Float64Array.from({ length: M }, (_, k) => at(k * sol.period / M)), period: sol.period, at, abs, transientRange, historyCuts, history, probeAt, noise, ...frequencyClues(g.built, [node]) };
     });
     return { sig, probe: [...this.probeX], now, tView, changedAt: this.changeT, tau: sol.tauMax };
   }
@@ -612,11 +679,11 @@ export class Bench {
     this.solution();
     const t = this.now();
     // 每段照當時測試線位置、量程負載及保護模式算；未接好的時間按零計，不能用新分流電阻改寫舊讀值。
-    const meanOver = (isCurrent, t1, t2) => {
+    const pairMeanOver = (highLead, lowLead, isCurrent, t1, t2) => {
       if (!(t2 > t1)) return 0;
       let sum = 0;
       for (const s of this.segs) {
-        const a = Math.max(t1, s.from), b = Math.min(t2, s.to), h = s.built.leadNode[isCurrent ? 'DMM.I' : 'DMM.HI'], l = s.built.leadNode['DMM.LO'];
+        const a = Math.max(t1, s.from), b = Math.min(t2, s.to), h = s.built.leadNode[highLead], l = s.built.leadNode[lowLead];
         if (!(b > a) || !h || !l) continue;
         const divisor = isCurrent ? s.built.current?.r : 1;
         if (!divisor) continue;
@@ -627,23 +694,92 @@ export class Bench {
       }
       return sum / (t2 - t1);
     };
-    const signal = (isCurrent) => {
+    const meanOver = (isCurrent, a, b) => pairMeanOver(isCurrent ? 'DMM.I' : 'DMM.HI', 'DMM.LO', isCurrent, a, b);
+    const validOver = (leads, isCurrent, a, b) => {
+      if (!(b > a) || a < this.segs[0].t0 || b > this.now()) return false;
+      return this.segs.filter((s) => s.from < b && s.to > a).every((s) =>
+        leads.every((lead) => s.built.leadNode[lead]) && (!isCurrent || s.built.current?.r > 0));
+    };
+    const signal = (isCurrent, historical = false) => {
       const s = this.segAt(t), h = s.built.leadNode[isCurrent ? 'DMM.I' : 'DMM.HI'], l = s.built.leadNode['DMM.LO'];
       const divisor = isCurrent ? s.built.current?.r : 1;
-      if (!h || !l || !divisor) return null;
-      const w = s.sol.stats(h, l), dc = (frozenMean(s, h, t) - frozenMean(s, l, t)) / divisor;
-      return { dc, ac: w.acRms / divisor, peak: Math.abs(dc) + w.peakAc / divisor, peakAc: w.peakAc / divisor,
-        freq: s.sol.periodic ? 1 / s.sol.period : 0, now: t, meanOver: (a, b) => meanOver(isCurrent, a, b) };
+      const connected = !!(h && l && divisor);
+      if (!connected && !historical) return null;
+      const w = connected ? s.sol.stats(h, l) : { acRms: 0, peakAc: 0 };
+      const dc = connected ? (frozenMean(s, h, t) - frozenMean(s, l, t)) / divisor : 0;
+      const windowPeak = (a, b, ac) => {
+        if (!(b > a)) return 0;
+        const center = ac ? meanOver(isCurrent, a, b) : 0; let peak = 0;
+        for (const past of this.segs) {
+          const start = Math.max(a, past.from), end = Math.min(b, past.to);
+          if (!(end > start)) continue;
+          const hi = past.built.leadNode[isCurrent ? 'DMM.I' : 'DMM.HI'], lo = past.built.leadNode['DMM.LO'];
+          const r = isCurrent ? past.built.current?.r : 1;
+          if (!hi || !lo || !r) { peak = Math.max(peak, Math.abs(center)); continue; }
+          const value = nodePairPeakOver(past, hi, lo, start, end, center * r, (time) => nodeIn(past, hi, time) - nodeIn(past, lo, time));
+          peak = Math.max(peak, value / r);
+        }
+        return peak;
+      };
+      return { dc, ac: connected ? w.acRms / divisor : 0, peak: connected ? Math.abs(dc) + w.peakAc / divisor : 0,
+        peakAc: connected ? w.peakAc / divisor : 0, ...(connected ? frequencyClues(s.built, [h, l]) : {}),
+        freq: connected && s.sol.periodic && !noiseAffects(s.built, [h, l]) ? 1 / s.sol.period : 0,
+        noise: connected && noiseAffects(s.built, [h, l]), now: t,
+        validOver: (a, b) => validOver([isCurrent ? 'DMM.I' : 'DMM.HI', 'DMM.LO'], isCurrent, a, b), meanOver: (a, b) => meanOver(isCurrent, a, b),
+        peakOver: (a, b) => windowPeak(a, b, false), peakAcOver: (a, b) => windowPeak(a, b, true),
+        rmsAcOver: (a, b) => {
+          if (!(b > a)) return 0;
+          const center = meanOver(isCurrent, a, b); let square = 0;
+          for (const past of this.segs) {
+            const start = Math.max(a, past.from), end = Math.min(b, past.to);
+            if (!(end > start)) continue;
+            const hi = past.built.leadNode[isCurrent ? 'DMM.I' : 'DMM.HI'], lo = past.built.leadNode['DMM.LO'];
+            const r = isCurrent ? past.built.current?.r : 1;
+            if (!hi || !lo || !r) { square += center * center * (end - start); continue; }
+            square += centeredSquareIntegral(past, hi, lo, start, end, center * r, (time) => nodeIn(past, hi, time) - nodeIn(past, lo, time)) / (r * r);
+          }
+          return Math.sqrt(square / (b - a));
+        },
+        frequencyAt: (time) => {
+          const past = this.segAt(time);
+          const hi = past?.built.leadNode[isCurrent ? 'DMM.I' : 'DMM.HI'], lo = past?.built.leadNode['DMM.LO'];
+          if (!hi || !lo || time < past.from) return { freq: 0, noise: false };
+          const noise = noiseAffects(past.built, [hi, lo]);
+          return { ...frequencyClues(past.built, [hi, lo]), noise, freq: past.sol.periodic && !noise ? 1 / past.sol.period : 0 };
+        },
+        at: (time) => {
+          const past = this.segAt(time);
+          if (!past || time < past.from) return 0;
+          const hi = past.built.leadNode[isCurrent ? 'DMM.I' : 'DMM.HI'], lo = past.built.leadNode['DMM.LO'];
+          const resistance = isCurrent ? past.built.current?.r : 1;
+          return hi && lo && resistance ? (nodeIn(past, hi, time) - nodeIn(past, lo, time)) / resistance : 0;
+        } };
     };
     // Auto 量程和分流電阻互相影響。只用純 idx/電路解算有限迭代，不呼叫 DMM.rangeIdx 或 reading。
     // 降檔需低於下一候選檔的 80% 容量，避免不同負載在邊界往返切檔（教學遲滯）。
     const meter = this.dmm;
-    if (meter?.on && meter.fx?.bench && meter.f.kind === 'I' && meter.st.auto && W['DMM.I'] && W['DMM.LO']) {
+    // DCV 的 Auto Input Z 在前三檔為 10 GΩ 教學近似，其餘為 10 MΩ。
+    // 檔位與負載一起有限迭代，避免從 inputZ() 回呼量測造成遞迴。
+    if (meter?.on && meter.run !== 'stop' && meter.fx?.bench && meter.fn === 'DCV' && meter.inputZMode === 'AUTO' && meter.st.auto && W['DMM.HI'] && W['DMM.LO']) {
+      const seen = new Set();
+      for (let n = 0; n < 8; n++) {
+        const v = signal(false); if (!v) break;
+        const aperture = meter.apertureSeconds?.() ?? APERTURE, end = Math.floor(t / aperture) * aperture;
+        const x = Math.max(Math.abs(v.dc), Math.abs(v.meanOver(end - aperture, end)), v.peak);
+        let wanted = meter.f.ranges.findIndex((r) => x <= r.limit * (1 + 1e-12));
+        if (wanted < 0) wanted = meter.f.ranges.length - 1;
+        const old = meter.st.idx;
+        if (wanted === old) break;
+        if (seen.has(wanted)) { meter.st.idx = Math.max(old, wanted, ...seen); this.solution(); break; }
+        seen.add(old); meter.st.idx = wanted; this.solution();
+      }
+    }
+    if (meter?.on && meter.run !== 'stop' && meter.fx?.bench && meter.f.kind === 'I' && meter.st.auto && W['DMM.I'] && W['DMM.LO']) {
       const seen = new Set();
       for (let n = 0; n < 8; n++) {
         const i = signal(true); if (!i) break;
-        const tr = Math.floor(t / APERTURE) * APERTURE;
-        const old = meter.st.idx, x = meter.f.part === 'ac' ? i.ac : Math.max(Math.abs(i.dc), Math.abs(i.meanOver(tr - APERTURE, tr))), pk = meter.f.part === 'ac' ? i.peakAc : 0;
+        const aperture = meter.apertureSeconds?.() ?? APERTURE, tr = Math.floor(t / aperture) * aperture;
+        const old = meter.st.idx, x = meter.f.part === 'ac' ? i.ac : Math.max(Math.abs(i.dc), Math.abs(i.meanOver(tr - aperture, tr))), pk = meter.f.part === 'ac' ? i.peakAc : 0;
         let wanted = meter.f.ranges.findIndex((r) => x <= r.limit * (1 + 1e-12) && pk <= (meter.f.part === 'ac' ? 3 * r.v : Infinity) * (1 + 1e-12));
         if (wanted < 0) wanted = meter.f.ranges.length - 1;
         if (wanted < old) {
@@ -655,14 +791,52 @@ export class Bench {
         seen.add(old); meter.st.idx = wanted; this.solution();
       }
     }
-    const g = this.segAt(t), hi = g.built.leadNode['DMM.HI'], lo = g.built.leadNode['DMM.LO'], v = signal(false), i = signal(true);
-    // 只有和通電中的電源連在一起的迴路不能量；完全獨立、沒通電的迴路照常量
-    const powered = g.built.powered(hi) || g.built.powered(lo);
-    let ohm = null, whyR = '';
-    if (!hi || !lo) whyR = '電表的 HI、LO 測試線要兩條都接上電路。';
-    else if (powered) whyR = '電表接的這個迴路通電中，不能量電阻：先關 AFG 的 OUTPUT（或拔掉紅夾）、GPE 的 Output。';
-    else ohm = ohmsNet(g.built.net, hi, lo);
-    return { v, i, ohm, why: '', whyV: v ? '' : '電壓量測要將 HI、LO 兩條測試線接上（I 3A 不是電壓端）。', whyR,
+    const passiveAt = (time) => {
+      const g = this.segAt(time), hi = g.built.leadNode['DMM.HI'], lo = g.built.leadNode['DMM.LO'];
+      // 只有和通電中的電源連在一起的迴路不能量；完全獨立、沒通電的迴路照常量
+      const powered = g.built.powered(hi) || g.built.powered(lo);
+      let ohm = null, whyR = '';
+      if (!hi || !lo) whyR = '電表的 HI、LO 測試線要兩條都接上電路。';
+      else if (powered) whyR = '電表接的這個迴路通電中，不能量電阻：先關 AFG 的 OUTPUT（或拔掉紅夾）、GPE 的 Output。';
+      else ohm = ohmsNet(g.built.net, hi, lo);
+      const shi = g.built.leadNode['DMM.SHI'], slo = g.built.leadNode['DMM.SLO'];
+      let ohm4 = null, why4 = '', cap = null, whyC = '';
+      if (!hi || !lo || !shi || !slo) why4 = '四線電阻要接好 Input HI、LO 與 Sense HI、LO 四條線。';
+      else if (powered || g.built.powered(shi) || g.built.powered(slo)) why4 = whyR || 'Sense 接到通電迴路；請先關閉電源輸出。';
+      else {
+        ohm4 = fourWireResistance(g.built.net, hi, lo, shi, slo);
+        if (ohm4 == null) why4 = 'Sense 必須接在測試電流實際流經的電阻網路上。';
+      }
+      if (powered) whyC = '電容量測前請先關閉 AFG、GPE 輸出並放電。';
+      else { const q = equivalentCapacitance(g.built.net, hi, lo, capsAt(g, time)); cap = q.value; whyC = q.why; }
+      return { ohm, ohm4, why4, cap, whyC, whyR };
+    };
+    const g = this.segAt(t), lo = g.built.leadNode['DMM.LO'];
+    const shi = g.built.leadNode['DMM.SHI'], slo = g.built.leadNode['DMM.SLO'];
+    const v = signal(false), i = signal(true);
+    const { ohm, ohm4, why4, cap, whyC, whyR } = passiveAt(t);
+    const ref = shi && slo && lo ? { hi: nodeIn(g, shi, t) - nodeIn(g, lo, t), lo: nodeIn(g, slo, t) - nodeIn(g, lo, t) } : null;
+    if (ref) ref.valid = Math.abs(ref.hi) <= 12 && Math.abs(ref.lo) <= 12 && Math.abs(ref.hi - ref.lo) > 1e-12;
+    const refWindow = { meanOver: (a, b) => {
+      const hi = pairMeanOver('DMM.SHI', 'DMM.LO', false, a, b);
+      const lo = pairMeanOver('DMM.SLO', 'DMM.LO', false, a, b);
+      let valid = validOver(['DMM.SHI', 'DMM.SLO', 'DMM.LO'], false, a, b) && Math.abs(hi - lo) > 1e-12;
+      // Check each terminal's actual peak relative to Input LO throughout the
+      // completed aperture, even if the wires or reference changed after it.
+      if (valid) for (const past of this.segs) {
+        const start = Math.max(a, past.from), end = Math.min(b, past.to);
+        if (!(end > start)) continue;
+        const l = past.built.leadNode['DMM.LO'];
+        for (const lead of ['DMM.SHI', 'DMM.SLO']) {
+          const h = past.built.leadNode[lead];
+          const peak = nodePairPeakOver(past, h, l, start, end, 0, (time) => nodeIn(past, h, time) - nodeIn(past, l, time));
+          if (!(peak <= 12)) valid = false;
+        }
+      }
+      return { hi, lo, valid };
+    } };
+    return { now: t, v, i, vWindow: v || signal(false, true), iWindow: i || signal(true, true),
+      ohm, ohm4, why4, cap, whyC, passiveAt, ref, refWindow, why: '', whyV: v ? '' : '電壓量測要將 HI、LO 兩條測試線接上（I 3A 不是電壓端）。', whyR,
       whyI: i ? '' : '電流量測要拆開原回路，將 I 3A、LO 兩條測試線串入；HI 不能代替 I 端。' };
   }
 

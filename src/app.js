@@ -6,8 +6,8 @@ import { Bench, DEMO, fmtR, fmtC } from './bench/bench.js';
 import { LEADS } from './bench/circuit.js';
 import { benchSvg, benchSide } from './bench/view.js';
 import { Breadboard, BB_DEMO, DEFAULT_VALUE, KIND_NAME, holeGroup, groupName, occupantName } from './bench/breadboard.js';
-import { bbSvg, bbSide, boardSwitch } from './bench/bb-view.js';
-import { captureSession, restoreSession } from './core/session.js';
+import { bbSvg, bbSide, boardSwitch, bbToolbar } from './bench/bb-view.js';
+import { captureSession, restoreSession, restoreTdsSetupFile } from './core/session.js';
 import { WiringHistory } from './bench/history.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -16,11 +16,11 @@ const DRAG_PX_PER_STEP = 9;  // 拖曳多少像素算一格（不接受滑鼠滾
 const HINT_KIND = { out: '未納入', approx: '近似', reject: '已拒絕', info: '說明', ok: '完成' };
 const BENCH = 'bench';
 const SESSION_KEY = 'ee-ss.session.v1';
-const MAX_SESSION_BYTES = 1024 * 1024;
+const MAX_SESSION_BYTES = 4 * 1024 * 1024;
 const LIVE_MS = 200; // 讀值隨時間變（電表積分窗、電容充放電）時的畫面更新間隔
 const RC_HELP = '點一個導線端（變藍），再點電路板上的 A／B／G 接上；已接好的導線端選取後再點一次＝拔掉。';
-const BB_HELP = '右邊選工具（電阻／電容／跳線）後點兩個孔擺上；點導線端（變藍）再點孔＝接線；滑鼠移到孔上會標出所有相連的孔。';
-const FOCUSABLE = '[data-lead],[data-node],[data-goto],[data-hole],[data-comp]'; // 實驗台上可聚焦、Enter／空白鍵＝點擊的東西
+const BB_HELP = '麵包板上方選「插電阻／插電容／接跳線」後點兩個空孔擺上；點導線端（變藍）再點孔＝接線；滑鼠移到孔上會標出所有相連的孔。';
+const FOCUSABLE = '[data-lead],[data-node],[data-goto],[data-hole],[data-comp],[data-bbtool]'; // 實驗台上可聚焦、Enter／空白鍵＝點擊的東西
 const TOOL_HELP = { select: '選取：點元件選取（可改值），Delete 刪除。', R: '電阻：點第一個孔，再點第二個孔。', C: '電容：點第一個孔，再點第二個孔。', W: '跳線：點第一個孔，再點第二個孔，兩個孔所在的組就連在一起。' };
 
 export function startApp(root) {
@@ -38,7 +38,37 @@ export function startApp(root) {
   const bbUi = { tool: 'select', first: null, sel: null, newR: DEFAULT_VALUE.R, newC: DEFAULT_VALUE.C, hover: null };
   models.tds.setBenchSource(() => bench.tdsInput());
   models.dmm.setBenchSource(() => bench.dmmInput());
+  models.dmm.now = () => bench.now();
   models.gpe.setBenchSource(() => bench.gpeInput());
+  models.afg.setDsoSource?.(() => models.tds);
+  models.afg.setTriggerSource?.(() => bench.now());
+  models.afg.setCounterSource?.(() => {
+    const sig = bench.tdsInput()?.sig?.[0];
+    if (!sig || sig.noise) return null;
+    const now = bench.now();
+    const f = sig.carrierFreq || (sig.period > 0 ? 1 / sig.period : 0);
+    if (!(f >= 5 && f <= 150e6)) return null;
+    const n = Math.max(640, Math.ceil(5 * (sig.maxFreq || f) / f * 128));
+    if (n > 64000) return null;
+    const at = sig.abs, start = now - 5 / f, step = 5 / (n * f);
+    const values = Array.from({ length: n + 1 }, (_, k) => at(start + k * step));
+    const low = Math.min(...values), high = Math.max(...values), level = (low + high) / 2;
+    if (!(high - low > 1e-5)) return null;
+    const mean = values.reduce((s, v) => s + v, 0) / values.length;
+    const rms = Math.sqrt(values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length);
+    if (rms < .035 || rms > 30) return null;
+    const crossings = [];
+    for (let k = 1; k < values.length; k++) if (values[k - 1] < level && values[k] >= level) {
+      let a = start + (k - 1) * step, b = a + step;
+      for (let j = 0; j < 34; j++) { const mid = (a + b) / 2; if (at(mid) < level) a = mid; else b = mid; }
+      crossings.push((a + b) / 2);
+    }
+    if (crossings.length < 3) return null;
+    const period = (crossings.at(-1) - crossings[0]) / (crossings.length - 1);
+    if (crossings.slice(1).some((t, k) => Math.abs((t - crossings[k]) / period - 1) > 0.02)) return null;
+    const measured = 1 / period;
+    return measured >= 5 && measured <= 150e6 ? measured : null;
+  });
   let benchKey = bench.key();
   const knobAngle = {};
   const hints = [];
@@ -50,7 +80,7 @@ export function startApp(root) {
 
   root.innerHTML = `
     <header class="top">
-      <div class="brand">電子學實習儀器練習<small>模擬器 · 操作順序練習用，數值行為依手冊與暫定規則</small></div>
+      <div class="brand">電子學實習儀器練習<small class="build-version">2026.10.04 驗收修正版</small><small>模擬器 · 操作順序練習用，數值行為依手冊與暫定規則</small></div>
       <nav class="tabs" role="tablist">${ids.map((id) => `<button role="tab" data-tab="${id}">${esc(models[id].title)}<small>${esc(models[id].subtitle)}</small></button>`).join('')}<button role="tab" data-tab="${BENCH}" class="tab-bench">實驗台<small>接線：RC 板／麵包板</small></button></nav>
       <div class="tools">
         <button data-zoom="-1" title="縮小">－</button><button data-zoom="0" title="符合視窗">符合</button><button data-zoom="1" title="放大">＋</button>
@@ -59,7 +89,9 @@ export function startApp(root) {
         <input class="session-file" type="file" accept=".json,application/json" aria-label="選擇實驗檔" hidden>
         <button data-act="reset-all" title="四台都回到開機重設狀態（接線保留）">全部重設</button>
       </div>
-      <div class="save-status" role="status" title="保存接線、元件與儀器設定；重新開啟時重新開始模擬，不保存電容電荷或已擷取波形。">接線與設定會自動保存在此瀏覽器</div>
+      <div class="save-status" role="status" title="保存接線、元件、儀器設定與明確存入的 Setup／Ref；重新開啟時重新開始模擬，不保存電容電荷或即時採集。">接線與設定會自動保存在此瀏覽器</div>
+      <input class="arb-file" type="file" accept=".json,application/json" aria-label="選擇 AFG 波形檔" hidden>
+      <input class="tds-setup-file" type="file" accept=".json,application/json" aria-label="選擇示波器設定檔" hidden>
     </header>
     <main class="stage">
       <section class="bench"><div class="panel-host"></div><div class="hintbar" aria-live="polite"></div></section>
@@ -70,6 +102,43 @@ export function startApp(root) {
   const side = root.querySelector('.side');
   const saveStatus = root.querySelector('.save-status');
   const sessionFile = root.querySelector('.session-file');
+  const arbFile = root.querySelector('.arb-file');
+  models.afg.setArbFileHandler?.((operation, payload) => {
+    if (operation === 'LOAD') { arbFile.click(); return { kind: 'info', text: '選擇已匯出的 AFG 波形 JSON 檔。' }; }
+    return { kind: 'ok', text: '已匯出 AFG 任意波形樣本與取樣率。', download: { name: 'ee-ss-AFG-波形.json', mime: 'application/json', text: JSON.stringify(payload, null, 2) } };
+  });
+  arbFile.addEventListener('change', async () => {
+    const file = arbFile.files?.[0]; arbFile.value = '';
+    if (!file) return;
+    try {
+      if (file.size > 256 * 1024) throw new Error('波形檔超過 256 KB。');
+      const result = models.afg.importArbFile(JSON.parse(await file.text()));
+      syncBench(); mountPanel(); scheduleSave(); hint(result);
+    } catch (e) { hint({ kind: 'reject', text: `沒有載入 AFG 波形：${e.message} 原波形保留。` }); }
+  });
+  const scopeFile = root.querySelector('.tds-setup-file');
+  models.tds.setSetupFileHandler?.(() => {
+    scopeFile.click();
+    return { kind: 'info', text: '選擇由示波器 Save Setup 匯出的 JSON 設定檔。' };
+  });
+  scopeFile.addEventListener('change', async () => {
+    const file = scopeFile.files?.[0]; scopeFile.value = '';
+    if (!file) return;
+    try {
+      if (file.size > 256 * 1024) throw new Error('示波器設定檔超過 256 KB。');
+      const result = restoreTdsSetupFile(JSON.parse(await file.text()), models.tds);
+      mountPanel(); scheduleSave(); hint(result);
+    } catch (e) { hint({ kind: 'reject', text: `沒有載入示波器設定：${e.message} 原設定保留。` }); }
+  });
+  let audio;
+  models.afg.setBeepHandler?.(() => {
+    const Audio = window.AudioContext ?? window.webkitAudioContext;
+    if (!Audio) return;
+    audio ??= new Audio(); audio.resume().catch(() => {});
+    const oscillator = audio.createOscillator(), gain = audio.createGain(), now = audio.currentTime;
+    oscillator.frequency.value = 1000; gain.gain.setValueAtTime(.04, now); gain.gain.exponentialRampToValueAtTime(.0001, now + .07);
+    oscillator.connect(gain); gain.connect(audio.destination); oscillator.start(now); oscillator.stop(now + .08);
+  });
 
   function saveSession() {
     clearTimeout(saveTimer);
@@ -109,7 +178,7 @@ export function startApp(root) {
     a.download = 'ee-ss-實驗.json';
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    hint({ kind: 'ok', text: '已匯出接線、元件與四台儀器設定。載入後會重新開始模擬，不保留電容電荷或已擷取波形。' });
+    hint({ kind: 'ok', text: '已匯出接線、元件、儀器設定及明確存入的記憶／Ref。載入後會重新開始模擬，不保留電容電荷或即時採集。' });
   }
 
   sessionFile.addEventListener('change', async () => {
@@ -117,7 +186,7 @@ export function startApp(root) {
     sessionFile.value = ''; // 同一個檔案也可以再次載入
     if (!file) return;
     try {
-      if (file.size > MAX_SESSION_BYTES) throw new Error('實驗檔超過 1 MB。');
+      if (file.size > MAX_SESSION_BYTES) throw new Error('實驗檔超過 4 MB。');
       const text = await file.text();
       let data;
       try { data = JSON.parse(text); } catch { throw new Error('實驗檔不是有效的 JSON。'); }
@@ -132,6 +201,12 @@ export function startApp(root) {
 
   function hint(h) {
     if (!h) return;
+    if (h.download) {
+      const file = h.download, url = URL.createObjectURL(new Blob([file.text], { type: file.mime }));
+      const a = document.createElement('a'); a.href = url; a.download = file.name;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
     const item = { inst: cur, kind: h.kind || 'info', text: h.text, t: Date.now() };
     hints.push(item);
     if (hints.length > 60) hints.shift();
@@ -153,8 +228,10 @@ export function startApp(root) {
   // 在其他儀器讀回之前選定分流負載，避免可見分頁改變實際電流。
   function syncCurrentRange() {
     const meter = models.dmm, wires = bench.leadMap();
-    if (!meter.isOn() || !meter.fx?.bench || meter.f.kind !== 'I' || !meter.st.auto
-        || !wires['DMM.I'] || !wires['DMM.LO']) return false;
+    if (!meter.isOn() || meter.run === 'stop' || !meter.fx?.bench || !meter.st.auto) return false;
+    const terminals = meter.f.kind === 'I' ? ['DMM.I', 'DMM.LO']
+      : meter.fn === 'DCV' && meter.inputZMode === 'AUTO' ? ['DMM.HI', 'DMM.LO'] : null;
+    if (!terminals || terminals.some((id) => !wires[id])) return false;
     const previous = meter.st.idx;
     bench.dmmInput();
     return previous !== meter.st.idx;
@@ -168,9 +245,14 @@ export function startApp(root) {
     const t = bench.now(), tr = bench.transientActive(t);
     const timed = models.gpe.isOn() && (models.gpe.bootLeft() > 0 || models.gpe.setViewLeft() > 0);
     // GPE：限流充電暫態或 AFG 的週期保護切換時，端電壓／電流／模式都會變。
-    const live = { tds: tr || t - bench.changedAt() < 1 || models.tds.needsTriggerPoll?.(), dmm: models.dmm.isLive?.(), gpe: timed || gpeTimed || (models.gpe.isOn() && models.gpe.scenarios.get() === 'bench' && bench.gpeReadbackActive(t)) };
+    const live = { afg: models.afg.isOn() && models.afg.menu?.startsWith('COUNTER'),
+      tds: tr || t - bench.changedAt() < 1 || models.tds.needsTriggerPoll?.(), dmm: models.dmm.isLive?.(),
+      gpe: timed || gpeTimed || (models.gpe.isOn() && models.gpe.scenarios.get() === 'bench' && bench.gpeReadbackActive(t)) };
     gpeTimed = timed; // 逾時後再更新一次，側欄和 LCD 一起結束 Set View／開機畫面
     if (live.tds) models.tds.inputChanged?.();
+    // Acquisition belongs to the instrument, regardless of the selected tab.
+    // reading() deduplicates a completed aperture if LCD/status also reads it.
+    if (live.dmm) models.dmm.reading();
     if (cur === BENCH) {
       host.querySelectorAll('svg[data-mini]').forEach((el) => { const id = el.dataset.mini, m = models[id]; if (live[id] && m.isOn()) el.innerHTML = m.lcd(); });
       return;
@@ -228,15 +310,15 @@ export function startApp(root) {
   function renderBench() {
     // 重畫後把鍵盤焦點還給同一個導線端／接點／孔／元件
     const f = document.activeElement?.closest?.(FOCUSABLE);
-    const k = f && ['lead', 'node', 'goto', 'hole', 'comp'].find((a) => f.dataset[a]);
+    const k = f && ['lead', 'node', 'goto', 'hole', 'comp', 'bbtool'].find((a) => f.dataset[a]);
     const key = k && `[data-${k}="${f.dataset[k]}"]`;
     const log = hints.filter((h) => h.inst === BENCH).slice(-6).reverse().map((h) => `<li class="k-${h.kind}"><b>${HINT_KIND[h.kind] ?? ''}</b> ${esc(h.text)}</li>`).join('');
     if (bench.board === 'bb') {
-      host.innerHTML = bbSvg(bench, models, bbUi);
-      side.innerHTML = boardSwitch(bench.board) + historyControls() + bbSide(bench, bbUi, log);
+      host.innerHTML = boardSwitch(bench.board) + bbToolbar(bench, bbUi) + bbSvg(bench, models, bbUi);
+      side.innerHTML = historyControls() + bbSide(bench, bbUi, log);
     } else {
-      host.innerHTML = benchSvg(bench, models);
-      side.innerHTML = boardSwitch(bench.board) + historyControls() + benchSide(bench, models, log) + '<button class="reset-one" data-act="reset-one">重設實驗台（拔掉所有線、R／C 回預設）</button>';
+      host.innerHTML = boardSwitch(bench.board) + benchSvg(bench, models);
+      side.innerHTML = historyControls() + benchSide(bench, models, log) + '<button class="reset-one" data-act="reset-one">重設實驗台（拔掉所有線、R／C 回預設）</button>';
     }
     applyZoom();
     if (key) host.querySelector(key)?.focus({ preventScroll: true });
@@ -268,6 +350,7 @@ export function startApp(root) {
     side.innerHTML = `
       <h2>${esc(m.title)}<small>${esc(m.subtitle)}</small></h2>
       <section><h3>這台現在</h3><dl class="kv">${status.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></section>
+      ${cur === 'gpe' ? `<section><h3>電源開機設定</h3><div class="btns"><button data-act="gpe-setup-output">開機 Output</button><button data-act="gpe-setup-digits">3／4 位顯示</button></div><p class="muted">設定在電源 LCD 操作；開機輸出與顯示位數會保存在實驗檔。</p></section>` : ''}
       ${sc ? `<section><h3>${esc(sc.title)}</h3><div class="scen">${sc.list.map((s) => `<label><input type="radio" name="scen" value="${s.id}"${sc.get() === s.id ? ' checked' : ''}> <b>${esc(s.label)}</b><span>${esc(s.desc)}</span></label>`).join('')}</div></section>` : ''}
       <section><h3>可以練習</h3><ul class="practice">${m.practice.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></section>
       <section><h3>最近提示</h3><ul class="log">${mine.length ? mine.map((h) => `<li class="k-${h.kind}"><b>${HINT_KIND[h.kind] ?? ''}</b> ${esc(h.text)}</li>`).join('') : '<li class="empty">（還沒有）</li>'}</ul></section>
@@ -424,6 +507,11 @@ export function startApp(root) {
     refresh();
   }
   function bbSet(name, value) {
+    if (name === 'bbtool' && value === 'cancel') {
+      bench.sel = null;
+      bbUi.first = null;
+      hint({ kind: 'info', text: '已取消接線／放置；原有元件與導線保留。' });
+    }
     if (name === 'bbtool' && TOOL_HELP[value]) {
       bbUi.tool = value;
       bbUi.first = null;
@@ -457,12 +545,28 @@ export function startApp(root) {
 
   // ---- 事件：按鍵（滑鼠／觸控／鍵盤）與旋鈕（拖曳／方向鍵） ----
   let drag = null;
+  let trigViewHeld = false;
+  function setTrigViewHeld(active) {
+    if (trigViewHeld === active) return;
+    trigViewHeld = active;
+    host.querySelector('[data-id="TDS.KEY.TRIG_VIEW"]')?.classList.toggle('pressed', active);
+    models.tds.setTrigView?.(active);
+    if (cur === 'tds') {
+      const screen = host.querySelector('svg.panel svg.screen');
+      if (screen) screen.innerHTML = models.tds.lcd();
+      const dl = side.querySelector('dl.kv');
+      if (dl) dl.innerHTML = models.tds.status().map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
+    }
+  }
   let downAt = 0;
   const LONG_MS = 800; // 一般長按門檻；需要更久的鍵由模型看 ms 自己判斷（GPE Lock ≥2 s）
   host.addEventListener('pointerdown', (e) => {
     const el = e.target.closest('.ctl[tabindex]');
     if (!el) return;
     el.focus({ preventScroll: true });
+    if (cur === 'tds' && el.dataset.id === 'TDS.KEY.TRIG_VIEW') {
+      setTrigViewHeld(true); e.preventDefault(); return;
+    }
     if (el.classList.contains('knob')) {
       drag = { el, id: el.dataset.id, lastX: e.clientX, lastY: e.clientY, acc: 0 };
       el.setPointerCapture(e.pointerId);
@@ -486,6 +590,7 @@ export function startApp(root) {
   });
   const endDrag = () => { if (drag) { drag.el.classList.remove('turning'); drag = null; } };
   host.addEventListener('pointerup', (e) => {
+    if (trigViewHeld) { endDrag(); setTrigViewHeld(false); return; }
     if (drag) return endDrag();
     const el = e.target.closest('.ctl.pressed');
     host.querySelectorAll('.pressed').forEach((p) => p.classList.remove('pressed'));
@@ -494,7 +599,10 @@ export function startApp(root) {
       act(el.dataset.id, () => models[cur].press(el.dataset.id, { long: ms >= LONG_MS, ms }));
     }
   });
-  host.addEventListener('pointercancel', () => { endDrag(); host.querySelectorAll('.pressed').forEach((p) => p.classList.remove('pressed')); });
+  host.addEventListener('pointercancel', () => { setTrigViewHeld(false); endDrag(); host.querySelectorAll('.pressed').forEach((p) => p.classList.remove('pressed')); });
+  window.addEventListener('pointerup', () => setTrigViewHeld(false));
+  window.addEventListener('pointercancel', () => setTrigViewHeld(false));
+  window.addEventListener('blur', () => setTrigViewHeld(false));
   host.addEventListener('click', (e) => {
     if (cur !== BENCH) return;
     const lead = e.target.closest('[data-lead]');
@@ -517,6 +625,9 @@ export function startApp(root) {
     const el = e.target.closest?.('.ctl[tabindex]');
     if (!el) return;
     const id = el.dataset.id;
+    if (cur === 'tds' && id === 'TDS.KEY.TRIG_VIEW' && (e.key === 'Enter' || e.key === ' ')) {
+      setTrigViewHeld(true); e.preventDefault(); return;
+    }
     if (el.classList.contains('knob')) {
       const dir = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key];
       if (dir) { turn(id, dir, 'key'); e.preventDefault(); }
@@ -525,6 +636,7 @@ export function startApp(root) {
     // Enter／空白鍵＝按一下；Shift+Enter＝長按
     if (e.key === 'Enter' || e.key === ' ') { act(id, () => models[cur].press(id, { long: e.shiftKey })); e.preventDefault(); }
   });
+  window.addEventListener('keyup', (e) => { if (e.key === 'Enter' || e.key === ' ') setTrigViewHeld(false); });
 
   function turn(id, dir, source) {
     knobAngle[id] = ((knobAngle[id] || 0) + dir * KNOB_DEG) % 360;
@@ -533,7 +645,7 @@ export function startApp(root) {
 
   root.addEventListener('click', (e) => {
     const tab = e.target.closest('[data-tab]');
-    if (tab) { cur = tab.dataset.tab; mountPanel(); return; }
+    if (tab) { setTrigViewHeld(false); cur = tab.dataset.tab; mountPanel(); return; }
     const z = e.target.closest('[data-zoom]');
     if (z) { const d = Number(z.dataset.zoom); zoom = d === 0 ? 1 : Math.min(2.5, Math.max(1, zoom + d * 0.25)); applyZoom(); scheduleSave(); return; }
     const session = e.target.closest('[data-session]');
@@ -542,6 +654,11 @@ export function startApp(root) {
     const historyButton = e.target.closest('[data-history]');
     if (historyButton && cur === BENCH) { travelHistory(historyButton.dataset.history); return; }
     const a = e.target.closest('[data-act]');
+    if (cur === 'gpe' && a?.dataset.act?.startsWith('gpe-setup-')) {
+      hint(models.gpe.beginSetup(a.dataset.act === 'gpe-setup-output' ? 'output' : 'digits'));
+      refresh();
+      return;
+    }
     if (a?.dataset.act === 'reset-all') { ids.forEach((id) => models[id].reset()); hint({ kind: 'info', text: '四台都已回到開機重設狀態（模擬器定義，非校機開機記憶）；實驗台的接線保留。' }); refresh(); }
     if (a?.dataset.act === 'reset-one') {
       if (cur === BENCH) {
@@ -567,6 +684,8 @@ export function startApp(root) {
     if (b?.dataset.bench === 'clear') { history.perform('rc', '全部拔掉', () => { bench.wires = {}; bench.sel = null; }); hint({ kind: 'info', text: '所有線都拔掉了。' }); refresh(); }
     const bbBtn = e.target.closest('[data-bb]');
     if (bbBtn && cur === BENCH) bbAction(bbBtn.dataset.bb);
+    const bbTool = e.target.closest('[data-bbtool],input[name="bbtool"]');
+    if (bbTool && cur === BENCH && bench.board === 'bb') bbSet('bbtool', bbTool.dataset.bbtool || bbTool.value);
   });
   // 麵包板：Delete／Backspace 刪除選取的元件（焦點在輸入欄、選單時不攔）
   document.addEventListener('keydown', (e) => {
@@ -581,11 +700,14 @@ export function startApp(root) {
     e.preventDefault();
     bbDelete();
   });
-  side.addEventListener('change', (e) => {
+  root.addEventListener('change', (e) => {
     const t = e.target;
+    if (!t.closest('.side') && !['board', 'insertR', 'insertC'].includes(t.name)) return;
     if (t.name === 'scen') { hint(models[cur].scenarios.set(t.value)); refresh(); return; }
     if (cur !== BENCH) return;
     if (t.name === 'board') return setBoard(t.value);
+    if (t.name === 'insertR') return bbSet('bbR', t.value);
+    if (t.name === 'insertC') return bbSet('bbC', t.value);
     if (t.name?.startsWith('bb')) return bbSet(t.name, t.value);
     if (t.name === 'topo') history.perform('rc', '改變 RC 接法', () => { bench.topo = t.value; });
     if (t.name === 'R') history.perform('rc', '改變電阻值', () => { bench.R = Number(t.value); });
