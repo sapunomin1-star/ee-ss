@@ -31,7 +31,7 @@ const SCENARIOS = [
   { id: 'ch2-100', label: 'L1：CH2 接 100 Ω', desc: '同 L1，負載改掛 CH2。' },
   { id: 'ch2-10', label: 'L1：CH2 接 10 Ω', desc: '同 L1，負載改掛 CH2。' },
   { id: 'ch34', label: 'L1-CH3/4：CH3 接 100 Ω、CH4 接 1 kΩ', desc: 'CH3 5.00 V → 0.050 A；CH4 ≤15 V → ≤0.015 A；都在額定內，只展示 CV。' },
-  { id: 'bench', label: '實驗台接線', desc: '輸出端接在「實驗台」麵包板的電路上：讀回是電路實際的電壓、電流與 CV／CC（目前只支援 Independent；CH3／CH4 以額定 1 A 當限流，近似）。' },
+  { id: 'bench', label: '實驗台接線', desc: '輸出端接在「實驗台」電路上，讀回依接線計算電壓、電流與 CV／CC。支援 Independent、Series、Parallel；tracking 為教學近似，串聯／並聯需自行接線，模式鍵不會替兩路接線。CH3／CH4 以額定 1 A 當限流（近似）。' },
 ];
 
 // 理想電源一路（GPE-F09、p.22）：vs 電壓設定、is 限流（null＝沒有可調限流）、r 負載（Infinity＝開路）
@@ -67,7 +67,7 @@ export class GpeModel {
     this.now = () => Date.now();
     this.load = 'open'; // 測試情境在儀器外：重設、開關機都不改
     this.scenarios = {
-      title: '單機測試情境（輸出端接理想電阻；四台彼此沒有連接）',
+      title: '測試負載與實驗台接線（理想電阻情境為單機測試）',
       list: SCENARIOS,
       get: () => this.load,
       set: (id) => this.setLoad(id),

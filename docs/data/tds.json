@@ -33,7 +33,7 @@
    "evidence": "PH+OT",
    "status": "CORE",
    "card": "I03",
-   "notes": "指示燈的分類規則：會隨本輪核心狀態變化的指示燈列 CORE（此燈由 TDS.KNOB.MULTIPURPOSE 是否作用驅動，驗收見 TDS-F20）；本輪不會變化的指示燈（如 AutoRange、儲存旁的燈）列 STATIC。照片 LCD 暗，無法證明實際亮滅時機。"
+   "notes": "會隨狀態變化的指示燈列 CORE：此燈由 TDS.KNOB.MULTIPURPOSE 是否作用驅動（驗收見 TDS-F20），AutoRange 燈由自動調整啟用狀態驅動。儲存旁的燈保持 STATIC。照片 LCD 暗，無法證明實際亮滅時機。"
   },
   {
    "id": "TDS.KEY.AUTORANGE",
@@ -60,12 +60,12 @@
    "action": "無",
    "function": "標示 autoranging 是否啟用",
    "feedback": "『When autoranging is active, the adjacent LED lights.』",
-   "range": "本輪恆滅",
+   "range": "AutoRange 啟用時亮；停用或關機時熄滅",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.77 (PDF 101)",
    "evidence": "PH+OT",
-   "status": "STATIC",
+   "status": "CORE",
    "card": "I03",
-   "notes": "AutoRange 未納入，所以固定熄滅"
+   "notes": "指示目前 AutoRange 啟用狀態；開機時 AutoRange 預設關閉。"
   },
   {
    "id": "TDS.KEY.SAVE_RECALL",
@@ -81,7 +81,7 @@
    "evidence": "PH+OT",
    "status": "APPROX",
    "card": "I03",
-   "notes": "2026-10-04: Basic Math, Display, internal Setup/Ref memory implemented. Menu button order follows the manual tables; hardware USB/FFT are excluded."
+   "notes": "Ten internal setup slots and RefA/RefB are stored with the experiment. File mode exports/imports validated setup JSON and exports waveform CSV; physical USB is not simulated."
   },
   {
    "id": "TDS.KEY.MEASURE",
@@ -90,7 +90,7 @@
    "label": "上方英文『Measure』",
    "kind": "按鍵",
    "action": "按一下",
-   "function": "『Displays the automated measurements menu.』最多同時 5 項；核心類型 Freq、Period、Pk-Pk（另有 None）；Mean、Cyc RMS 為 APPROX（TDS-F21）；其餘 11 種 OUT",
+   "function": "『Displays the automated measurements menu.』支援 16 種量測，最多同時顯示 5 項：Freq、Period、Mean、Pk-Pk、Cyc RMS、RMS、Cursor RMS、Min、Max、Rise Time、Fall Time、Pos Width、Neg Width、Duty Cyc、Phase、Delay（另有 None）。讀值由採集紀錄計算；所需週期、邊緣或游標區間不足時顯示 ?。",
    "feedback": "右側 5 格，每格顯示 Source／Type／Value；訊息區提示『Push an option button to change its measurement』",
    "range": "16 種量測，最多顯示 5 項",
    "sources": "P2；M-TDS-13 p.17 (PDF 41)；p.12 (PDF 36)；p.26–27 (PDF 50–51)；p.31–34 (PDF 55–58)；p.89 (PDF 113)",
@@ -113,7 +113,7 @@
    "evidence": "PH+OT",
    "status": "APPROX",
    "card": "I03",
-   "notes": "按下顯示 Acquire 選單，但只有 Sample 可用；Peak Detect、Average 停用並標示本輪未納入（02：所有 acquisition mode 未納入）"
+   "notes": "按下顯示 Acquire 選單；Sample、Peak Detect、Average 皆可操作，Peak Detect 與 Average 使用採集資料作教學近似。"
   },
   {
    "id": "TDS.KEY.HELP",
@@ -161,7 +161,7 @@
    "evidence": "PH+OT",
    "status": "APPROX",
    "card": "I03",
-   "notes": "2026-10-04: Basic Math, Display, internal Setup/Ref memory implemented. Menu button order follows the manual tables; hardware USB/FFT are excluded."
+   "notes": "RefA/RefB display saved acquired waveforms using their retained scale and position. Reference records are stored with the experiment."
   },
   {
    "id": "TDS.KEY.UTILITY",
@@ -209,7 +209,7 @@
    "evidence": "PH+OT",
    "status": "APPROX",
    "card": "I03",
-   "notes": "2026-10-04: Basic Math, Display, internal Setup/Ref memory implemented. Menu button order follows the manual tables; hardware USB/FFT are excluded."
+   "notes": "Vectors/Dots, timed/Infinite persistence and YT/XY are implemented. XY uses CH1 horizontally and CH2 vertically, with automatic measurements, cursors, Math and Ref hidden."
   },
   {
    "id": "TDS.KEY.DEFAULT_SETUP",
@@ -353,7 +353,7 @@
    "evidence": "PH+OT",
    "status": "APPROX",
    "card": "I03",
-   "notes": "2026-10-04: Basic Math, Display, internal Setup/Ref memory implemented. Menu button order follows the manual tables; hardware USB/FFT are excluded."
+   "notes": "Channel addition, both subtraction orders, multiplication and 2048-point FFT use acquired samples. FFT windows and amplitude normalization are teaching approximations."
   },
   {
    "id": "TDS.KEY.CH2_MENU",
@@ -380,7 +380,7 @@
    "action": "旋轉",
    "function": "『Selects vertical scale factors.』波形以接地參考位準為中心放大或縮小",
    "feedback": "畫面下方的 CH1 刻度讀值（例如 CH1 1.00V）；波形所佔格數改變",
-   "range": "2 mV/div–5 V/div，1-2-5 序列（1X 探棒）；顯示值乘上 Probe 設定；Coarse 為預設；Fine 本輪不納入",
+   "range": "2 mV/div–5 V/div，1-2-5 序列（1X 探棒）；顯示值乘上 Probe 設定；Coarse 為預設；Fine 可操作，步進為教學近似",
    "sources": "P2；M-TDS-13 p.14 (PDF 38)；p.23 (PDF 47)；p.105 (PDF 129)；p.108 (PDF 132)；p.107 (PDF 131)",
    "evidence": "PH+OT",
    "status": "CORE",
@@ -963,7 +963,7 @@
    "source": "M-TDS-13 p.91–95 (PDF 115–119)",
    "evidence": "OT",
    "status": "APPROX: ten persisted internal setups, two references, browser setup JSON/waveform CSV",
-   "notes": "Explicit saved slots survive experiment save/load and browser autosave. Runtime acquisitions are not persisted. Dedicated setup-file import and physical USB are excluded."
+   "notes": "Explicit saved slots survive experiment save/load and browser autosave. File mode exports/imports validated setup JSON and exports waveform CSV. Runtime acquisitions are not persisted; physical USB is not simulated."
   },
   {
    "path": "Ref（只列頂層）",

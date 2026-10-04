@@ -172,8 +172,8 @@ export function benchSide(bench, models, hints) {
       <div class="btns"><button data-bench="demo">示範接線（看答案）</button><button data-bench="clear">全部拔掉</button></div></section>
     <section><h3>理論值（標準接線、正弦）</h3><dl class="kv">${theory(bench, models.afg).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
       <p class="muted">以上以 CH1 驅動的標準接線、A 點為輸入參考；方波不能直接套用這個振幅比與相位。模擬有算 AFG 的 50 Ω 內阻，實際端子電壓會隨負載改變。Load 設 50 Ω 時開路電壓是顯示值的 2 倍；High Z 時顯示的是開路電壓，接上電路後仍可能降低。</p>
-      <p class="muted">儀器接上去也是負載：探棒尖端對地 10 MΩ（1× 時 1 MΩ）、電表 DCV 10 MΩ、ACV 1 MΩ。R 很大（例如 100 kΩ）時，量到的電壓會比上面的理論值低；輸入電容（約 10–100 pF）尚未模擬。</p>
-      <p class="muted">電容電壓不能跳變：改接線、改設定或關 OUTPUT 後，電容會以時間常數 τ 慢慢充放電（R、C 很大時看得到讀值慢慢變）。</p></section>
+      <p class="muted">儀器接上去也是負載：探棒尖端對地 10 MΩ（1× 時 1 MΩ）；電表 DCV 的 Input Z 設 10M 時為 10 MΩ，設 Auto 時 100 mV／1 V／10 V 檔用 10 GΩ 近似，其餘檔位為 10 MΩ；ACV 為 1 MΩ。R 很大（例如 100 kΩ）時，量到的電壓會因負載而降低；探棒與電表的輸入電容尚未模擬。</p>
+      <p class="muted">一般 RC 在接線與 C 值不變時，改設定或開關 OUTPUT 會從原電容電壓繼續充放電，速度由電路決定。直接短路或把不同電壓的電容並接時，模型依新接線立即放電或重新分配電荷（理想導線近似）。</p></section>
     <section><h3>練習步驟</h3><ol class="practice">
       <li>AFG：Preset → CH1/CH2 按兩下（回到 CH1 並開 CH 選單）→ F1 Load → F2 High Z → AMPL 2、F5 VPP → FREQ/Rate 1、F4 kHz → OUTPUT。</li>
       <li>接線：AFG CH1 紅夾→A、黑夾→G；示波器 CH1 尖端→A、接地夾→G；CH2 尖端→B、接地夾→G；電表 HI→B、LO→G。</li>

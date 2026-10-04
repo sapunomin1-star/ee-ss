@@ -456,7 +456,7 @@ function applySession(data, models, bench) {
   const scope = models.tds;
   Object.assign(scope, copy(pick(t, [...TDS_FIELDS, 'extended'])), { scen: t.scenario,
     seed: 20260930, acqN: 0, rec: null, frames: null, complete: false,
-    changeSearch: null, armedAt: null, undo: null, msg: '',
+    changeSearch: null, armedAt: null, undo: null, autoRangeUndo: null, msg: '',
     references: t.references.map((r) => r ? { ...copy(r), v: Float64Array.from(r.v) } : null), savedSetups: copy(t.savedSetups),
     limitMasks: t.limitMasks.map((r) => r ? { ...copy(r), lower: Float64Array.from(r.lower), upper: Float64Array.from(r.upper) } : null),
     persistence: [], persistPixels: null, avgState: null, lastTriggerAt: null, trigView: false, fftCache: null,

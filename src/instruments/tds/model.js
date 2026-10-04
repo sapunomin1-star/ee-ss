@@ -454,7 +454,7 @@ export class TdsModel {
       '刻度與位置：垂直、水平的大旋鈕改 V/div、s/div；位置旋鈕每格 1/25 div；Set to Zero 讓 M Pos 歸零。',
       '觸發：Trig Menu → Source／Slope／Mode（Auto、Normal）／Coupling；位準旋鈕、Set To 50%、Force Trig。',
       '採集：Run/Stop 停止後仍可縮放凍結的紀錄（採集時超出 10 格的部分已削頂，放大縮小也回不來）；單一（Single）取到一幀就停。',
-      '量測：Measure → 按 OPT1–5 選一格 → Source／Type（也可轉多功能旋鈕）→ Back。',
+      '量測：Measure → 按 OPT1–5 選一格 → Source／Type（也可轉多功能旋鈕）→ Back。支援 16 種量測；Phase／Delay 需要兩通道都有顯示且採到完整週期，Cursor RMS 需要 Time 游標界定區間。',
       '游標：Cursor → Type（Time／Amplitude）→ Source → Cursor 1／Cursor 2，再轉多功能旋鈕（每格 1/25 div）。',
       '探棒錯配：側欄情境裡的「實際探棒」和示波器的 Probe 設定是兩回事，設錯時讀值按比例錯。',
       '近似／暫定：LCD 語言暫定英文；Trigger、Probe、Measure n、AutoSet、Horiz 選單的鍵位暫定；Auto 無觸發的不穩定畫面、Scan、AutoSet 選檔與波形辨識、AC 耦合與 BW Limit 的一階濾波、游標步進都是教學近似。',
@@ -500,6 +500,7 @@ export class TdsModel {
     this.lastTriggerAt = null;
     this.pendingAcquisition = null;
     this.lastRecordEndAt = null;
+    this.lastRecordKey = null;
     this.pulseStartedAt = null;
     this.trigView = false;
     this.mathTarget = 'mathpos';
@@ -519,6 +520,7 @@ export class TdsModel {
     this.limitStarted = null; this.limitViolation = null;
     this.loggingRows = []; this.loggingStarted = null; this.loggingDropped = 0;
     this.undo = null;
+    this.autoRangeUndo = null;
   }
 
   isOn() { return this.on; }
@@ -732,7 +734,7 @@ export class TdsModel {
   clearAcquisition() { this.avgState = null; this.persistence = []; this.persistPixels = new Set(); }
 
   resetTemporalAcquisition() {
-    this.pendingAcquisition = null; this.lastRecordEndAt = null;
+    this.pendingAcquisition = null; this.lastRecordEndAt = null; this.lastRecordKey = null;
     this.changeSearch = null; this.pulseStartedAt = null; this.armedAt = null; this.lastTriggerAt = null;
   }
 
@@ -770,6 +772,7 @@ export class TdsModel {
     try { this.publish(this.acquire(0, pending.triggerAt, { force: true, absolute: true, sampleT0: pending.t0 })); }
     finally { this.fx = fx; }
     this.lastRecordEndAt = Math.max(pending.triggerAt, pending.endAt);
+    this.lastRecordKey = pending.key;
     if (this.changeSearch) this.changeSearch.cursor = Math.max(this.changeSearch.cursor, this.lastRecordEndAt);
     this.frames = null;
     if (this.run === 'single' && this.sequenceDone()) { this.run = 'stop'; this.complete = true; this.armedAt = null; }
@@ -786,6 +789,15 @@ export class TdsModel {
     const peak = !xy && !scan && this.extended.acquire === 'PEAK' && this.sdiv >= 5e-3;
     const anchor = now - t0 - (peak ? N : N - 1) * dt;
     return this.acquire(null, anchor, { force: true, absolute: true, scan, sampleT0: t0 });
+  }
+
+  autoHistory() {
+    if (this.run !== 'run' || this.trig.mode !== 'AUTO') return;
+    // GAP-TDS-06: after a completed trigger, wait two record durations (at
+    // least 50 ms) before free-running. UI events do not advance this clock.
+    const timeout = Math.max(20 * this.sdiv, .05);
+    if (this.lastRecordEndAt != null && this.lastRecordKey === this.acquisitionKey() && this.fx.now < this.lastRecordEndAt + timeout) return;
+    this.publish(this.acquireHistory());
   }
 
   horizontalSoft(j) {
@@ -1302,6 +1314,7 @@ export class TdsModel {
     if (this.run === 'stop') return false;
     if (this.extended.pulse.type === 'PULSE' || this.extended.horizontal.holdoff > 0 || this.extended.autoRange.on || this.extended.acquire === 'AVERAGE' || this.extended.display.persist || this.extended.display.format === 'XY') return true;
     if (this.scen !== 'BENCH') return false;
+    if (this.fx.now != null && this.run === 'run' && this.trig.mode === 'AUTO') return true;
     return (this.extended.acquire === 'AVERAGE' && this.run === 'single' && !this.sequenceDone()) || !!this.changeSearch?.waiting || ((this.run === 'single' || this.trig.mode === 'NORMAL') && this.crosses());
   }
 
@@ -1328,12 +1341,12 @@ export class TdsModel {
       {
         const n = this.acqN;
         for (let j = 0; j < (this.extended.pulse.type === 'PULSE' ? 8 : 1); j++) if (!this.captureChange() || this.acqN !== n || this.run === 'stop') break;
-        if (this.acqN === n && !this.pendingAcquisition && this.run === 'run' && this.trig.mode === 'AUTO') this.publish(this.acquireHistory());
+        if (this.acqN === n && !this.pendingAcquisition) this.autoHistory();
         return; // 所有按鍵、旋鈕、定時更新共用實際交越；不能退回穩態相位而擷取未來的交越。
       }
     }
     if (this.scen === 'BENCH' && this.fx.now != null) {
-      if (this.run === 'run' && this.trig.mode === 'AUTO') this.publish(this.acquireHistory());
+      this.autoHistory();
       return; // Clocked bench inputs never fall back to a preview/next-phase anchor.
     }
     const tt = this.trigTime();
@@ -1362,7 +1375,7 @@ export class TdsModel {
     if (this.isScan()) return 'Scan';
     if (this.pendingAcquisition) return "Trig'd";
     if (this.run === 'single' && this.changeSearch) return 'Ready';
-    if (this.crosses()) return "Trig'd";
+    if (this.crosses() && (this.scen !== 'BENCH' || this.fx.now == null || this.rec?.triggered)) return "Trig'd";
     return this.run === 'run' && this.trig.mode === 'AUTO' ? 'Auto' : 'Ready';
   }
 
@@ -1419,8 +1432,9 @@ export class TdsModel {
         const c2 = this.ch[other], y = Float64Array.from(raw, (v) => v * c2.probe * (this.extended.invert[other] ? -1 : 1));
         let lo = Infinity, hi = -Infinity; for (const v of y) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
         const cr = edgePoints(y, (hi + lo) / 2, true);
-        if (rise.length > 1 && cr.length && hi > lo) {
-          const P = (rise[1] - rise[0]) * r.dt, delta = (cr[0] - rise[0]) * r.dt;
+        const cycle = firstCycle(x), otherCycle = firstCycle(y);
+        if (cycle && otherCycle && rise.length && cr.length) {
+          const P = (cycle[1].k - cycle[0].k) * r.dt, delta = (cr[0] - rise[0]) * r.dt;
           value = ((delta + P / 2) % P + P) % P - P / 2;
           if (type === 'PHASE') { value = value / P * 360; unit = '°'; }
         }

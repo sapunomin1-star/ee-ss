@@ -48,6 +48,11 @@ export async function run() {
     // 3. 示波器：AutoSet → Measure 1＝CH1 Pk-Pk、Measure 2＝CH2 Pk-Pk
     await ui.tab('tds');
     await ui.press(S.AUTOSET);
+    // AutoSet must wait for an actual completed capture before claiming Trig'd.
+    await p.waitForFunction(() => {
+      const scope = window.__eess.snapshot('tds');
+      return scope.rec?.triggered && !scope.pendingAcquisition && scope.status === "Trig'd";
+    });
     let t = await ui.snap('tds');
     T.ok(t.ch[0].on && t.ch[1].on && t.status === "Trig'd", 'AutoSet：CH1、CH2 都顯示、已觸發');
     await seq(S, 'MEAS O1 O2 O2 O2 O2 O5');

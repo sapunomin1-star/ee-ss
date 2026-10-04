@@ -331,7 +331,9 @@ export class DmmModel {
   }
 
   rangeIdx() {
-    if (this.run !== 'run' && this.held?.idx != null) return this.held.idx;
+    // A stopped Auto acquisition retains its range; manual keys still change
+    // the selected range and its physical input load while the sample is held.
+    if (this.run !== 'run' && this.held?.idx != null) return this.st.auto ? this.held.idx : this.st.idx;
     const peak = this.peakIn();
     if (!Number.isFinite(peak)) return this.st.idx;
     if (this.f.kind === 'F') {
@@ -467,7 +469,9 @@ export class DmmModel {
     if (this.fn === 'TEMP') return { C: '°C', F: '°F', K: 'K' }[this.tempUnit];
     if (this.fn === 'DCV' && this.ratioOn) return 'V/V';
     if (this.dbMode !== 'OFF' && ['DCV', 'ACV'].includes(this.fn)) return this.dbMode === 'DB' ? 'dB' : 'dBm';
-    const r = this.f.ranges[this.rangeIdx()];
+    // A held reading keeps the prefix it was formatted with, independently
+    // of any newly selected manual range (e.g. mA -> A while stopped).
+    const r = this.f.ranges[rd.idx ?? this.rangeIdx()];
     return `${this.f.kind === 'F' ? this.frequencyDisplayRange(rd.shown ?? 0).p : r.p}${this.f.base}${this.f.suffix}`;
   }
   baseUnitFor() {

@@ -338,9 +338,27 @@ export function extensionSoftkey(m, i) {
     case 'ARB_WAVES': return i === 4 ? open('ARB_BUILTIN') : null;
     case 'ARB_OUTPUT': if (i < 2) return edit(m, i ? 'OUTLEN' : 'OUTSTART'); return null;
     case 'ARB_MORE': return open(i === 0 ? 'ARB_SAVE' : 'ARB_LOAD');
-    case 'ARB_SAVE': if (i < 2) return edit(m, i ? 'SAVELEN' : 'SAVESTART'); if (i === 2) return open('ARB_SAVE_MEMORY'); return m.arbFileHandler ? m.arbFileHandler('SAVE', exportArbFile(m)) : {kind:'reject',text:'尚未接上ARB檔案匯出；不會存入實體USB。'};
+    case 'ARB_SAVE': {
+      if (i < 2) return edit(m, i ? 'SAVELEN' : 'SAVESTART');
+      if (i === 2) return open('ARB_SAVE_MEMORY');
+      if (!m.arbFileHandler) return { kind: 'reject', text: '尚未接上ARB檔案匯出；不會存入實體USB。' };
+      let file;
+      try { file = exportArbFile(m); } catch (error) { return { kind: 'reject', text: `${error.message} 沒有匯出ARB檔案，原波形保留。` }; }
+      // Validate the exact serialized region before the handler can download it.
+      return m.arbFileHandler('SAVE', file);
+    }
     case 'ARB_LOAD': if (i === 0) return edit(m, 'LOADTO'); if (i === 2) return open('ARB_LOAD_MEMORY'); return m.arbFileHandler ? m.arbFileHandler('LOAD', null) : {kind:'reject',text:'尚未接上ARB檔案匯入；不會讀取實體USB。'};
-    case 'ARB_SAVE_MEMORY': { const slot = { ...(u.memories[u.memoryIndex] ?? {}) }; slot.arb = clone(m.ch.map((c) => c.extended.arb)); slot.arb[m.sel].points = a.points.slice(a.saveStart, a.saveStart + a.saveLength); slot.arb[m.sel].start = 0; slot.arb[m.sel].length = Math.max(2, a.saveLength); while (slot.arb[m.sel].points.length < ARB_SIZE) slot.arb[m.sel].points.push(0); u.memories[u.memoryIndex] = slot; return { kind: 'info', text: `ARB已保存至Memory${u.memoryIndex}。` }; }
+    case 'ARB_SAVE_MEMORY': {
+      let region;
+      try { region = selectedArbRegion(m); } catch (error) { return { kind: 'reject', text: `${error.message} 原記憶保留。` }; }
+      const slot = { ...(u.memories[u.memoryIndex] ?? {}) };
+      slot.arb = clone(m.ch.map((c) => c.extended.arb));
+      slot.arb[m.sel].points = region.file.points;
+      slot.arb[m.sel].start = 0; slot.arb[m.sel].length = region.length;
+      while (slot.arb[m.sel].points.length < ARB_SIZE) slot.arb[m.sel].points.push(0);
+      u.memories[u.memoryIndex] = slot;
+      return { kind: 'info', text: `ARB已保存至Memory${u.memoryIndex}。` };
+    }
     case 'ARB_LOAD_MEMORY': { const stored = u.memories[u.memoryIndex]?.arb?.[m.sel]; if (!stored) return { kind: 'reject', text: '此記憶槽沒有ARB資料。' }; const length = stored.length, result = mutatePoints(m, a.loadTo, length, stored.points.slice(stored.start, stored.start + length)); return result; }
     default: return null;
   }
@@ -502,13 +520,24 @@ export function applyRelations(m, before, relations) {
   return null;
 }
 
-export function exportArbFile(m) { const a=m.c.extended.arb;return {format:'ee-ss-afg-arb',version:1,rate:a.rate,points:a.points.slice(a.saveStart,a.saveStart+a.saveLength)}; }
-export function importArbFile(m,value) {
+// Memory and JSON save both turn the selected samples into a standalone
+// waveform. Import and export must apply the same two-point padding and limits.
+function validateArbFile(value) {
  objectKeys(value,['format','version','rate','points'],'ARB file');
  if(value.format!=='ee-ss-afg-arb'||value.version!==1)throw new TypeError('Unsupported ARB file format/version');
  num(value.rate,2e-6,120e6,'ARB file.rate');if(!Array.isArray(value.points)||value.points.length<1||value.points.length>4096)throw new TypeError('ARB file points must contain 1–4096 samples');
  for(const [i,v]of value.points.entries())num(v,-511,511,`ARB file.points[${i}]`,true);
- const a=m.c.extended.arb,length=Math.max(2,value.points.length),freq=value.rate/length;if(freq<1e-6||freq>60e6)throw new TypeError('ARB file rate/length exceeds repetition range');
+ const length=Math.max(2,value.points.length),freq=value.rate/length;
+ if(freq<1e-6||freq>60e6)throw new TypeError('此ARB儲存區段與Rate的輸出頻率須在1µHz–60MHz；請縮短Length或調整Rate。');
+ return { length, freq };
+}
+function selectedArbRegion(m) {
+ const a=m.c.extended.arb,file={format:'ee-ss-afg-arb',version:1,rate:a.rate,points:a.points.slice(a.saveStart,a.saveStart+a.saveLength)};
+ return { file, ...validateArbFile(file) };
+}
+export function exportArbFile(m) { return selectedArbRegion(m).file; }
+export function importArbFile(m,value) {
+ const {length,freq}=validateArbFile(value),a=m.c.extended.arb;
  if(a.loadTo+length>4096)throw new TypeError('ARB file exceeds memory at selected To address');
  const candidate={...m.c,wave:'ARB',freq,phase:0,extended:{...m.c.extended,arb:{...a,rate:value.rate,start:a.loadTo,length}}},error=m.check({wave:'ARB',freq,duty:candidate.duty,vpp:m.refVpp(candidate),off:m.refOffset(candidate),load50:candidate.load50})||motionError(candidate);if(error)return {kind:'reject',text:error};
  const result=mutatePoints(m,a.loadTo,length,[...value.points,...(value.points.length===1?[0]:[])]);if(result.kind==='reject')return result;

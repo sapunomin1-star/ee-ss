@@ -189,6 +189,15 @@ export class AfgModel {
       if(!err)err=activeChannelsError(this.ch.filter(c=>c.output));
       if(!err&&JSON.stringify(before)!==JSON.stringify(this.ch))try{this.ch.forEach(c=>normalizeChannelExtension(c.extended,c));}catch(e){err=e.message;}
       if(err||result?.kind==='reject'){rollback();return err?{kind:'reject',text:`設定被拒絕：${err}。原值保留。`}:result;}
+      // A committed timing/waveform edit arms a new Manual operation. Reusing
+      // its old timestamp with a longer duration could restart a finished burst.
+      this.ch.forEach((c, i) => {
+        const motion = c.extended.motion, old = before[i].extended.motion;
+        const timingFields = motion.mode === 'SWEEP' ? ['start', 'stop', 'sweepTime', 'sweepType'] : ['cycles', 'infinite', 'delay', 'burstPhase'];
+        if (this.motionRuntime[i] && motion.source === 'MANUAL' &&
+          (c.wave !== before[i].wave || carrierRate(c) !== carrierRate(before[i]) ||
+           motion.mode !== old.mode || timingFields.some((key) => motion[key] !== old[key]))) this.motionRuntime[i] = null;
+      });
       return result;
     } catch(e){rollback();throw e;}
   }
