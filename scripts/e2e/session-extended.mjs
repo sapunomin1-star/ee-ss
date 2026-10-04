@@ -19,8 +19,11 @@ export async function run() {
     await p.click('[data-lead="DMM.SHI"]'); await p.click('[data-hole="a1"]');
     await p.click('[data-lead="DMM.SLO"]'); await p.click('[data-hole="a2"]');
     await p.check('input[name="benchView"][value="schematic"]');
-    const leads = await p.locator('.schematic-svg .sc-lead-label').allTextContents();
-    T.ok(leads.includes('DMM SHI → a1') && leads.includes('DMM SLO → a2'), '電路圖保留兩條 Sense 導線與各自實體孔位');
+    const leads = await p.locator('.schematic-svg .sc-measure-label').allTextContents();
+    const details = await p.locator('.side .wires li').allTextContents();
+    T.ok(leads.some(s => s.includes('DMM SHI')) && leads.some(s => s.includes('DMM SLO'))
+      && details.some(s => s.includes('Sense HI') && s.includes('→ a1'))
+      && details.some(s => s.includes('Sense LO') && s.includes('→ a2')), '主圖顯示兩條 Sense 導線，接線明細保留各自實體孔位');
     await ui.shot('instrument-memory-session');
     T.ok(ui.errors.length === 0, `沒有瀏覽器錯誤：${ui.errors.join('; ')}`);
   } finally { await ui.close(); }

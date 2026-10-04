@@ -21,7 +21,7 @@ const BENCH = 'bench';
 const SESSION_KEY = 'ee-ss.session.v1';
 const MAX_SESSION_BYTES = 4 * 1024 * 1024;
 const LIVE_MS = 200; // 讀值隨時間變（電表積分窗、電容充放電）時的畫面更新間隔
-const SCHEMATIC_HELP = '電路圖依目前麵包板接線產生；同名節點相連。點元件核對值與孔位，點節點可回麵包板查看相連的孔。';
+const SCHEMATIC_HELP = '沿導線查看實際的串聯、並聯與回路；接錯或斷開也會如實畫出。點元件或接點可核對麵包板孔位。';
 const BB_HELP = '麵包板上方選「插電阻／插電容／接跳線」後點兩個空孔擺上；點導線端（變藍）再點孔＝接線；滑鼠移到孔上會標出所有相連的孔。';
 const FOCUSABLE = '[data-lead],[data-schematic-node],[data-goto],[data-hole],[data-comp],[data-bbtool]'; // 實驗台上可聚焦、Enter／空白鍵＝點擊的東西
 const TOOL_HELP = { select: '選取：點元件選取（可改值），Delete 刪除。', R: '電阻：點第一個孔，再點第二個孔。', C: '電容：點第一個孔，再點第二個孔。', W: '跳線：點第一個孔，再點第二個孔，兩個孔所在的組就連在一起。' };
@@ -83,7 +83,7 @@ export function startApp(root) {
 
   root.innerHTML = `
     <header class="top">
-      <div class="brand">電子學實習儀器練習<small class="build-version">2026.10.04 麵包板電路圖版</small><small>模擬器 · 操作順序練習用，數值行為依手冊與暫定規則</small></div>
+      <div class="brand">電子學實習儀器練習<small class="build-version">2026.10.04 電路圖更新</small><small>模擬器 · 操作順序練習用，數值行為依手冊與暫定規則</small></div>
       <nav class="tabs" role="tablist">${ids.map((id) => `<button role="tab" data-tab="${id}">${esc(models[id].title)}<small>${esc(models[id].subtitle)}</small></button>`).join('')}<button role="tab" data-tab="${BENCH}" class="tab-bench">實驗台<small>麵包板接線／電路圖</small></button></nav>
       <div class="tools">
         <button data-zoom="-1" title="縮小">－</button><button data-zoom="0" title="符合視窗">符合</button><button data-zoom="1" title="放大">＋</button>

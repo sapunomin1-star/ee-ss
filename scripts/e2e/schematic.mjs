@@ -17,6 +17,45 @@ export async function run() {
   const view = (name) => p.check(`input[name="benchView"][value="${name}"]`);
   const miniScreens = () => p.locator('svg[data-mini]').evaluateAll((items) =>
     Object.fromEntries(items.map((el) => [el.dataset.mini, el.innerHTML])));
+  // Trace the SVG strokes themselves, not only matching node names. Sampling
+  // also follows any bridge arcs used to make an unconnected crossing clear.
+  const drawing = () => p.locator('.schematic-svg').evaluate((svg) => {
+    const parent = [], samples = new Map(), pins = {}, edges = {};
+    const find = (i) => parent[i] === i ? i : (parent[i] = find(parent[i]));
+    const add = () => { const i = parent.length; parent.push(i); return i; };
+    const point = (id, net, x, y) => {
+      const gx = Math.round(x), gy = Math.round(y);
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+        for (const other of samples.get(`${net}:${gx + dx}:${gy + dy}`) ?? []) {
+          if (Math.hypot(other.x - x, other.y - y) < 1.1) parent[find(id)] = find(other.id);
+        }
+      }
+      const key = `${net}:${gx}:${gy}`;
+      if (!samples.has(key)) samples.set(key, []);
+      samples.get(key).push({ id, x, y });
+    };
+    for (const wire of svg.querySelectorAll('.sc-wire[data-wire-node]')) {
+      const id = add(), length = wire.getTotalLength(), steps = Math.max(1, Math.ceil(length));
+      for (let step = 0; step <= steps; step++) {
+        const p = wire.getPointAtLength(length * step / steps);
+        point(id, wire.dataset.wireNode, p.x, p.y);
+      }
+    }
+    for (const el of svg.querySelectorAll('.sc-component, .sc-source')) {
+      const name = el.dataset.comp ?? el.dataset.source;
+      const edge = { a: el.dataset.nodeA, b: el.dataset.nodeB,
+        x1: Number(el.dataset.x1), y1: Number(el.dataset.y1), x2: Number(el.dataset.x2), y2: Number(el.dataset.y2) };
+      edges[name] = edge;
+      for (const [leg, net, x, y] of [['a', edge.a, edge.x1, edge.y1], ['b', edge.b, edge.x2, edge.y2]]) {
+        const id = add(); pins[`${name}.${leg}`] = { id, net };
+        if (Number.isFinite(x) && Number.isFinite(y)) point(id, net, x, y);
+      }
+    }
+    return { edges, pins: Object.fromEntries(Object.entries(pins).map(([name, pin]) => [name, { net: pin.net, group: find(pin.id) }])),
+      wires: svg.querySelectorAll('.sc-wire[data-wire-node]').length };
+  });
+  const joined = (diagram, ...pins) => pins.every((pin) => diagram.pins[pin]
+    && diagram.pins[pin].net === diagram.pins[pins[0]].net && diagram.pins[pin].group === diagram.pins[pins[0]].group);
   const place = async (kind, a, b) => {
     await p.check(`input[name="bbtool"][value="${kind}"]`);
     await p.click(`[data-hole="${a}"]`); await p.click(`[data-hole="${b}"]`);
@@ -45,8 +84,59 @@ export async function run() {
       '固定 RC 板選擇器已移除');
     await view('schematic');
     T.ok(await p.locator('.schematic-svg .sc-component').count() === 0
-      && (await p.locator('.schematic-svg').textContent()).includes('還沒有元件'), '空白板顯示空白電路圖，沒有虛構 RC 元件');
+      && (await p.locator('.schematic-svg').textContent()).includes('先在麵包板'), '空白板顯示空白電路圖，沒有虛構 RC 元件');
+    T.ok(await p.locator('.schematic-svg .sc-source').count() === 0, '沒有接電源的空白板不會憑空出現電池');
     await view('breadboard');
+
+    // The requested textbook example: source on the left, R1 in series with
+    // two separate parallel branches, and a real wire returning to source−.
+    await ui.tab('gpe');
+    await p.locator('[data-id="GPE.KNOB.CH1_VOLTAGE"]').focus();
+    for (let step = 0; step < 6; step++) await p.keyboard.press('ArrowUp');
+    await ui.press('GPE.KEY.OUTPUT_ON_OFF'); await ui.tab('bench');
+    await place('R', 'a2', 'a8'); await place('R', 'b8', 'b14'); await place('R', 'c8', 'c14');
+    await wire('GPE.CH1+', 'b2'); await wire('GPE.CH1-', 'd14');
+    await view('schematic');
+    let diagram = await drawing();
+    const source = diagram.edges['GPE.CH1'], r = diagram.edges;
+    T.ok(source?.a === '2U' && source?.b === '14U' && await p.locator('.schematic-svg .sc-source').count() === 1,
+      '只將實際接好的 GPE CH1 畫成電源，正負端對應原始接線');
+    T.ok((await ui.snap('gpe')).vset[1] === 5
+      && await p.locator('.sc-source[data-source="GPE.CH1"]').getAttribute('data-output') === 'on'
+      && (await p.locator('.sc-source[data-source="GPE.CH1"]').textContent()).includes('5 V'),
+      '電源符號標示真面板設定的 5 V 與 Output ON');
+    T.ok(source && source.x1 === source.x2 && source.x1 < Math.min(r.R1.x1, r.R1.x2)
+      && r.R1.y1 === r.R1.y2 && r.R2.x1 === r.R2.x2 && r.R3.x1 === r.R3.x2 && r.R2.x1 !== r.R3.x1,
+      '電源在左、R1 水平串聯、R2 與 R3 各自垂直並聯，呈現課本式配置');
+    T.ok(diagram.wires > 0 && joined(diagram, 'GPE.CH1.a', 'R1.a')
+      && joined(diagram, 'R1.b', 'R2.a', 'R3.a') && joined(diagram, 'R2.b', 'R3.b', 'GPE.CH1.b'),
+      'SVG 實際導線連通輸入、分支與下方回路，不只靠相同標籤表示相連');
+    T.ok(await p.locator('.schematic-svg .sc-earth').count() === 0, '浮接 GPE 負端有回路導線，不冒充大地');
+    await ui.shot('schematic-textbook-parallel');
+
+    await view('breadboard'); await place('W', 'd8', 'e14'); await view('schematic');
+    diagram = await drawing();
+    T.ok(diagram.edges.R2.a === diagram.edges.R2.b && diagram.edges.R3.a === diagram.edges.R3.b
+      && await p.locator('.schematic-svg .sc-component.shorted').count() === 2,
+      '實際跨接跳線造成兩顆並聯電阻短路，圖上仍保留兩顆並標示短路');
+    T.ok(joined(diagram, 'R1.b', 'R2.a', 'R2.b', 'R3.a', 'R3.b', 'GPE.CH1.b'),
+      '短路後 SVG 導線按真實節點重接，不繼續顯示原本的理想分壓電路');
+    await ui.shot('schematic-textbook-short');
+    await view('breadboard'); await p.click('[data-history="undo"]');
+    await p.click('[data-lead="GPE.CH1-"]'); await p.click('[data-lead="GPE.CH1-"]');
+    await view('schematic');
+    T.ok(await p.locator('.schematic-svg .sc-source').count() === 0
+      && (await ui.snap('bench')).bbWires['GPE.CH1+'] === 'b2'
+      && (await p.locator('.schematic-svg').textContent()).includes('GPE CH1'),
+      '電源只接正端時保留該端註記，不虛構電池與未接的負端回路');
+    await view('breadboard');
+    await p.click('[data-lead="GPE.CH1+"]'); await p.click('[data-lead="GPE.CH1+"]');
+    await view('schematic');
+    T.ok(await p.locator('.schematic-svg .sc-source').count() === 0
+      && await p.locator('.schematic-svg .sc-component').count() === 3,
+      '拔掉電源兩端後電源符號消失，三顆實際電阻與未接回路仍保留');
+    await ui.shot('schematic-textbook-disconnected');
+    await view('breadboard'); await p.click('[data-bb="clear"]');
 
     // Parallel resistors, a grounded return through a jumper, a shorted part,
     // a disconnected capacitor, and floating negative/sense terminals.
@@ -73,12 +163,15 @@ export async function run() {
     T.ok(same(edges.C2, ['22L', '26L', 'f22', 'f26'])
       && (await p.locator('.schematic-svg [data-comp="C2"]').getAttribute('aria-label')).includes('空腳'),
       '未連接電容不被省略，保留兩個獨立端點與空腳提示');
-    const ground = await p.locator('.sc-net-card[data-schematic-node="E"]').textContent();
-    const floating = await p.locator('.sc-net-card[data-schematic-node="B-"]').textContent();
+    await p.locator('.sc-node[data-schematic-node="E"] .sc-node-hit').first().click();
+    const ground = await p.locator('.sc-selected-node').textContent();
+    await p.locator('.sc-node[data-schematic-node="B-"] .sc-node-hit').first().click();
+    const floating = await p.locator('.sc-selected-node').textContent();
     const warnings = await p.locator('.side ul.warn').innerText();
-    T.ok(ground.includes('GND') && ground.includes('T-') && ground.includes('10U') && ground.includes('W1'),
+    T.ok(ground.includes('GND') && ground.includes('T-10') && ground.includes('d10') && ground.includes('W1'),
       '共地節點列出上方負軌、經跳線相連的銅條與 W1');
-    T.ok(!floating.includes('GND') && floating.includes('GPE CH1−') && floating.includes('DMM SLO'),
+    T.ok(!floating.includes('GND') && floating.includes('GPE CH1') && floating.includes('Sense LO')
+      && floating.includes('B-1') && floating.includes('B-2'),
       'GPE 負端與 DMM Sense LO 所在負軌保持浮接，不誤畫為大地');
     T.ok(warnings.includes('R3') && warnings.includes('短路') && warnings.includes('C2') && warnings.includes('空腳'),
       '接線檢查同時顯示短路與未連接元件');
@@ -100,7 +193,7 @@ export async function run() {
     T.ok((await ui.snap('bench')).bb.parts.find((part) => part.id === 'R1')?.value === 1000,
       '繼續 Undo 恢復改值前的 1 kΩ');
 
-    await p.locator('.sc-net-card[data-schematic-node="E"]').focus(); await p.keyboard.press('Enter');
+    await p.locator('.sc-node[data-schematic-node="E"]').first().focus(); await p.keyboard.press('Enter');
     const selected = physical(await ui.snap('bench'));
     T.ok((await ui.snap('bench')).bbUi.schematicNode === 'E'
       && (await p.locator('.sc-selected-node').innerText()).includes('d10'), '鍵盤選節點可查看跳線與元件的原始孔位');
@@ -134,7 +227,9 @@ export async function run() {
     T.ok(charging.dcNow[RC_NODES.B] > .05 && charging.dcNow[RC_NODES.B] < 1.5,
       '驗收前電容正在充電，尚未達到穩態');
     await view('schematic');
-    T.ok(await p.locator('.schematic-svg').getAttribute('data-schematic-layout') === 'chain', '實際 RC 串聯圖採用容易核對的電阻與電容排列');
+    diagram = await drawing();
+    T.ok(joined(diagram, 'AFG.CH1.a', 'R1.a') && joined(diagram, 'R1.b', 'C1.a')
+      && joined(diagram, 'C1.b', 'AFG.CH1.b'), '實際 RC 串聯圖有輸入、電容與回到 AFG 的連續導線');
     await view('breadboard'); await view('schematic');
     T.ok(same(physical(await ui.snap('bench')), charging), '暫停時鐘後反覆切換：充電電壓、元件識別碼與編輯歷史完全不變');
     T.ok(same(await miniScreens(), screens), '暫停時鐘後四台儀器 LCD 內容完全相同，不因切換檢視重新量測');
